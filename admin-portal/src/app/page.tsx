@@ -59,7 +59,7 @@ export default async function AdminDashboard() {
                 ))}
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-xl">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-800">
                         <thead className="bg-slate-950/50">
@@ -67,7 +67,6 @@ export default async function AdminDashboard() {
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Location</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">Type</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Visibility</th>
                                 <th className="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -77,8 +76,24 @@ export default async function AdminDashboard() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {college.image ? (
-                                                <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-slate-700 hidden sm:block">
-                                                    <img src={college.image} alt="" className="w-full h-full object-cover" />
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-slate-700 hidden sm:block bg-slate-800">
+                                                    <img
+                                                        src={college.image}
+                                                        alt=""
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            (e.target as HTMLImageElement).parentElement?.classList.add('flex', 'items-center', 'justify-center');
+                                                            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                                                            svg.setAttribute("class", "w-5 h-5 text-slate-500");
+                                                            svg.setAttribute("viewBox", "0 0 24 24");
+                                                            svg.setAttribute("fill", "none");
+                                                            svg.setAttribute("stroke", "currentColor");
+                                                            svg.setAttribute("stroke-width", "2");
+                                                            svg.innerHTML = '<path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />';
+                                                            (e.target as HTMLImageElement).parentElement?.appendChild(svg);
+                                                        }}
+                                                    />
                                                 </div>
                                             ) : (
                                                 <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 shrink-0 hidden sm:flex items-center justify-center">
@@ -99,9 +114,7 @@ export default async function AdminDashboard() {
                                             {college.type}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <VisibilityBadge visibility={college.visibility ?? (college.is_published ? "public" : "draft")} />
-                                    </td>
+                                    {/* Visibility removed - now handled in Actions */}
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                         <CollegeActions
                                             id={college.id}
