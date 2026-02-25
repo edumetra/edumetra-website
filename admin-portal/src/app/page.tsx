@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import CollegeActions from "@/components/CollegeActions";
+import CollegeImage from "@/components/CollegeImage";
 
 function VisibilityBadge({ visibility }: { visibility: string }) {
     const map: Record<string, { label: string; dot: string; bg: string; text: string; border: string }> = {
@@ -75,31 +76,10 @@ export default async function AdminDashboard() {
                                 <tr key={college.id} className="hover:bg-slate-800/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            {college.image ? (
-                                                <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-slate-700 hidden sm:block bg-slate-800">
-                                                    <img
-                                                        src={college.image}
-                                                        alt=""
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                            (e.target as HTMLImageElement).parentElement?.classList.add('flex', 'items-center', 'justify-center');
-                                                            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                                                            svg.setAttribute("class", "w-5 h-5 text-slate-500");
-                                                            svg.setAttribute("viewBox", "0 0 24 24");
-                                                            svg.setAttribute("fill", "none");
-                                                            svg.setAttribute("stroke", "currentColor");
-                                                            svg.setAttribute("stroke-width", "2");
-                                                            svg.innerHTML = '<path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />';
-                                                            (e.target as HTMLImageElement).parentElement?.appendChild(svg);
-                                                        }}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 shrink-0 hidden sm:flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-                                                </div>
-                                            )}
+                                            <CollegeImage
+                                                src={college.image}
+                                                alt={college.name}
+                                            />
                                             <div>
                                                 <div className="text-sm font-bold text-slate-200">{college.name}</div>
                                                 <div className="text-xs text-slate-500 sm:hidden mt-0.5">{college.location_city}, {college.location_state}</div>
