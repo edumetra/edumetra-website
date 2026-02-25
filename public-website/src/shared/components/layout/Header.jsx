@@ -72,6 +72,8 @@ const Header = () => {
                                 <a
                                     key={index}
                                     href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-300 hover:text-white`}
                                 >
                                     {link.name}
@@ -280,6 +282,8 @@ const Header = () => {
                                             <a
                                                 key={index}
                                                 href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="block px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200"
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
