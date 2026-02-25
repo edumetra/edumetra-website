@@ -13,10 +13,14 @@ BEGIN
     WHERE id = auth.uid()
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- 2. Update policies to use the function instead of a subquery
 -- This breaks the recursion loop permanently.
+
+-- Admins table itself
+DROP POLICY IF EXISTS "Admins can view all admins." ON admins;
+CREATE POLICY "Admins can view all admins." ON admins FOR SELECT USING (is_admin());
 
 -- Colleges
 DROP POLICY IF EXISTS "Admins can view all colleges." ON colleges;
@@ -24,6 +28,10 @@ CREATE POLICY "Admins can view all colleges." ON colleges FOR SELECT USING (is_a
 
 DROP POLICY IF EXISTS "Admins can update colleges." ON colleges;
 CREATE POLICY "Admins can update colleges." ON colleges FOR UPDATE USING (is_admin());
+
+-- College Details
+DROP POLICY IF EXISTS "Admins can view all college details." ON college_details;
+CREATE POLICY "Admins can view all college details." ON college_details FOR SELECT USING (is_admin());
 
 -- Profiles
 DROP POLICY IF EXISTS "Admins can view all profiles." ON user_profiles;
