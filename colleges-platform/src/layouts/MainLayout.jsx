@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import SignupModal from '../components/SignupModal';
+import CompareBar from '../components/CompareBar';
 import { useSignup } from '../contexts/SignupContext';
 
 export default function MainLayout() {
@@ -14,6 +15,7 @@ export default function MainLayout() {
                 <Outlet />
             </main>
             <Footer />
+            <CompareBar />
             <SignupModal isOpen={showModal} onClose={closeModal} />
         </div>
     );

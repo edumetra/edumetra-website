@@ -20,6 +20,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
         location_city: "",
         location_state: "",
         type: "Private",
+        visibility: "draft",
         rank: "",
         rating: "",
         fees: "",
@@ -69,6 +70,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                     location_city: data.location_city,
                     location_state: data.location_state,
                     type: data.type,
+                    visibility: data.visibility ?? (data.is_published ? "public" : "draft"),
                     rank: data.rank.toString(),
                     rating: data.rating?.toString() || "",
                     fees: data.fees,
@@ -111,6 +113,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                     location_city: formData.location_city,
                     location_state: formData.location_state,
                     type: formData.type,
+                    visibility: formData.visibility,
                     rank: parseInt(formData.rank) || 0,
                     rating: parseFloat(formData.rating) || 0,
                     fees: formData.fees,
@@ -154,35 +157,64 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
         </div>
     );
 
-    const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 hover:border-blue-300 font-medium text-slate-700 placeholder:text-slate-400";
-    const labelClasses = "block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1";
-    const sectionClasses = "bg-white p-8 rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-slate-100";
+    const inputClasses = "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200 hover:border-slate-700 font-medium text-slate-200 placeholder:text-slate-500";
+    const labelClasses = "block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1";
+    const sectionClasses = "bg-slate-900/50 p-8 rounded-2xl border border-slate-800 backdrop-blur-sm";
 
     return (
-        <div className="min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-slate-950 py-12 px-4 sm:px-6">
             <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-10">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Edit College</h1>
-                        <p className="text-slate-500 mt-2">Update institution details and placement statistics.</p>
+                        <h1 className="text-3xl font-extrabold text-white tracking-tight">Edit College</h1>
+                        <p className="text-slate-400 mt-2">Update institution details and placement statistics.</p>
                     </div>
-                    <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white border border-slate-200 px-5 py-2.5 rounded-full shadow-sm hover:shadow-md">
+                    <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-full shadow-sm">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                         Cancel
                     </Link>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg mb-8 shadow-sm flex items-center">
-                        <div className="mr-3">⚠️</div>
-                        <div>{error}</div>
+                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl mb-8 flex items-center gap-3">
+                        <span>⚠️</span>
+                        <span>{error}</span>
                     </div>
                 )}
+
+                {/* Visibility selector at top */}
+                <div className="mb-6 p-5 bg-slate-900/50 rounded-2xl border border-slate-800">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Visibility Status</label>
+                    <div className="flex gap-3 flex-wrap">
+                        {(["public", "draft", "hidden"] as const).map(v => (
+                            <button
+                                key={v}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, visibility: v })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${formData.visibility === v
+                                        ? v === "public" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                                            : v === "hidden" ? "bg-slate-700 border-slate-600 text-slate-300"
+                                                : "bg-amber-500/15 border-amber-500/40 text-amber-400"
+                                        : "bg-slate-800/50 border-slate-700 text-slate-500 hover:text-slate-300"
+                                    }`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${v === "public" ? "bg-emerald-400" : v === "hidden" ? "bg-slate-500" : "bg-amber-400"
+                                    }`} />
+                                {v.charAt(0).toUpperCase() + v.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                        {formData.visibility === "public" ? "✓ Visible to all users on the Colleges Platform" :
+                            formData.visibility === "draft" ? "Saved privately. Not visible to public users." :
+                                "Hidden from the platform but kept in the system."}
+                    </p>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Basic Info */}
@@ -458,14 +490,14 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                         </div>
                     </section>
 
-                    <div className="sticky bottom-0 bg-white/80 backdrop-blur-xl p-4 border-t border-slate-200 -mx-4 sm:-mx-0 flex justify-end gap-3 z-10 rounded-t-xl sm:rounded-none">
-                        <Link href="/" className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                    <div className="sticky bottom-0 bg-slate-900/80 backdrop-blur-xl p-4 border-t border-slate-800 -mx-4 sm:-mx-0 flex justify-end gap-3 z-10 rounded-t-xl sm:rounded-none">
+                        <Link href="/" className="px-6 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                             Cancel
                         </Link>
                         <Button
                             type="submit"
                             disabled={saving}
-                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02]"
+                            className="bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/30 px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] border-0"
                         >
                             {saving ? "Saving..." : "Update College"}
                         </Button>

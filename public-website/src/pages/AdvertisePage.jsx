@@ -63,8 +63,8 @@ const AdvertisePage = () => {
     return (
         <>
             <Helmet>
-                <title>Advertise With Us - CollegePredictor | Partner With India's Leading Education Portal</title>
-                <meta name="description" content="Partner with CollegePredictor - India's most innovative education portal. Reach students, parents, and educators with comprehensive advertising solutions." />
+                <title>Advertise With Us - Edumetra | Partner With India's Leading Education Portal</title>
+                <meta name="description" content="Partner with Edumetra - India's most innovative education portal. Reach students, parents, and educators with comprehensive advertising solutions." />
             </Helmet>
 
             {/* Hero Section */}
@@ -91,7 +91,7 @@ const AdvertisePage = () => {
                         </h1>
                         <p className="text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
                             We are India's most innovative and interactive education portal with an ergonomically
-                            designed interface which ensures maximum conversion. CollegePredictor caters to the needs
+                            designed interface which ensures maximum conversion. Edumetra caters to the needs
                             of students, parents, and educators seeking information on higher education.
                         </p>
                     </motion.div>
@@ -240,7 +240,7 @@ const AdvertisePage = () => {
                                 Get in Touch
                             </a>
                             <a
-                                href="mailto:partnerships@collegepredictor.com"
+                                href="mailto:partnerships@edumetra.com"
                                 className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
                             >
                                 Email Us

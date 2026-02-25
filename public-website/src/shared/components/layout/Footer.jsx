@@ -69,7 +69,7 @@ const Footer = () => {
                     <div className="max-w-4xl mx-auto text-center">
                         <h3 className="text-2xl font-bold mb-2">Subscribe to our Newsletter</h3>
                         <p className="text-slate-600 mb-6">
-                            Get the latest insights, news & updates from CollegePredictor
+                            Get the latest insights, news & updates from Edumetra
                         </p>
                         <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto">
                             <div className="flex-1 relative">
@@ -114,8 +114,7 @@ const Footer = () => {
                                 <GraduationCap className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-xl font-bold">
-                                <span className="text-slate-900">College</span>
-                                <span className="text-primary-600">Predictor</span>
+                                <span className="text-primary-600">Edumetra</span>
                             </span>
                         </Link>
 
@@ -124,7 +123,7 @@ const Footer = () => {
                         </p>
 
                         <p className="text-sm text-slate-700 mb-4 leading-relaxed">
-                            CollegePredictor helps you find and apply to top medical colleges across India with detailed info on courses, exams & more.
+                            Edumetra helps you find and apply to top medical colleges across India with detailed info on courses, exams & more.
                         </p>
 
                         {/* Contact Info */}
@@ -255,7 +254,7 @@ const Footer = () => {
 
                         {/* Copyright */}
                         <p className="text-sm text-slate-600 text-center">
-                            Copyright © {new Date().getFullYear()} CollegePredictor. All Rights Reserved.
+                            Copyright © {new Date().getFullYear()} Edumetra. All Rights Reserved.
                         </p>
 
                         {/* Back to Top */}

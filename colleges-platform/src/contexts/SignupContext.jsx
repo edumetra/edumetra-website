@@ -15,10 +15,10 @@ export function SignupProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [modalMode, setModalMode] = useState('signup'); // 'signup' | 'login'
     const [collegeClickCount, setCollegeClickCount] = useState(0);
 
     useEffect(() => {
-        // Check active sessions and subscribe to auth changes
         const getSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
@@ -35,13 +35,14 @@ export function SignupProvider({ children }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Track time spent on site (show modal if not logged in)
+    // Show signup nudge after 8 seconds if not logged in
     useEffect(() => {
         if (user || loading) return;
 
         const timer = setTimeout(() => {
+            setModalMode('signup');
             setShowModal(true);
-        }, 8000); // Increased to 8 seconds to be less annoying
+        }, 8000);
 
         return () => clearTimeout(timer);
     }, [user, loading]);
@@ -53,10 +54,20 @@ export function SignupProvider({ children }) {
         const newCount = collegeClickCount + 1;
         setCollegeClickCount(newCount);
 
-        // Show modal on 2nd college click
         if (newCount >= 2) {
+            setModalMode('signup');
             setShowModal(true);
         }
+    };
+
+    const openSignIn = () => {
+        setModalMode('login');
+        setShowModal(true);
+    };
+
+    const openSignUp = () => {
+        setModalMode('signup');
+        setShowModal(true);
     };
 
     const closeModal = () => {
@@ -73,9 +84,12 @@ export function SignupProvider({ children }) {
         showModal,
         setShowModal,
         closeModal,
+        modalMode,
+        openSignIn,
+        openSignUp,
         trackCollegeClick,
-        isSignedUp: !!user, // Backward compatibility
-        logout
+        isSignedUp: !!user,
+        logout,
     };
 
     return (

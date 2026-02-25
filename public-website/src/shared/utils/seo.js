@@ -1,12 +1,12 @@
 // SEO utility functions for dynamic meta tags
 
 export const seoConfig = {
-    defaultTitle: 'Medical College Portal - NEET Cutoffs, Rankings & Admission Predictions',
+    defaultTitle: 'Edumetra - NEET Cutoffs, Rankings & Admission Predictions',
     defaultDescription: 'Comprehensive medical college information portal for India. Access NEET cutoffs, NIRF rankings, college profiles, and AI-powered admission predictions to make informed decisions.',
-    defaultKeywords: 'medical colleges India, NEET cutoff, NEET college predictor, medical admission, NIRF ranking, medical college seats, MBBS admission, NEET counseling',
-    siteUrl: 'https://medcollegeportal.com', // Replace with actual domain
+    defaultKeywords: 'medical colleges India, NEET cutoff, Edumetra, medical admission, NIRF ranking, medical college seats, MBBS admission, NEET counseling',
+    siteUrl: 'https://edumetra.com', // Replace with actual domain
     ogImage: '/og-image.jpg', // Add OG image
-    twitterHandle: '@medcollegeportal', // Replace with actual handle
+    twitterHandle: '@edumetra', // Replace with actual handle
 };
 
 export const generatePageMeta = (page) => {
@@ -17,24 +17,24 @@ export const generatePageMeta = (page) => {
             keywords: seoConfig.defaultKeywords,
         },
         features: {
-            title: 'Features - College Database, Rankings & Predictions | Medical College Portal',
+            title: 'Features - College Database, Rankings & Predictions | Edumetra',
             description: 'Explore medical colleges with comprehensive data: NIRF/QS rankings, previous & predicted NEET cutoffs, seat insights, and AI-powered admission predictions.',
             keywords: 'medical college database, NIRF rankings, NEET cutoffs, college predictions, seat availability, admission analysis',
         },
         pricing: {
-            title: 'Pricing - Free & Premium Plans | Medical College Portal',
+            title: 'Pricing - Free & Premium Plans | Edumetra',
             description: 'Start free with limited college exploration. Upgrade to Premium for complete cutoff history, AI predictions, and automated guidance.',
-            keywords: 'medical college subscription, premium features, NEET guidance pricing, college predictor plans',
+            keywords: 'medical college subscription, premium features, NEET guidance pricing, Edumetra plans',
         },
         about: {
-            title: 'About Us - Empowering Medical Aspirants | Medical College Portal',
+            title: 'About Us - Empowering Medical Aspirants | Edumetra',
             description: 'Learn how our platform helps medical students make informed decisions with comprehensive college data, rankings, and AI-powered admission predictions.',
-            keywords: 'about medical college portal, NEET guidance, medical admission help, college selection',
+            keywords: 'about edumetra, NEET guidance, medical admission help, college selection',
         },
         contact: {
-            title: 'Contact Us - Support & Inquiries | Medical College Portal',
+            title: 'Contact Us - Support & Inquiries | Edumetra',
             description: 'Get help with college data, cutoffs, subscriptions, or general inquiries. Our support team is here to assist medical aspirants.',
-            keywords: 'contact medical college portal, support, help, customer service, NEET queries',
+            keywords: 'contact edumetra, support, help, customer service, NEET queries',
         },
     };
 
@@ -60,13 +60,13 @@ export const generateStructuredData = (type, data) => {
             return {
                 ...baseData,
                 '@type': 'Organization',
-                name: 'Medical College Portal',
+                name: 'Edumetra',
                 url: seoConfig.siteUrl,
                 logo: `${seoConfig.siteUrl}/logo.png`,
                 sameAs: [
-                    'https://twitter.com/medcollegeportal',
-                    'https://facebook.com/medcollegeportal',
-                    'https://instagram.com/medcollegeportal',
+                    'https://twitter.com/edumetra',
+                    'https://facebook.com/edumetra',
+                    'https://instagram.com/edumetra',
                 ],
             };
 
@@ -74,7 +74,7 @@ export const generateStructuredData = (type, data) => {
             return {
                 ...baseData,
                 '@type': 'Product',
-                name: 'Medical College Portal Premium',
+                name: 'Edumetra Premium',
                 description: 'Premium medical college admission service with AI-powered predictions and comprehensive NEET cutoff data',
                 offers: {
                     '@type': 'Offer',

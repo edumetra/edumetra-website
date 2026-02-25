@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { X, GraduationCap, Mail, User, Lock, LogIn } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, GraduationCap, Mail, User, Lock, LogIn, Phone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 
 export default function SignupModal({ isOpen, onClose }) {
+    const { closeModal, modalMode } = useSignup();
     const [isLogin, setIsLogin] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        phone: '',
         password: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { closeModal } = useSignup();
+    const [successMsg, setSuccessMsg] = useState(null);
+
+    // Sync with modalMode from context whenever modal opens or mode changes
+    useEffect(() => {
+        if (isOpen) {
+            setIsLogin(modalMode === 'login');
+            setError(null);
+            setSuccessMsg(null);
+        }
+    }, [isOpen, modalMode]);
 
     if (!isOpen) return null;
 
@@ -20,6 +31,7 @@ export default function SignupModal({ isOpen, onClose }) {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMsg(null);
 
         try {
             if (isLogin) {
@@ -28,6 +40,8 @@ export default function SignupModal({ isOpen, onClose }) {
                     password: formData.password,
                 });
                 if (error) throw error;
+                closeModal();
+                onClose && onClose();
             } else {
                 const { error } = await supabase.auth.signUp({
                     email: formData.email,
@@ -35,14 +49,13 @@ export default function SignupModal({ isOpen, onClose }) {
                     options: {
                         data: {
                             full_name: formData.name,
+                            phone: formData.phone,
                         },
                     },
                 });
                 if (error) throw error;
+                setSuccessMsg('Account created! Please check your email to verify your address, then sign in.');
             }
-
-            closeModal();
-            onClose && onClose(); // Handle both context close and prop close
         } catch (err) {
             setError(err.message);
         } finally {
@@ -51,44 +64,53 @@ export default function SignupModal({ isOpen, onClose }) {
     };
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleClose = () => {
+        closeModal();
+        onClose && onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="relative bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-800">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+            <div className="relative bg-[#0f1629] rounded-2xl shadow-2xl shadow-black/60 max-w-md w-full p-8 border border-white/10">
                 {/* Close button */}
                 <button
-                    onClick={() => { closeModal(); onClose && onClose(); }}
-                    className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+                    onClick={handleClose}
+                    className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/8"
                     aria-label="Close modal"
                 >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                 </button>
 
                 {/* Icon */}
                 <div className="flex justify-center mb-6">
-                    <div className="bg-blue-600/20 p-4 rounded-full border border-blue-500/20">
-                        <GraduationCap className="w-10 h-10 text-blue-500" />
+                    <div className="bg-red-500/15 p-4 rounded-2xl border border-red-500/20">
+                        <GraduationCap className="w-9 h-9 text-red-400" />
                     </div>
                 </div>
 
                 {/* Header */}
-                <h2 className="text-2xl font-bold text-center mb-2 text-white">
-                    {isLogin ? 'Welcome Back' : 'Join College Explorer'}
+                <h2 className="text-2xl font-bold text-center mb-1.5 text-white">
+                    {isLogin ? 'Welcome Back' : 'Join Edumetra Colleges'}
                 </h2>
                 <p className="text-slate-400 text-center mb-6 text-sm">
                     {isLogin
                         ? 'Sign in to access your saved colleges and recommendations'
-                        : 'Create a free account to unlock personalized recommendations'}
+                        : 'Create a free account to unlock personalised college recommendations'}
                 </p>
+
+                {/* Success Message */}
+                {successMsg && (
+                    <div className="bg-green-500/10 border border-green-500/25 text-green-400 text-sm p-3 rounded-xl mb-4 text-center">
+                        {successMsg}
+                    </div>
+                )}
 
                 {/* Error Message */}
                 {error && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-lg mb-4 text-center">
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl mb-4 text-center">
                         {error}
                     </div>
                 )}
@@ -97,11 +119,11 @@ export default function SignupModal({ isOpen, onClose }) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {!isLogin && (
                         <div>
-                            <label htmlFor="name" className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
+                            <label htmlFor="name" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
                                 Full Name
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
                                 <input
                                     type="text"
                                     id="name"
@@ -109,7 +131,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required={!isLogin}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                     placeholder="John Doe"
                                 />
                             </div>
@@ -117,11 +139,11 @@ export default function SignupModal({ isOpen, onClose }) {
                     )}
 
                     <div>
-                        <label htmlFor="email" className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
+                        <label htmlFor="email" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
                             Email Address
                         </label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
                             <input
                                 type="email"
                                 id="email"
@@ -129,18 +151,38 @@ export default function SignupModal({ isOpen, onClose }) {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                 placeholder="john@example.com"
                             />
                         </div>
                     </div>
 
+                    {!isLogin && (
+                        <div>
+                            <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                                Phone Number <span className="text-slate-600 normal-case font-normal">(optional)</span>
+                            </label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                    placeholder="+91 98765 43210"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     <div>
-                        <label htmlFor="password" className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
+                        <label htmlFor="password" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
                             Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
                             <input
                                 type="password"
                                 id="password"
@@ -149,7 +191,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                 onChange={handleChange}
                                 required
                                 minLength={6}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                 placeholder="Min. 6 characters"
                             />
                         </div>
@@ -157,27 +199,30 @@ export default function SignupModal({ isOpen, onClose }) {
 
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        disabled={loading || !!successMsg}
+                        className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-2"
                     >
                         {loading ? (
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
                             <>
-                                {isLogin ? <LogIn className="w-5 h-5" /> : <GraduationCap className="w-5 h-5" />}
+                                {isLogin ? <LogIn className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
                                 {isLogin ? 'Sign In' : 'Create Account'}
                             </>
                         )}
                     </button>
                 </form>
 
-                {/* Footer / Toggle */}
-                <div className="mt-6 text-center">
+                {/* Toggle mode */}
+                <div className="mt-5 text-center">
                     <button
-                        onClick={() => { setIsLogin(!isLogin); setError(null); }}
-                        className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+                        onClick={() => { setIsLogin(!isLogin); setError(null); setSuccessMsg(null); }}
+                        className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
                     >
-                        {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                        {isLogin
+                            ? <>Don't have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign Up</span></>
+                            : <>Already have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign In</span></>
+                        }
                     </button>
                 </div>
             </div>

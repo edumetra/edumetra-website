@@ -38,7 +38,7 @@ const PricingPage = () => {
             badge: '88% OFF',
             valueStack: {
                 items: [
-                    { name: 'AI Admission Predictor', value: 999 },
+                    { name: 'AI Admission Engine', value: 999 },
                     { name: '10-Year Cutoff Analyzer', value: 799 },
                     { name: 'WhatsApp Concierge', value: 499 },
                     { name: 'Priority Email Support', value: 299 },

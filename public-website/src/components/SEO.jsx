@@ -26,7 +26,7 @@ const SEO = ({ page, title, description, keywords, structuredData }) => {
             <meta property="og:description" content={pageDescription} />
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:image" content={`${seoConfig.siteUrl}${seoConfig.ogImage} `} />
-            <meta property="og:site_name" content="Medical College Portal" />
+            <meta property="og:site_name" content="Edumetra" />
 
             {/* Twitter Card */}
             <meta name="twitter:card" content="summary_large_image" />

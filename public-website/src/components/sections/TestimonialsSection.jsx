@@ -7,7 +7,7 @@ const TestimonialsSection = () => {
             name: 'Rahul Sharma',
             role: 'Engineering Student, IIT Delhi',
             rating: 5,
-            quote: 'CollegePredictor helped me understand my chances realistically. The predictions were spot-on and I got into my dream college!',
+            quote: 'Edumetra helped me understand my chances realistically. The predictions were spot-on and I got into my dream college!',
         },
         {
             name: 'Priya Patel',
@@ -50,7 +50,7 @@ const TestimonialsSection = () => {
                         Loved by <span className="gradient-text">50,000+ Students</span>
                     </h2>
                     <p className="text-slate-300 text-lg">
-                        See what students say about their experience with CollegePredictor.
+                        See what students say about their experience with Edumetra.
                     </p>
                 </div>
 

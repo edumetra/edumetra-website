@@ -8,6 +8,7 @@ import GuaranteesSection from '../components/sections/GuaranteesSection';
 import SuccessStoriesSection from '../components/sections/SuccessStoriesSection';
 import TestimonialsSection from '../components/sections/TestimonialsSection';
 import CTASection from '../components/sections/CTASection';
+import AboutUsSection from '../components/sections/AboutUsSection';
 import { generateStructuredData } from '../shared/utils/seo';
 import { analytics } from '../shared/utils/analytics';
 
@@ -27,6 +28,7 @@ const HomePage = () => {
 
             <main>
                 <NewHeroSection />
+                <AboutUsSection />
                 <StudyPlansSection />
                 <TrustSection />
                 <FeaturesGrid />

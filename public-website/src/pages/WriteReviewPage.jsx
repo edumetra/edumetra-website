@@ -82,8 +82,8 @@ const WriteReviewPage = () => {
     return (
         <>
             <Helmet>
-                <title>Write a Review - CollegePredictor | Share Your Experience</title>
-                <meta name="description" content="Share your experience with CollegePredictor counseling services. Help other students and parents make informed decisions about their medical education journey." />
+                <title>Write a Review - Edumetra | Share Your Experience</title>
+                <meta name="description" content="Share your experience with Edumetra counseling services. Help other students and parents make informed decisions about their medical education journey." />
             </Helmet>
 
             {/* Hero Section */}
@@ -314,7 +314,7 @@ const WriteReviewPage = () => {
                                                     className="w-5 h-5 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
                                                 />
                                                 <span className="text-slate-700">
-                                                    I would recommend CollegePredictor to others
+                                                    I would recommend Edumetra to others
                                                 </span>
                                             </label>
                                         </div>

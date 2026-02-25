@@ -14,6 +14,11 @@ import { StatCard, PlacementHighlight } from '../components/college-detail/Stats
 import { PlacementChart } from '../components/college-detail/PlacementChart';
 import { CampusLife } from '../components/college-detail/CampusLife';
 import { ReviewForm, ReviewList } from '../components/ReviewComponents';
+import { PhotosGallery } from '../components/college-detail/PhotosGallery';
+import { CoursesTable } from '../components/college-detail/CoursesTable';
+import { QASection } from '../components/college-detail/QASection';
+import { ReviewInsights } from '../components/college-detail/ReviewInsights';
+import SEOHead from '../components/SEOHead';
 
 export default function CollegeDetailPage() {
     const { collegeId } = useParams();
@@ -96,7 +101,7 @@ export default function CollegeDetailPage() {
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-8 h-8 border-t-2 border-blue-500 rounded-full"
+                    className="w-8 h-8 border-t-2 border-red-500 rounded-full"
                 />
             </div>
         );
@@ -108,7 +113,7 @@ export default function CollegeDetailPage() {
                 <div className="text-center px-4">
                     <h1 className="text-3xl font-bold mb-4 text-white">College Not Found</h1>
                     <p className="text-slate-400 mb-8 max-w-md mx-auto">{error || "The college you're looking for doesn't exist or has been removed."}</p>
-                    <Link to="/colleges" className="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-full font-medium transition-colors">
+                    <Link to="/colleges" className="inline-flex items-center gap-2 text-white bg-red-600 hover:bg-red-500 px-6 py-3 rounded-full font-medium transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Back to Colleges
                     </Link>
                 </div>
@@ -118,8 +123,39 @@ export default function CollegeDetailPage() {
 
     const stats = college.placementStats || {};
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'EducationalOrganization',
+        name: college.name,
+        description: college.description || `${college.name} is located in ${college.location}. Type: ${college.type}.`,
+        url: `https://colleges.edumetra.in/colleges/${college.id}`,
+        image: college.image,
+        address: {
+            '@type': 'PostalAddress',
+            addressLocality: college.city,
+            addressRegion: college.state,
+            addressCountry: 'IN',
+        },
+        ...(college.rating ? {
+            aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: college.rating,
+                bestRating: 5,
+                worstRating: 1,
+                ratingCount: college.review_count || 1,
+            }
+        } : {}),
+    };
+
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-red-500/30">
+            <SEOHead
+                title={college.name}
+                description={`${college.name} in ${college.location} — Fees: ${college.fees || 'N/A'}, Rating: ${college.rating || 'N/A'}/5. Read student reviews and compare with other colleges.`}
+                image={college.image}
+                url={`/colleges/${college.id}`}
+                jsonLd={jsonLd}
+            />
             {/* Parallax Hero */}
             <div ref={targetRef} className="relative h-[70vh] min-h-[500px] overflow-hidden">
                 <motion.div
@@ -149,7 +185,7 @@ export default function CollegeDetailPage() {
                     >
                         {/* Badges */}
                         <div className="flex flex-wrap items-center gap-3 mb-6">
-                            <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-lg uppercase tracking-wider shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                            <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-lg uppercase tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.5)]">
                                 {college.type}
                             </span>
                             {college.rank && (
@@ -170,15 +206,15 @@ export default function CollegeDetailPage() {
 
                         <div className="flex flex-wrap items-center gap-6 text-slate-200 text-sm md:text-base font-medium">
                             <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-blue-500/20 rounded-full backdrop-blur-sm">
-                                    <MapPin className="w-4 h-4 text-blue-400" />
+                                <div className="p-1.5 bg-red-500/20 rounded-full backdrop-blur-sm">
+                                    <MapPin className="w-4 h-4 text-red-400" />
                                 </div>
                                 {college.location}
                             </div>
                             <div className="w-1.5 h-1.5 rounded-full bg-slate-600 hidden sm:block" />
                             <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-blue-500/20 rounded-full backdrop-blur-sm">
-                                    <Building2 className="w-4 h-4 text-blue-400" />
+                                <div className="p-1.5 bg-red-500/20 rounded-full backdrop-blur-sm">
+                                    <Building2 className="w-4 h-4 text-red-400" />
                                 </div>
                                 Est. {college.founded}
                             </div>
@@ -189,7 +225,7 @@ export default function CollegeDetailPage() {
                                         href={college.website_url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                                        className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
                                     >
                                         Visit Website <ExternalLink className="w-4 h-4" />
                                     </a>
@@ -215,7 +251,7 @@ export default function CollegeDetailPage() {
                         {/* Sticky Glassmorphic Tabs */}
                         <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50 transition-all">
                             <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
-                                {['Overview', 'Placement', 'Campus', 'FAQ', 'Reviews'].map((tab) => (
+                                {['Overview', 'Placement', 'Photos', 'Courses', 'Campus', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => {
@@ -227,7 +263,7 @@ export default function CollegeDetailPage() {
                                     >
                                         {tab}
                                         {activeTab === tab.toLowerCase() && (
-                                            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                                            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
                                         )}
                                     </button>
                                 ))}
@@ -266,25 +302,42 @@ export default function CollegeDetailPage() {
                             <CampusLife />
                         </section>
 
+                        {/* Photos Gallery */}
+                        <section id="photos" className="scroll-mt-24">
+                            <h2 className="text-2xl font-bold text-white mb-6">Campus Photos</h2>
+                            <PhotosGallery photos={college.campus_photos || []} />
+                        </section>
+
+                        {/* Courses & Fees */}
+                        <section id="courses" className="scroll-mt-24">
+                            <h2 className="text-2xl font-bold text-white mb-6">Courses &amp; Fees</h2>
+                            <CoursesTable courses={college.courses_fees || []} />
+                        </section>
+
                         {/* Popular Programs */}
                         {college.programs.length > 0 && (
                             <section>
                                 <h2 className="text-2xl font-bold text-white mb-6">Popular Programs</h2>
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     {college.programs.map((program, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-blue-500/30 transition-colors group cursor-pointer">
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-red-500/30 transition-colors group cursor-pointer">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover:text-blue-400 transition-colors">
+                                                <div className="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover:text-red-400 transition-colors">
                                                     <BookOpen className="w-5 h-5" />
                                                 </div>
                                                 <span className="font-medium text-slate-200 group-hover:text-white">{program}</span>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors" />
+                                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-red-400 transition-colors" />
                                         </div>
                                     ))}
                                 </div>
                             </section>
                         )}
+
+                        {/* Q&A */}
+                        <section id="q&a" className="scroll-mt-24">
+                            <QASection collegeId={collegeId} />
+                        </section>
 
                         {/* FAQs */}
                         <section id="faq" className="scroll-mt-24">
@@ -306,6 +359,7 @@ export default function CollegeDetailPage() {
 
                             <div className="grid gap-8">
                                 <ReviewForm collegeId={collegeId} onReviewSubmitted={() => setRefreshReviews(prev => !prev)} />
+                                <ReviewInsights collegeId={collegeId} />
                                 <ReviewList collegeId={collegeId} refreshTrigger={refreshReviews} />
                             </div>
                         </section>
@@ -315,7 +369,7 @@ export default function CollegeDetailPage() {
                     <div className="space-y-6">
                         {/* Admission Probability Card (Sticky) */}
                         <div className="sticky top-24">
-                            <div className="bg-gradient-to-b from-blue-600 to-blue-700 rounded-2xl p-6 md:p-8 shadow-2xl shadow-blue-900/30 text-center relative overflow-hidden group">
+                            <div className="bg-gradient-to-b from-red-600 to-red-700 rounded-2xl p-6 md:p-8 shadow-2xl shadow-red-900/30 text-center relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
                                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors duration-500"></div>
 
@@ -325,14 +379,14 @@ export default function CollegeDetailPage() {
                                     </div>
 
                                     <h3 className="text-2xl font-bold text-white mb-3">Admission Chances</h3>
-                                    <p className="text-blue-100 mb-8 text-sm leading-relaxed">
+                                    <p className="text-red-100 mb-8 text-sm leading-relaxed">
                                         Check your probability of getting into <strong>{college.name}</strong> based on your current profile.
                                     </p>
 
-                                    <button className="w-full bg-white text-blue-600 py-4 rounded-xl font-bold text-base hover:bg-blue-50 hover:scale-[1.02] transition-all shadow-lg active:scale-95">
+                                    <Link to="/eligibility" className="block w-full bg-white text-red-600 py-4 rounded-xl font-bold text-base hover:bg-red-50 hover:scale-[1.02] transition-all shadow-lg active:scale-95 text-center">
                                         Check Eligibility Now
-                                    </button>
-                                    <p className="text-blue-200/60 text-xs mt-4">Takes less than 2 minutes</p>
+                                    </Link>
+                                    <p className="text-red-200/60 text-xs mt-4">Takes less than 2 minutes</p>
                                 </div>
                             </div>
                         </div>

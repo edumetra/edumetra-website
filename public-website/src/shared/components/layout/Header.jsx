@@ -60,8 +60,7 @@ const Header = () => {
                             <GraduationCap className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-xl md:text-2xl font-bold hidden sm:block">
-                            <span className="text-white">College</span>
-                            <span className="gradient-text">Predictor</span>
+                            <span className="gradient-text">Edumetra</span>
                         </span>
                     </Link>
 

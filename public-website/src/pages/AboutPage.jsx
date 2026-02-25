@@ -65,8 +65,8 @@ const AboutPage = () => {
     return (
         <>
             <Helmet>
-                <title>About Us - CollegePredictor | Your Trusted Medical Admission Partner</title>
-                <meta name="description" content="Learn about CollegePredictor's mission to help students achieve their medical education dreams. 15+ years of experience, 10,000+ students counseled, 95% success rate." />
+                <title>About Us - Edumetra | Your Trusted Medical Admission Partner</title>
+                <meta name="description" content="Learn about Edumetra's mission to help students achieve their medical education dreams. 15+ years of experience, 10,000+ students counseled, 95% success rate." />
             </Helmet>
 
             {/* Hero Section */}
@@ -85,7 +85,7 @@ const AboutPage = () => {
                         className="max-w-4xl mx-auto text-center"
                     >
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-                            About <span className="gradient-text">CollegePredictor</span>
+                            About <span className="gradient-text">Edumetra</span>
                         </h1>
                         <p className="text-xl text-slate-300 leading-relaxed">
                             Empowering students and parents with expert guidance for over 15 years

@@ -82,7 +82,7 @@ const SignupPage = () => {
                             Create Account
                         </h2>
                         <p className="text-slate-400">
-                            Start your journey with CollegePredictor
+                            Start your journey with Edumetra
                         </p>
                     </div>
 

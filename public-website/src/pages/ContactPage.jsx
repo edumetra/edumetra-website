@@ -14,9 +14,9 @@ const ContactPage = () => {
         {
             icon: Mail,
             title: 'Email Us',
-            value: 'support@collegepredictor.com',
+            value: 'support@edumetra.com',
             description: 'Send us an email anytime',
-            link: 'mailto:support@collegepredictor.com',
+            link: 'mailto:support@edumetra.com',
         },
         {
             icon: Phone,

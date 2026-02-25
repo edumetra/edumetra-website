@@ -15,7 +15,7 @@ export const CampusLife = () => {
     return (
         <section className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <Camera className="w-6 h-6 text-blue-400" />
+                <Camera className="w-6 h-6 text-red-400" />
                 Campus Life
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-64 md:h-80">

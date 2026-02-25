@@ -18,6 +18,7 @@ export default function NewCollegePage() {
         location_city: "",
         location_state: "",
         type: "Private",
+        visibility: "draft",
         rank: "",
         rating: "",
         fees: "",
@@ -54,6 +55,7 @@ export default function NewCollegePage() {
                     location_city: formData.location_city,
                     location_state: formData.location_state,
                     type: formData.type,
+                    visibility: formData.visibility,
                     rank: parseInt(formData.rank) || 0,
                     rating: parseFloat(formData.rating) || 0,
                     fees: formData.fees,
@@ -64,7 +66,7 @@ export default function NewCollegePage() {
                     description: formData.description,
                     established_year: parseInt(formData.established_year) || null,
                     website_url: formData.website_url,
-                    is_published: true
+                    is_published: formData.visibility === "public"
                 })
                 .select()
                 .single();
@@ -98,22 +100,51 @@ export default function NewCollegePage() {
         }
     };
 
-    const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 hover:border-blue-300 font-medium text-slate-700 placeholder:text-slate-400";
-    const labelClasses = "block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1";
-    const sectionClasses = "bg-white p-8 rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-slate-100";
+    const inputClasses = "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200 hover:border-slate-700 font-medium text-slate-200 placeholder:text-slate-500";
+    const labelClasses = "block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1";
+    const sectionClasses = "bg-slate-900/50 p-8 rounded-2xl border border-slate-800 backdrop-blur-sm";
 
     return (
-        <div className="min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-slate-950 py-12 px-4 sm:px-6">
             <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-10">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Add New College</h1>
-                        <p className="text-slate-500 mt-2">Create a new institution profile in the database.</p>
+                        <h1 className="text-3xl font-extrabold text-white tracking-tight">Add New College</h1>
+                        <p className="text-slate-400 mt-2">Create a new institution profile in the database.</p>
                     </div>
-                    <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white border border-slate-200 px-5 py-2.5 rounded-full shadow-sm hover:shadow-md">
+                    <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-full shadow-sm">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                         Cancel
                     </Link>
+                </div>
+
+                {/* Visibility Selector */}
+                <div className="mb-6 p-5 bg-slate-900/50 rounded-2xl border border-slate-800">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Visibility Status</label>
+                    <div className="flex gap-3 flex-wrap">
+                        {(["public", "draft", "hidden"] as const).map(v => (
+                            <button
+                                key={v}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, visibility: v })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${formData.visibility === v
+                                        ? v === "public" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                                            : v === "hidden" ? "bg-slate-700 border-slate-600 text-slate-300"
+                                                : "bg-amber-500/15 border-amber-500/40 text-amber-400"
+                                        : "bg-slate-800/50 border-slate-700 text-slate-500 hover:text-slate-300"
+                                    }`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${v === "public" ? "bg-emerald-400" : v === "hidden" ? "bg-slate-500" : "bg-amber-400"
+                                    }`} />
+                                {v.charAt(0).toUpperCase() + v.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                        {formData.visibility === "public" ? "✓ Visible to all users on the Colleges Platform" :
+                            formData.visibility === "draft" ? "Saved privately. Not visible to public users." :
+                                "Hidden from the platform but kept in the system."}
+                    </p>
                 </div>
 
                 {error && (
@@ -126,11 +157,11 @@ export default function NewCollegePage() {
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Basic Info */}
                     <section className={sectionClasses}>
-                        <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-4">
-                            <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                        <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-4">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
                                 <Building2 className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800">Basic Information</h2>
+                            <h2 className="text-xl font-bold text-white">Basic Information</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -199,11 +230,11 @@ export default function NewCollegePage() {
 
                     {/* Location & Ranking */}
                     <section className={sectionClasses}>
-                        <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-4">
-                            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                        <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-4">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
                                 <MapPin className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800">Location & Ranking</h2>
+                            <h2 className="text-xl font-bold text-white">Location & Ranking</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -264,11 +295,11 @@ export default function NewCollegePage() {
 
                     {/* Academics & Placement */}
                     <section className={sectionClasses}>
-                        <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-4">
-                            <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                        <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-4">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
                                 <GraduationCap className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800">Academics & Placement</h2>
+                            <h2 className="text-xl font-bold text-white">Academics & Placement</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -346,11 +377,11 @@ export default function NewCollegePage() {
 
                     {/* Details */}
                     <section className={sectionClasses}>
-                        <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-4">
-                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                        <div className="flex items-center gap-3 mb-8 border-b border-slate-800 pb-4">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
                                 <FileText className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800">Description & Media</h2>
+                            <h2 className="text-xl font-bold text-white">Description & Media</h2>
                         </div>
 
                         <div className="space-y-8">
@@ -397,14 +428,14 @@ export default function NewCollegePage() {
                         </div>
                     </section>
 
-                    <div className="sticky bottom-0 bg-white/80 backdrop-blur-xl p-4 border-t border-slate-200 -mx-4 sm:-mx-0 flex justify-end gap-3 z-10 rounded-t-xl sm:rounded-none">
-                        <Link href="/" className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                    <div className="sticky bottom-0 bg-slate-900/80 backdrop-blur-xl p-4 border-t border-slate-800 -mx-4 sm:-mx-0 flex justify-end gap-3 z-10 rounded-t-xl sm:rounded-none">
+                        <Link href="/" className="px-6 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                             Cancel
                         </Link>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02]"
+                            className="bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/30 px-8 py-3 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] border-0"
                         >
                             {loading ? "Saving College..." : "Create College Profile"}
                         </Button>

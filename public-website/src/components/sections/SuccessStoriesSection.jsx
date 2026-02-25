@@ -8,7 +8,7 @@ const SuccessStoriesSection = () => {
             name: 'Priya Sharma',
             role: 'MBBS Student, AIIMS Delhi',
             image: '👩‍⚕️',
-            quote: 'CollegePredictor helped me navigate the entire admission process. Their counselors were patient, knowledgeable, and genuinely cared about my success. I got into my dream college!',
+            quote: 'Edumetra helped me navigate the entire admission process. Their counselors were patient, knowledgeable, and genuinely cared about my success. I got into my dream college!',
             rating: 5,
             year: '2023',
             achievement: 'NEET AIR 145'
@@ -17,7 +17,7 @@ const SuccessStoriesSection = () => {
             name: 'Rajesh Kumar',
             role: 'Parent',
             image: '👨‍💼',
-            quote: 'As a parent, I was overwhelmed by the admission process. The team at CollegePredictor made everything simple and transparent. They kept us informed at every step and delivered exactly what they promised.',
+            quote: 'As a parent, I was overwhelmed by the admission process. The team at Edumetra made everything simple and transparent. They kept us informed at every step and delivered exactly what they promised.',
             rating: 5,
             year: '2024',
             achievement: 'Son admitted to JIPMER'
@@ -35,7 +35,7 @@ const SuccessStoriesSection = () => {
             name: 'Dr. Meenakshi (Parent)',
             role: 'Parent & Doctor',
             image: '👩‍⚕️',
-            quote: 'Even as a doctor myself, I needed expert guidance for my daughter\'s admission. CollegePredictor\'s data-driven approach and personalized attention made all the difference.',
+            quote: 'Even as a doctor myself, I needed expert guidance for my daughter\'s admission. Edumetra\'s data-driven approach and personalized attention made all the difference.',
             rating: 5,
             year: '2024',
             achievement: 'Daughter in GMC Nagpur'

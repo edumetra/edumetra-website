@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /review
+Disallow: /compare
+
+Sitemap: https://colleges.edumetra.in/sitemap.xml
