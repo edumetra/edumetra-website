@@ -71,7 +71,7 @@ const Header = () => {
                             link.name === 'Find Colleges' ? (
                                 <a
                                     key={index}
-                                    href="http://localhost:3002"
+                                    href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
                                     className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-300 hover:text-white`}
                                 >
                                     {link.name}
@@ -276,17 +276,28 @@ const Header = () => {
                                 <div className="mb-2">
                                     <p className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Main Pages</p>
                                     {mainNavLinks.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            to={link.path}
-                                            className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${isActivePath(link.path)
-                                                ? 'bg-red-600/20 text-red-400 font-semibold'
-                                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                                                }`}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            {link.name}
-                                        </Link>
+                                        link.name === 'Find Colleges' ? (
+                                            <a
+                                                key={index}
+                                                href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
+                                                className="block px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                {link.name}
+                                            </a>
+                                        ) : (
+                                            <Link
+                                                key={index}
+                                                to={link.path}
+                                                className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${isActivePath(link.path)
+                                                    ? 'bg-red-600/20 text-red-400 font-semibold'
+                                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                                    }`}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                {link.name}
+                                            </Link>
+                                        )
                                     ))}
                                 </div>
 
