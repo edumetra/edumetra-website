@@ -1,6 +1,6 @@
 "use client";
-import { createClient } from "@/utils/supabase/client";
-import { Database } from "@/shared/types/database.types";
+import { createClient } from "../utils/supabase/client";
+import { Database } from "../shared/types/database.types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
@@ -26,10 +26,10 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
     const handleVisibilityChange = async (newVisibility: Visibility) => {
         setStatusLoading(true);
         setDropdownOpen(false);
-        const { error } = await supabase
-            .from("colleges")
+        const { error } = await (supabase
+            .from('colleges') as any)
             .update({ visibility: newVisibility })
-            .eq("id", id);
+            .eq('id', id);
 
         if (!error) {
             setCurrentVisibility(newVisibility);
