@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { Database } from "@repo/types/database.types";
+import { Database } from "@/shared/types/database.types";
 
 export async function updateSession(request: NextRequest) {
     let response = NextResponse.next({

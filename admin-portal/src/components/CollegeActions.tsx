@@ -1,11 +1,13 @@
 "use client";
 import { createClient } from "@/utils/supabase/client";
+import { Database } from "@/shared/types/database.types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, EyeOff, FileText, Edit, Trash2, ChevronDown } from "lucide-react";
+import { Edit, Trash2, ChevronDown } from "lucide-react";
 
-type Visibility = "public" | "draft" | "hidden";
+type Visibility = Database['public']['Tables']['colleges']['Row']['visibility'];
+
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; color: string }[] = [
     { value: "public", label: "Public", color: "text-emerald-400" },
@@ -26,8 +28,7 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
         setDropdownOpen(false);
         const { error } = await supabase
             .from("colleges")
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .update({ visibility: newVisibility } as any)
+            .update({ visibility: newVisibility })
             .eq("id", id);
 
         if (!error) {
