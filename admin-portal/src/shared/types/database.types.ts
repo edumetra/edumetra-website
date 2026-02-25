@@ -51,6 +51,7 @@ export interface Database {
                     courses: string[] | null
                     image: string | null
                     is_published: boolean
+                    visibility: 'public' | 'draft' | 'hidden'
                     created_at: string
                     updated_at: string
                 }
@@ -69,6 +70,7 @@ export interface Database {
                     courses?: string[] | null
                     image?: string | null
                     is_published?: boolean
+                    visibility?: 'public' | 'draft' | 'hidden'
                     created_at?: string
                     updated_at?: string
                 }
@@ -87,6 +89,7 @@ export interface Database {
                     courses?: string[] | null
                     image?: string | null
                     is_published?: boolean
+                    visibility?: 'public' | 'draft' | 'hidden'
                     created_at?: string
                     updated_at?: string
                 }
