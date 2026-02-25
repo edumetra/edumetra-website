@@ -34,6 +34,7 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
+    /* 
     const { data: { user } } = await supabase.auth.getUser();
 
     if (request.nextUrl.pathname.startsWith('/login')) {
@@ -56,6 +57,7 @@ export async function updateSession(request: NextRequest) {
     if (userProfile?.role !== 'admin') {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
+    */
 
     return response;
 }
