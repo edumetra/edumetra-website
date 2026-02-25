@@ -26,7 +26,8 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
         setDropdownOpen(false);
         const { error } = await supabase
             .from("colleges")
-            .update({ visibility: newVisibility })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .update({ visibility: newVisibility } as any)
             .eq("id", id);
 
         if (!error) {
@@ -54,14 +55,14 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     disabled={statusLoading}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${currentVisibility === "public"
-                            ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
-                            : currentVisibility === "hidden"
-                                ? "bg-slate-700/50 border-slate-600/50 text-slate-400"
-                                : "bg-amber-500/10 border-amber-500/25 text-amber-400"
+                        ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+                        : currentVisibility === "hidden"
+                            ? "bg-slate-700/50 border-slate-600/50 text-slate-400"
+                            : "bg-amber-500/10 border-amber-500/25 text-amber-400"
                         }`}
                 >
                     <span className={`w-1.5 h-1.5 rounded-full ${currentVisibility === "public" ? "bg-emerald-400" :
-                            currentVisibility === "hidden" ? "bg-slate-500" : "bg-amber-400"
+                        currentVisibility === "hidden" ? "bg-slate-500" : "bg-amber-400"
                         }`} />
                     {statusLoading ? "..." : current.label}
                     <ChevronDown className={`w-3 h-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
@@ -75,7 +76,7 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
                                 className={`flex items-center gap-2 w-full px-3 py-2.5 text-xs font-medium hover:bg-slate-700/70 transition-colors text-left ${opt.color} ${opt.value === currentVisibility ? "bg-slate-700/40" : ""}`}
                             >
                                 <span className={`w-1.5 h-1.5 rounded-full ${opt.value === "public" ? "bg-emerald-400" :
-                                        opt.value === "hidden" ? "bg-slate-500" : "bg-amber-400"
+                                    opt.value === "hidden" ? "bg-slate-500" : "bg-amber-400"
                                     }`} />
                                 {opt.label}
                             </button>

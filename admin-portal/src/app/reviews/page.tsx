@@ -75,7 +75,8 @@ export default function ReviewsPage() {
         const { error } = await supabase
             .schema("public")
             .from("reviews")
-            .update({ moderation_status: status })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .update({ moderation_status: status } as any)
             .eq("id", id);
 
         if (!error) {

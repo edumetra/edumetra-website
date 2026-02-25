@@ -63,7 +63,8 @@ export default function ModerationPage() {
 
     const setStatus = async (id: string, status: "visible" | "hidden" | "pending") => {
         setActionLoading(id);
-        await supabase.schema("public").from("reviews").update({ moderation_status: status }).eq("id", id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await supabase.schema("public").from("reviews").update({ moderation_status: status } as any).eq("id", id);
         setReviews(prev => prev.map(r => r.id === id ? { ...r, moderation_status: status } : r));
         setActionLoading(null);
     };
@@ -134,8 +135,8 @@ export default function ModerationPage() {
                                         ))}
                                         {/* Status */}
                                         <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${review.moderation_status === "visible" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                                                review.moderation_status === "pending" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
-                                                    "bg-slate-700 text-slate-400 border border-slate-600"
+                                            review.moderation_status === "pending" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                                                "bg-slate-700 text-slate-400 border border-slate-600"
                                             }`}>
                                             {review.moderation_status}
                                         </span>
