@@ -34,9 +34,11 @@ export default function RootLayout({
                             <Link href="/users" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Users
                             </Link>
+                            {/* 
                             <Link href="/content" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Content
                             </Link>
+                            */}
                             <Link href="/reviews" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Reviews
                             </Link>
@@ -46,9 +48,11 @@ export default function RootLayout({
                             <Link href="/analytics" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Analytics
                             </Link>
+                            {/* 
                             <Link href="/settings" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Settings
                             </Link>
+                            */}
                         </nav>
                         <div className="p-4 border-t border-slate-800">
                             <a href="http://localhost:5173" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors border border-slate-700">
