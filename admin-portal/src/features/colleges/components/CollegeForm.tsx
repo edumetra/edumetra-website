@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { Button } from "@/shared/ui";
 import { ArrowLeft, Building2, MapPin, GraduationCap, DollarSign, BookOpen, Globe, FileText, Image as ImageIcon } from "lucide-react";
@@ -57,6 +57,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
         if (initialData) {
             setFormData(initialData);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -128,7 +129,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
                                         name="type"
                                         value={formData.type}
                                         onChange={handleChange}
-                                        className={`${inputClasses} appearance-none cursor-pointer`}
+                                        className={`${inputClasses} appearance - none cursor - pointer`}
                                     >
                                         <option value="Private">Private Institution</option>
                                         <option value="Public/Government">Public / Government</option>
@@ -164,7 +165,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
                                         placeholder="https://www.iitb.ac.in"
                                         value={formData.website_url}
                                         onChange={handleChange}
-                                        className={`${inputClasses} pl-12`}
+                                        className={`${inputClasses} pl - 12`}
                                     />
                                 </div>
                             </div>
@@ -258,7 +259,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
                                         placeholder="e.g. ₹2.5 Lakhs/yr"
                                         value={formData.fees}
                                         onChange={handleChange}
-                                        className={`${inputClasses} pl-10`}
+                                        className={`${inputClasses} pl - 10`}
                                     />
                                 </div>
                             </div>
@@ -275,7 +276,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
                                         placeholder="JEE Main, GATE, CAT"
                                         value={formData.exams}
                                         onChange={handleChange}
-                                        className={`${inputClasses} pl-10`}
+                                        className={`${inputClasses} pl - 10`}
                                     />
                                 </div>
                             </div>
@@ -364,7 +365,7 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
                                         placeholder="https://example.com/campus.jpg"
                                         value={formData.image}
                                         onChange={handleChange}
-                                        className={`${inputClasses} pl-12`}
+                                        className={`${inputClasses} pl - 12`}
                                     />
                                 </div>
                             </div>

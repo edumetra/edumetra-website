@@ -9,14 +9,9 @@ export function QASection({ collegeId }) {
     const [loading, setLoading] = useState(true);
     const [newQuestion, setNewQuestion] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [answeringId, setAnsweringId] = useState(null);
-    const [answerText, setAnswerText] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => { fetchQuestions(); }, [collegeId]);
-    useEffect(() => {
-        if (user) checkAdmin();
-    }, [user]);
 
     const fetchQuestions = async () => {
         setLoading(true);
@@ -29,10 +24,7 @@ export function QASection({ collegeId }) {
         setLoading(false);
     };
 
-    const checkAdmin = async () => {
-        const { data } = await supabase.from('admins').select('id').eq('id', user.id).single();
-        setIsAdmin(!!data);
-    };
+
 
     const handleAsk = async () => {
         if (!user) { setShowModal(true); return; }
@@ -49,17 +41,7 @@ export function QASection({ collegeId }) {
         setSubmitting(false);
     };
 
-    const handleAnswer = async (questionId) => {
-        if (!answerText.trim()) return;
-        await supabase.from('college_qa').update({
-            answer: answerText.trim(),
-            answered_by: user.user_metadata?.full_name || 'Admin',
-            answered_at: new Date().toISOString(),
-        }).eq('id', questionId);
-        setAnsweringId(null);
-        setAnswerText('');
-        await fetchQuestions();
-    };
+
 
     return (
         <div className="space-y-6">
@@ -120,28 +102,6 @@ export function QASection({ collegeId }) {
                                         {q.answered_at && <span className="text-slate-600 text-xs">· {new Date(q.answered_at).toLocaleDateString()}</span>}
                                     </div>
                                     <p className="text-slate-300 text-sm">{q.answer}</p>
-                                </div>
-                            ) : isAdmin ? (
-                                <div className="ml-11 mt-2">
-                                    {answeringId === q.id ? (
-                                        <div className="flex gap-2">
-                                            <textarea
-                                                rows={2}
-                                                value={answerText}
-                                                onChange={e => setAnswerText(e.target.value)}
-                                                placeholder="Write your answer..."
-                                                className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 resize-none"
-                                            />
-                                            <div className="flex flex-col gap-1">
-                                                <button onClick={() => handleAnswer(q.id)} className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors">Post</button>
-                                                <button onClick={() => setAnsweringId(null)} className="px-3 py-1 bg-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-600 transition-colors">Cancel</button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <button onClick={() => { setAnsweringId(q.id); setAnswerText(''); }} className="text-xs text-slate-500 hover:text-emerald-400 font-medium transition-colors">
-                                            + Answer this question
-                                        </button>
-                                    )}
                                 </div>
                             ) : (
                                 <p className="ml-11 text-slate-600 text-xs italic">Awaiting response...</p>

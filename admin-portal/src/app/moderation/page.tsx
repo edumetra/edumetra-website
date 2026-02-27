@@ -48,8 +48,6 @@ export default function ModerationPage() {
     const [filter, setFilter] = useState<"pending" | "all" | "spam">("pending");
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    useEffect(() => { fetchReviews(); }, []);
-
     const fetchReviews = async () => {
         setLoading(true);
         const { data } = await supabase
@@ -61,10 +59,12 @@ export default function ModerationPage() {
         setLoading(false);
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { fetchReviews(); }, []);
+
     const setStatus = async (id: string, status: "visible" | "hidden" | "pending") => {
         setActionLoading(id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await supabase.schema("public").from("reviews").update({ moderation_status: status } as any).eq("id", id);
+        await supabase.schema("public").from("reviews").update({ moderation_status: status } as unknown as never).eq("id", id);
         setReviews(prev => prev.map(r => r.id === id ? { ...r, moderation_status: status } : r));
         setActionLoading(null);
     };
@@ -96,7 +96,7 @@ export default function ModerationPage() {
                 ].map(s => (
                     <button
                         key={s.key}
-                        onClick={() => setFilter(s.key as any)}
+                        onClick={() => setFilter(s.key as "pending" | "all" | "spam")}
                         className={`p-5 rounded-xl border text-left transition-all ${filter === s.key ? "border-red-500/40 ring-2 ring-red-500/20 bg-slate-800" : "border-slate-800 bg-slate-900 hover:bg-slate-800/70"}`}
                     >
                         <s.icon className={`w-5 h-5 mb-2 ${s.color}`} />

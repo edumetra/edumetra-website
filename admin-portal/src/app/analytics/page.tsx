@@ -31,8 +31,6 @@ export default function AnalyticsPage() {
     const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => { fetchAll(); }, []);
-
     const fetchAll = async () => {
         setLoading(true);
 
@@ -79,6 +77,9 @@ export default function AnalyticsPage() {
         setDailyStats(days);
         setLoading(false);
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { fetchAll(); }, []);
 
     const maxCount = Math.max(...dailyStats.map(d => d.count), 1);
 

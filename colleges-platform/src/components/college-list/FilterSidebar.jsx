@@ -94,13 +94,13 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
     return (
         <>
             {isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity" onClick={onClose} />
             )}
             <aside className={`
                 fixed lg:sticky top-0 lg:top-24 left-0 h-screen lg:h-[calc(100vh-8rem)]
-                w-80 bg-slate-900 lg:bg-transparent border-r lg:border border-slate-800
-                transform transition-transform duration-300 ease-in-out z-50 lg:z-0
-                overflow-y-auto lg:rounded-xl
+                w-80 bg-slate-950 lg:bg-transparent border-r lg:border border-slate-800
+                transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-[70] lg:z-0
+                overflow-y-auto lg:rounded-xl shadow-2xl lg:shadow-none
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 <div className="p-6 space-y-1">

@@ -4,6 +4,7 @@ import { useSignup } from '../contexts/SignupContext';
 import FilterSidebar from '../components/college-list/FilterSidebar';
 import SearchHeader from '../components/college-list/SearchHeader';
 import CollegeCard from '../components/college-list/CollegeCard';
+import CollegeCardSkeleton from '../components/college-list/CollegeCardSkeleton';
 import SEOHead from '../components/SEOHead';
 
 export default function CollegeListPage() {
@@ -101,13 +102,7 @@ export default function CollegeListPage() {
         });
     }, [searchQuery, filters, colleges]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="text-white text-xl animate-pulse">Loading colleges...</div>
-            </div>
-        );
-    }
+    // Removing early return for `loading` as we now handle it inside the main render's layout
 
     return (
         <div className="min-h-screen bg-black">
@@ -133,7 +128,9 @@ export default function CollegeListPage() {
                     <div className="flex-1">
                         <SearchHeader query={searchQuery} onSearchChange={setSearchQuery} resultCount={filteredColleges.length} onToggleFilters={() => setSidebarOpen(true)} />
                         <div className="space-y-4">
-                            {filteredColleges.length > 0 ? (
+                            {loading ? (
+                                [...Array(4)].map((_, i) => <CollegeCardSkeleton key={i} />)
+                            ) : filteredColleges.length > 0 ? (
                                 filteredColleges.map(college => (
                                     <CollegeCard
                                         key={college.id}

@@ -9,6 +9,44 @@ export type Json =
 export interface Database {
     public: {
         Tables: {
+            articles: {
+                Row: {
+                    id: string
+                    title: string
+                    slug: string
+                    content: string
+                    excerpt: string | null
+                    image_url: string | null
+                    published: boolean
+                    author: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    title: string
+                    slug: string
+                    content: string
+                    excerpt?: string | null
+                    image_url?: string | null
+                    published?: boolean
+                    author?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    title?: string
+                    slug?: string
+                    content?: string
+                    excerpt?: string | null
+                    image_url?: string | null
+                    published?: boolean
+                    author?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
             profiles: {
                 Row: {
                     id: string
@@ -121,6 +159,41 @@ export interface Database {
                     admission_process?: string | null
                     created_at?: string
                     updated_at?: string
+                }
+            }
+            college_qa: {
+                Row: {
+                    id: string
+                    college_id: string | null
+                    user_id: string | null
+                    user_name: string | null
+                    question: string
+                    answer: string | null
+                    answered_by: string | null
+                    answered_at: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    college_id?: string | null
+                    user_id?: string | null
+                    user_name?: string | null
+                    question: string
+                    answer?: string | null
+                    answered_by?: string | null
+                    answered_at?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    college_id?: string | null
+                    user_id?: string | null
+                    user_name?: string | null
+                    question?: string
+                    answer?: string | null
+                    answered_by?: string | null
+                    answered_at?: string | null
+                    created_at?: string
                 }
             }
             cutoffs: {

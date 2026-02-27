@@ -54,10 +54,10 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
     return (
         <>
             <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} featureName="Save more than 5 colleges" />
-            <div className="group bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-red-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-900/10 flex flex-col md:flex-row">
+            <div className="group bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:-translate-y-1 hover:border-red-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20 flex flex-col md:flex-row">
                 {/* Image */}
                 <div className="relative w-full md:w-64 h-48 md:h-auto flex-shrink-0 overflow-hidden">
-                    <img src={college.image} alt={college.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img src={college.image} alt={college.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg flex items-center gap-1">
                         <Trophy className="w-3 h-3" />#{college.rank}
                     </div>

@@ -23,9 +23,11 @@ export function PhotosGallery({ photos = [] }) {
                     <button
                         key={i}
                         onClick={() => setLightboxIndex(i)}
-                        className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none"
+                        className={`relative rounded-xl overflow-hidden group focus:outline-none 
+                            ${i === 0 ? 'col-span-2 row-span-2 aspect-auto' : 'aspect-[4/3]'}
+                        `}
                     >
-                        <img src={url} alt={`Campus photo ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <img src={url} alt={`Campus photo ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span className="text-white text-xs font-semibold">View</span>
                         </div>

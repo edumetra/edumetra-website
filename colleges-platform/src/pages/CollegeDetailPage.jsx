@@ -1,7 +1,7 @@
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Users, DollarSign, Calendar, Award,
     BookOpen, CheckCircle, TrendingUp, Building2, GraduationCap,
@@ -17,14 +17,15 @@ import { ReviewForm, ReviewList } from '../components/ReviewComponents';
 import { PhotosGallery } from '../components/college-detail/PhotosGallery';
 import { CoursesTable } from '../components/college-detail/CoursesTable';
 import { QASection } from '../components/college-detail/QASection';
+import { FAQSection } from '../components/college-detail/FAQSection';
 import { ReviewInsights } from '../components/college-detail/ReviewInsights';
 import SEOHead from '../components/SEOHead';
 
 export default function CollegeDetailPage() {
     const { collegeId } = useParams();
+    const navigate = useNavigate();
     const [college, setCollege] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshReviews, setRefreshReviews] = useState(false);
 
@@ -86,7 +87,7 @@ export default function CollegeDetailPage() {
                 setCollege(formattedCollege);
             } catch (err) {
                 console.error("Error fetching college:", err);
-                setError("Failed to load college details.");
+                navigate('/404', { replace: true });
             } finally {
                 setLoading(false);
             }
@@ -107,18 +108,9 @@ export default function CollegeDetailPage() {
         );
     }
 
-    if (error || !college) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="text-center px-4">
-                    <h1 className="text-3xl font-bold mb-4 text-white">College Not Found</h1>
-                    <p className="text-slate-400 mb-8 max-w-md mx-auto">{error || "The college you're looking for doesn't exist or has been removed."}</p>
-                    <Link to="/colleges" className="inline-flex items-center gap-2 text-white bg-red-600 hover:bg-red-500 px-6 py-3 rounded-full font-medium transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> Back to Colleges
-                    </Link>
-                </div>
-            </div>
-        );
+    if (!loading && !college) {
+        navigate('/404', { replace: true });
+        return null;
     }
 
     const stats = college.placementStats || {};
@@ -245,12 +237,12 @@ export default function CollegeDetailPage() {
                     <StatCard icon={GraduationCap} label="Total Courses" value={`${college.programs.length}+ Courses`} delay={0.4} />
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-8 lg:gap-12 pb-20">
+                <div className="grid lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
                     {/* Main Left Column */}
-                    <div className="lg:col-span-2 space-y-12">
-                        {/* Sticky Glassmorphic Tabs */}
-                        <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50 transition-all">
-                            <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+                    <div className="lg:col-span-3 space-y-16 lg:space-y-20">
+                        {/* Hidden Glassmorphic Tabs (Now handled by sticky sidebar on desktop, but keep minimal visible top-nav on mobile) */}
+                        <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
+                            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
                                 {['Overview', 'Placement', 'Photos', 'Courses', 'Campus', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
@@ -258,12 +250,11 @@ export default function CollegeDetailPage() {
                                             setActiveTab(tab.toLowerCase());
                                             document.getElementById(tab.toLowerCase())?.scrollIntoView({ behavior: 'smooth' });
                                         }}
-                                        className={`pb-2 text-sm font-bold transition-colors whitespace-nowrap relative ${activeTab === tab.toLowerCase() ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-                                            }`}
+                                        className={`pb-2 text-sm font-bold transition-colors whitespace-nowrap relative ${activeTab === tab.toLowerCase() ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
                                     >
                                         {tab}
                                         {activeTab === tab.toLowerCase() && (
-                                            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
+                                            <motion.div layoutId="activeTabMobile" className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
                                         )}
                                     </button>
                                 ))}
@@ -271,8 +262,10 @@ export default function CollegeDetailPage() {
                         </div>
 
                         {/* About Section */}
-                        <section id="overview" className="scroll-mt-24">
-                            <h2 className="text-2xl font-bold text-white mb-6">About {college.name}</h2>
+                        <section id="overview" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> About {college.name}
+                            </h2>
                             <p className="text-slate-300 leading-relaxed text-lg mb-8">
                                 {college.description || "Information about this institution is currently being updated. Please check back later for detailed insights on campus life, academic excellence, and student achievements."}
                             </p>
@@ -280,7 +273,10 @@ export default function CollegeDetailPage() {
 
                         {/* Visual Placement Stats */}
                         {(stats || college.placement_stats) && (
-                            <section id="placement" className="scroll-mt-24">
+                            <section id="placement" className="scroll-mt-32">
+                                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Placements & ROI
+                                </h2>
                                 <PlacementChart stats={stats} />
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <PlacementHighlight
@@ -298,19 +294,26 @@ export default function CollegeDetailPage() {
                         )}
 
                         {/* Campus Life */}
-                        <section id="campus" className="scroll-mt-24">
+                        <section id="campus" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Facilities
+                            </h2>
                             <CampusLife />
                         </section>
 
                         {/* Photos Gallery */}
-                        <section id="photos" className="scroll-mt-24">
-                            <h2 className="text-2xl font-bold text-white mb-6">Campus Photos</h2>
+                        <section id="photos" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Gallery
+                            </h2>
                             <PhotosGallery photos={college.campus_photos || []} />
                         </section>
 
                         {/* Courses & Fees */}
-                        <section id="courses" className="scroll-mt-24">
-                            <h2 className="text-2xl font-bold text-white mb-6">Courses &amp; Fees</h2>
+                        <section id="courses" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Courses &amp; Fees
+                            </h2>
                             <CoursesTable courses={college.courses_fees || []} />
                         </section>
 
@@ -335,19 +338,27 @@ export default function CollegeDetailPage() {
                         )}
 
                         {/* Q&A */}
-                        <section id="q&a" className="scroll-mt-24">
+                        <section id="q&a" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Questions & Answers
+                            </h2>
                             <QASection collegeId={collegeId} />
                         </section>
 
                         {/* FAQs */}
-                        <section id="faq" className="scroll-mt-24">
+                        <section id="faq" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Frequently Asked Questions
+                            </h2>
                             <FAQSection collegeName={college.name} />
                         </section>
 
                         {/* Reviews */}
-                        <section id="reviews" className="scroll-mt-24">
+                        <section id="reviews" className="scroll-mt-32">
                             <div className="flex items-center justify-between mb-8">
-                                <h2 className="text-2xl font-bold text-white">Student Reviews</h2>
+                                <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Student Reviews
+                                </h2>
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center text-amber-400">
                                         <Star className="w-5 h-5 fill-current" />
@@ -365,10 +376,30 @@ export default function CollegeDetailPage() {
                         </section>
                     </div>
 
-                    {/* Right Sidebar */}
-                    <div className="space-y-6">
-                        {/* Admission Probability Card (Sticky) */}
-                        <div className="sticky top-24">
+                    {/* Right Sidebar (Sticky Container) */}
+                    <div className="space-y-6 lg:col-span-1 hidden lg:block sticky top-24 self-start">
+                        {/* Jump to Sections Navigation */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Jump to Section</h3>
+                            <nav className="flex flex-col gap-1">
+                                {['Overview', 'Placement', 'Campus', 'Photos', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => {
+                                            setActiveTab(tab.toLowerCase());
+                                            document.getElementById(tab.toLowerCase())?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                        className={`text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-between group ${activeTab === tab.toLowerCase() ? 'bg-slate-800 text-white border-l-2 border-red-500' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                    >
+                                        {tab}
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === tab.toLowerCase() ? 'text-red-500 opacity-100' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-slate-500'}`} />
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+
+                        {/* Admission Probability Card */}
+                        <div>
                             <div className="bg-gradient-to-b from-red-600 to-red-700 rounded-2xl p-6 md:p-8 shadow-2xl shadow-red-900/30 text-center relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
                                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors duration-500"></div>

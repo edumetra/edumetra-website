@@ -4,7 +4,7 @@ import { Database } from "../shared/types/database.types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { Edit, Trash2, ChevronDown } from "lucide-react";
+import { Edit, Trash2, ChevronDown, Eye } from "lucide-react";
 
 type Visibility = Database['public']['Tables']['colleges']['Row']['visibility'];
 
@@ -86,6 +86,13 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
                 )}
             </div>
 
+            <Link
+                href={`/colleges/${id}`}
+                className="p-1.5 bg-blue-500/10 text-blue-400 hover:text-white hover:bg-blue-600 rounded-lg transition-colors border border-blue-500/20"
+                title="View Details"
+            >
+                <Eye className="w-4 h-4" />
+            </Link>
             <Link
                 href={`/colleges/${id}/edit`}
                 className="p-1.5 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"

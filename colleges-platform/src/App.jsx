@@ -12,6 +12,10 @@ import ComparePage from './pages/ComparePage';
 import RankingsPage from './pages/RankingsPage';
 import EligibilityCheckerPage from './pages/EligibilityCheckerPage';
 import ShortlistPage from './pages/ShortlistPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import NotFoundPage from './pages/NotFoundPage';
+import ArticlesPage from './pages/ArticlesPage';
+import ArticleDetailPage from './pages/ArticleDetailPage';
 import './index.css';
 
 function App() {
@@ -21,6 +25,7 @@ function App() {
         <PremiumProvider>
           <Router>
             <Routes>
+              {/* All routes rendered inside Navigation + Footer via Outlet */}
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="colleges" element={<CollegeListPage />} />
@@ -31,7 +36,15 @@ function App() {
                 <Route path="rankings" element={<RankingsPage />} />
                 <Route path="eligibility" element={<EligibilityCheckerPage />} />
                 <Route path="shortlist" element={<ShortlistPage />} />
+                <Route path="articles" element={<ArticlesPage />} />
+                <Route path="articles/:slug" element={<ArticleDetailPage />} />
+                {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
+                <Route path="404" element={<NotFoundPage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Route>
+
+              {/* Standalone — no nav/footer wrapper */}
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Routes>
           </Router>
         </PremiumProvider>

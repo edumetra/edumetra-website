@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Star, Eye, EyeOff, Clock, ChevronDown } from "lucide-react";
+import { Star, Eye, EyeOff, Clock } from "lucide-react";
 
 type ModerationStatus = "visible" | "hidden" | "pending";
 
@@ -68,6 +68,7 @@ export default function ReviewsPage() {
         setLoading(false);
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchReviews(); }, []);
 
     const handleStatusChange = async (id: string, status: ModerationStatus) => {
@@ -119,7 +120,7 @@ export default function ReviewsPage() {
                 ].map(s => (
                     <button
                         key={s.key}
-                        onClick={() => setFilter(s.key as any)}
+                        onClick={() => setFilter(s.key as ModerationStatus | "all")}
                         className={`p-4 rounded-xl border text-left transition-all ${s.bg} ${filter === s.key ? "ring-2 ring-red-500/40" : "hover:opacity-80"}`}
                     >
                         <div className={`text-2xl font-bold ${s.color}`}>{counts[s.key as keyof typeof counts]}</div>

@@ -4,20 +4,6 @@ import Link from "next/link";
 import CollegeActions from "@/components/CollegeActions";
 import CollegeImage from "@/components/CollegeImage";
 
-function VisibilityBadge({ visibility }: { visibility: string }) {
-    const map: Record<string, { label: string; dot: string; bg: string; text: string; border: string }> = {
-        public: { label: "Public", dot: "bg-emerald-400", bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20" },
-        draft: { label: "Draft", dot: "bg-amber-400", bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
-        hidden: { label: "Hidden", dot: "bg-slate-500", bg: "bg-slate-700/50", text: "text-slate-400", border: "border-slate-600/40" },
-    };
-    const s = map[visibility] ?? map.draft;
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg ${s.bg} ${s.text} border ${s.border}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-            {s.label}
-        </span>
-    );
-}
 
 export default async function AdminDashboard() {
     const cookieStore = await cookies();
@@ -28,6 +14,7 @@ export default async function AdminDashboard() {
         .select("*")
         .order("name");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const collegesList = (colleges as any[]) || [];
 
     return (
@@ -75,16 +62,16 @@ export default async function AdminDashboard() {
                             {collegesList.map((college) => (
                                 <tr key={college.id} className="hover:bg-slate-800/50 transition-colors">
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
+                                        <Link href={`/colleges/${college.id}`} className="flex items-center gap-3 group">
                                             <CollegeImage
                                                 src={college.image}
                                                 alt={college.name}
                                             />
                                             <div>
-                                                <div className="text-sm font-bold text-slate-200">{college.name}</div>
+                                                <div className="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{college.name}</div>
                                                 <div className="text-xs text-slate-500 sm:hidden mt-0.5">{college.location_city}, {college.location_state}</div>
                                             </div>
-                                        </div>
+                                        </Link>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                                         <div className="text-sm text-slate-400">{college.location_city}, {college.location_state}</div>

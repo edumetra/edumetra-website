@@ -31,6 +31,7 @@ const STATIC_ROUTES = [
     { url: '/rankings', priority: '0.8', changefreq: 'weekly' },
     { url: '/shortlist', priority: '0.7', changefreq: 'monthly' },
     { url: '/eligibility', priority: '0.7', changefreq: 'monthly' },
+    { url: '/articles', priority: '0.9', changefreq: 'daily' },
 ];
 
 function toXml(urls) {
@@ -52,7 +53,7 @@ async function generate() {
     console.log('Fetching public colleges...');
     const { data, error } = await supabase
         .from('colleges')
-        .select('id, updated_at')
+        .select('id, created_at')
         .eq('visibility', 'public');
 
     if (error) {
@@ -62,12 +63,30 @@ async function generate() {
 
     const collegeUrls = (data || []).map(c => ({
         url: `/colleges/${c.id}`,
-        lastmod: c.updated_at ? c.updated_at.slice(0, 10) : undefined,
+        lastmod: c.created_at ? c.created_at.slice(0, 10) : undefined,
         priority: '0.8',
         changefreq: 'weekly',
     }));
 
-    const allUrls = [...STATIC_ROUTES, ...collegeUrls];
+    console.log('Fetching published articles...');
+    const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select('slug, updated_at')
+        .eq('published', true);
+
+    if (articlesError) {
+        console.error('Supabase error (articles):', articlesError.message);
+        process.exit(1);
+    }
+
+    const articleUrls = (articlesData || []).map(a => ({
+        url: `/articles/${a.slug}`,
+        lastmod: a.updated_at ? a.updated_at.slice(0, 10) : undefined,
+        priority: '0.8',
+        changefreq: 'weekly',
+    }));
+
+    const allUrls = [...STATIC_ROUTES, ...collegeUrls, ...articleUrls];
     const xml = toXml(allUrls);
     writeFileSync('public/sitemap.xml', xml, 'utf-8');
     console.log(`✅ Sitemap generated with ${allUrls.length} URLs → public/sitemap.xml`);

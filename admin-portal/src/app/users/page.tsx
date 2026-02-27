@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Shield, ShieldOff, User, Crown, Star, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Shield, ShieldOff, User, Crown, Star, CheckCircle, XCircle } from "lucide-react";
 
 type AccountType = "free" | "premium" | "pro";
 
@@ -24,16 +24,6 @@ const ACCOUNT_TYPE_CONFIG: Record<AccountType, { label: string; icon: typeof Sta
     pro: { label: "Pro", icon: Crown, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
 };
 
-function AccountTypeBadge({ type }: { type: AccountType }) {
-    const cfg = ACCOUNT_TYPE_CONFIG[type] ?? ACCOUNT_TYPE_CONFIG.free;
-    const Icon = cfg.icon;
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg ${cfg.bg} ${cfg.color} border ${cfg.border}`}>
-            <Icon className="w-3 h-3" />
-            {cfg.label}
-        </span>
-    );
-}
 
 function formatDate(d: string | null) {
     if (!d) return <span className="text-slate-600">—</span>;
@@ -70,13 +60,13 @@ export default function UsersPage() {
         setLoading(false);
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchUsers(); }, []);
 
     const handleBan = async (id: string, ban: boolean) => {
         setActionLoading(id);
         const { error } = await supabase
             .from("user_profiles")
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ is_banned: ban, banned_at: ban ? new Date().toISOString() : null } as unknown as never)
             .eq("id", id);
 
@@ -89,7 +79,6 @@ export default function UsersPage() {
     const handleAccountTypeChange = async (id: string, type: AccountType) => {
         const { error } = await supabase
             .from("user_profiles")
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ account_type: type } as unknown as never)
             .eq("id", id);
 
