@@ -322,7 +322,7 @@ const AboutPage = () => {
                     },
                     {
                         question: 'How can I book a counseling session?',
-                        answer: 'You can book a free counseling session by filling out the form on our Contact page, calling our helpline, or registering through our website. We also offer a 7-day free trial of our Premium plan which includes personalized counseling support.'
+                        answer: 'You can book a free counseling session by filling out the form on our Contact page, calling our helpline, or registering through our website.'
                     },
                     {
                         question: 'Do you help with MBBS abroad admissions too?',

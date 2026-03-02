@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Shield, ShieldOff, User, Crown, Star, CheckCircle, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type AccountType = "free" | "premium" | "pro";
 
@@ -32,6 +33,7 @@ function formatDate(d: string | null) {
 
 export default function UsersPage() {
     const supabase = createClient();
+    const router = useRouter();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -40,6 +42,14 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         setError(null);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return router.push("/login");
+
+        const { data: adminData } = await supabase.from('admins').select('role').eq('id', user.id).single();
+        if ((adminData as { role: string } | null)?.role === 'mini_admin') {
+            return router.push("/"); // Bounce unauthorized
+        }
 
         // Fetch user profiles with joined auth data via a view or direct table
         const { data: profiles, error: profileErr } = await supabase

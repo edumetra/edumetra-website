@@ -1,6 +1,6 @@
 import { Search, SlidersHorizontal } from 'lucide-react';
 
-export default function SearchHeader({ query, onSearchChange, resultCount, onToggleFilters }) {
+export default function SearchHeader({ query, onSearchChange, resultCount, onToggleFilters, sort, onSortChange }) {
     return (
         <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4 mb-6 sticky top-20 z-30">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -28,11 +28,15 @@ export default function SearchHeader({ query, onSearchChange, resultCount, onTog
                         Filters
                     </button>
 
-                    <select className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50">
-                        <option>Sort by: Rank</option>
-                        <option>Sort by: Popularity</option>
-                        <option>Sort by: Fees (Low to High)</option>
-                        <option>Sort by: Fees (High to Low)</option>
+                    <select
+                        value={sort}
+                        onChange={(e) => onSortChange(e.target.value)}
+                        className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                    >
+                        <option value="rank_asc">Sort by: Rank</option>
+                        <option value="rating_desc">Sort by: Rating</option>
+                        <option value="fees_asc">Sort by: Fees (Low to High)</option>
+                        <option value="fees_desc">Sort by: Fees (High to Low)</option>
                     </select>
                 </div>
             </div>

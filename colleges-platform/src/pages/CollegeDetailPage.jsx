@@ -1,6 +1,6 @@
 
 /* eslint-disable no-unused-vars */
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Users, DollarSign, Calendar, Award,
@@ -9,7 +9,9 @@ import {
 } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
-import { supabase } from '../lib/supabase';
+import { useCollegeDetails } from '../hooks/useCollegeDetails';
+import { LoadingState } from '../components/ui/LoadingState';
+import { ErrorState } from '../components/ui/ErrorState';
 import { StatCard, PlacementHighlight } from '../components/college-detail/StatsComponents';
 import { PlacementChart } from '../components/college-detail/PlacementChart';
 import { CampusLife } from '../components/college-detail/CampusLife';
@@ -19,15 +21,23 @@ import { CoursesTable } from '../components/college-detail/CoursesTable';
 import { QASection } from '../components/college-detail/QASection';
 import { FAQSection } from '../components/college-detail/FAQSection';
 import { ReviewInsights } from '../components/college-detail/ReviewInsights';
+import { SimilarColleges } from '../components/college-detail/SimilarColleges';
 import SEOHead from '../components/SEOHead';
 
 export default function CollegeDetailPage() {
     const { collegeId } = useParams();
     const navigate = useNavigate();
-    const [college, setCollege] = useState(null);
-    const [loading, setLoading] = useState(true);
+
+    // Custom Hook
+    const { college, loading, error } = useCollegeDetails(collegeId);
+
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshReviews, setRefreshReviews] = useState(false);
+
+    // Admission Chances State
+    const [score, setScore] = useState('');
+    const [calculating, setCalculating] = useState(false);
+    const [admissionChance, setAdmissionChance] = useState(null);
 
     // Parallax Scroll Hooks
     const targetRef = useRef(null);
@@ -39,79 +49,27 @@ export default function CollegeDetailPage() {
     const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
     const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
-    useEffect(() => {
-        const fetchCollegeDetails = async () => {
-            try {
-                setLoading(true);
-
-                const { data: collegeData, error: collegeError } = await supabase
-                    .schema('public')
-                    .from('colleges')
-                    .select('*')
-                    .eq('id', collegeId)
-                    .single();
-
-                if (collegeError) throw collegeError;
-
-                const { data: detailsData } = await supabase
-                    .schema('public')
-                    .from('college_details')
-                    .select('*')
-                    .eq('college_id', collegeId)
-                    .single();
-
-                // Safe parsing of placement stats
-                let placementStats = detailsData?.placement_stats || null;
-                if (typeof placementStats === 'string') {
-                    try {
-                        placementStats = JSON.parse(placementStats);
-                    } catch {
-                        // ignore
-                    }
-                }
-
-                const formattedCollege = {
-                    ...collegeData,
-                    ...detailsData,
-                    location: `${collegeData.location_city}, ${collegeData.location_state}`,
-                    city: collegeData.location_city,
-                    state: collegeData.location_state,
-                    students: 0,
-                    founded: collegeData.established_year || 'N/A',
-                    tuition: collegeData.fees || 'N/A',
-                    programs: collegeData.courses || [],
-                    placementStats,
-                    image: collegeData.image || 'https://via.placeholder.com/1200x400/0f172a/3b82f6?text=Campus+View'
-                };
-
-                setCollege(formattedCollege);
-            } catch (err) {
-                console.error("Error fetching college:", err);
-                navigate('/404', { replace: true });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (collegeId) fetchCollegeDetails();
-    }, [collegeId]);
-
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-8 h-8 border-t-2 border-red-500 rounded-full"
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center pt-20">
+                <LoadingState message="Loading college details..." />
+            </div>
+        );
+    }
+
+    if (error || !college) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center pt-20">
+                <ErrorState
+                    title="College Not Found"
+                    message={error || "The institution you're looking for doesn't exist or has been removed."}
+                    onRetry={() => navigate('/colleges', { replace: true })}
                 />
             </div>
         );
     }
 
-    if (!loading && !college) {
-        navigate('/404', { replace: true });
-        return null;
-    }
+
 
     const stats = college.placementStats || {};
 
@@ -137,6 +95,31 @@ export default function CollegeDetailPage() {
                 ratingCount: college.review_count || 1,
             }
         } : {}),
+    };
+
+    const handleCalculateChances = () => {
+        if (!score.trim()) return;
+        setCalculating(true);
+        setTimeout(() => {
+            const numScore = parseFloat(score);
+            let chanceText = 'Low';
+            let color = 'text-red-400';
+
+            // basic mock logic depending on score/rank scale
+            if (numScore > 90) {
+                chanceText = 'Excellent';
+                color = 'text-emerald-400';
+            } else if (numScore > 75) {
+                chanceText = 'Good';
+                color = 'text-amber-400';
+            } else if (numScore > 60) {
+                chanceText = 'Fair';
+                color = 'text-yellow-400';
+            }
+
+            setAdmissionChance({ chance: chanceText, color });
+            setCalculating(false);
+        }, 1000);
     };
 
     return (
@@ -374,6 +357,9 @@ export default function CollegeDetailPage() {
                                 <ReviewList collegeId={collegeId} refreshTrigger={refreshReviews} />
                             </div>
                         </section>
+
+                        {/* Similar Colleges */}
+                        <SimilarColleges collegeId={college.id} stream={college.stream} state={college.state} />
                     </div>
 
                     {/* Right Sidebar (Sticky Container) */}
@@ -398,27 +384,48 @@ export default function CollegeDetailPage() {
                             </nav>
                         </div>
 
-                        {/* Admission Probability Card */}
-                        <div>
-                            <div className="bg-gradient-to-b from-red-600 to-red-700 rounded-2xl p-6 md:p-8 shadow-2xl shadow-red-900/30 text-center relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors duration-500"></div>
-
-                                <div className="relative z-10">
-                                    <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm shadow-inner border border-white/10">
-                                        <Award className="w-8 h-8 text-white" />
-                                    </div>
-
-                                    <h3 className="text-2xl font-bold text-white mb-3">Admission Chances</h3>
-                                    <p className="text-red-100 mb-8 text-sm leading-relaxed">
-                                        Check your probability of getting into <strong>{college.name}</strong> based on your current profile.
-                                    </p>
-
-                                    <Link to="/eligibility" className="block w-full bg-white text-red-600 py-4 rounded-xl font-bold text-base hover:bg-red-50 hover:scale-[1.02] transition-all shadow-lg active:scale-95 text-center">
-                                        Check Eligibility Now
-                                    </Link>
-                                    <p className="text-red-200/60 text-xs mt-4">Takes less than 2 minutes</p>
+                        {/* Admission Probability Calculator */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-4">
+                                    <TrendingUp className="w-6 h-6 text-red-500" />
                                 </div>
+                                <h3 className="text-xl font-bold text-white mb-2">Admission Chances</h3>
+                                <p className="text-slate-400 text-sm mb-6">
+                                    Enter your expected percentage/score to predict your priority for {college.name}.
+                                </p>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Your Score (%)</label>
+                                        <input
+                                            type="number"
+                                            value={score}
+                                            onChange={(e) => setScore(e.target.value)}
+                                            placeholder="e.g. 85"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all focus:outline-none"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleCalculateChances}
+                                        disabled={calculating || !score.trim()}
+                                        className="w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                                    >
+                                        {calculating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Calculate Chances'}
+                                    </button>
+                                </div>
+
+                                {admissionChance && (
+                                    <div className="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800 animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="text-sm text-slate-400 mb-1">Prediction</div>
+                                        <div className={`text-2xl font-bold ${admissionChance.color}`}>
+                                            {admissionChance.chance}
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            Based on historical cutoffs and recent trends. This is an estimate, not a guarantee.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -56,7 +56,7 @@ const PricingPage = () => {
                 { text: 'Priority support - responses within 2 hours', included: true },
                 { text: 'Ad-free experience + downloadable cutoff reports', included: true },
             ],
-            cta: 'Start 7-Day Risk-Free Trial',
+            cta: 'Start Premium',
             variant: 'primary',
             popular: true,
         },
@@ -66,10 +66,6 @@ const PricingPage = () => {
         {
             question: 'Can I switch plans anytime?',
             answer: 'Yes! You can upgrade to Premium anytime or downgrade back to Free. Changes take effect immediately.',
-        },
-        {
-            question: 'Is there a free trial for Premium?',
-            answer: 'We offer a 7-day money-back guarantee. If you\'re not satisfied with Premium, we\'ll refund your payment, no questions asked.',
         },
         {
             question: 'What payment methods do you accept?',
@@ -200,18 +196,6 @@ const PricingPage = () => {
                                         ))}
                                     </ul>
 
-                                    {plan.name === 'Premium' && (
-                                        <div className="mb-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
-                                            <div className="flex items-center justify-center gap-2 text-sm text-primary-300">
-                                                <span className="text-lg">🛡️</span>
-                                                <div>
-                                                    <div className="font-semibold">Zero Risk Guarantee</div>
-                                                    <div className="text-xs">7-day full refund • Cancel anytime</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     <Button variant={plan.variant} size="lg" className="w-full">
                                         {plan.cta}
                                     </Button>
@@ -225,7 +209,7 @@ const PricingPage = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
-                            🔒 Secure payment via Razorpay • 7-day money-back guarantee • Cancel anytime
+                            🔒 Secure payment via Razorpay • Cancel anytime
                         </motion.p>
                     </div>
                 </section>

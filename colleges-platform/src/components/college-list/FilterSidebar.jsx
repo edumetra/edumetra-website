@@ -68,11 +68,12 @@ const RangeFilter = ({ label, min, max, onMinChange, onMaxChange }) => (
     </div>
 );
 
-export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose }) {
-    const filterOptions = {
+export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose, filterOptions }) {
+    // If external options aren't passed yet, fallback to sensible defaults
+    const options = filterOptions || {
         streams: ['Engineering', 'Medical', 'Arts', 'Commerce', 'Management', 'Law'],
         naacGrades: ['A++', 'A+', 'A', 'B+', 'B', 'C'],
-        locations: ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune', 'Hyderabad'],
+        cities: ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune', 'Hyderabad'],
         states: ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi NCR', 'Telangana'],
         types: ['Public/Government', 'Private', 'Deemed'],
         courses: ['B.Tech', 'MBBS', 'BBA', 'MBA', 'B.Sc', 'B.Com'],
@@ -122,8 +123,8 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
                     </div>
 
                     <div className="space-y-0">
-                        <FilterSection title="Stream" options={filterOptions.streams} selected={filters.streams || []} onChange={opt => handleOptionChange('streams', opt)} />
-                        <FilterSection title="NAAC Grade" options={filterOptions.naacGrades} selected={filters.naacGrades || []} onChange={opt => handleOptionChange('naacGrades', opt)} />
+                        <FilterSection title="Stream" options={options.streams || []} selected={filters.streams || []} onChange={opt => handleOptionChange('streams', opt)} />
+                        <FilterSection title="NAAC Grade" options={options.naacGrades || []} selected={filters.naacGrades || []} onChange={opt => handleOptionChange('naacGrades', opt)} />
                         <RangeFilter
                             label="Fees Range"
                             min={filters.feesMin || 0}
@@ -131,10 +132,10 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
                             onMinChange={v => onFilterChange('feesMin', v)}
                             onMaxChange={v => onFilterChange('feesMax', v)}
                         />
-                        <FilterSection title="State" options={filterOptions.states} selected={filters.states || []} onChange={opt => handleOptionChange('states', opt)} />
-                        <FilterSection title="City" options={filterOptions.locations} selected={filters.locations || []} onChange={opt => handleOptionChange('locations', opt)} />
-                        <FilterSection title="Ownership" options={filterOptions.types} selected={filters.types || []} onChange={opt => handleOptionChange('types', opt)} />
-                        <FilterSection title="Course" options={filterOptions.courses} selected={filters.courses || []} onChange={opt => handleOptionChange('courses', opt)} />
+                        <FilterSection title="State" options={options.states || []} selected={filters.states || []} onChange={opt => handleOptionChange('states', opt)} />
+                        <FilterSection title="City" options={options.cities || []} selected={filters.locations || []} onChange={opt => handleOptionChange('locations', opt)} />
+                        <FilterSection title="Ownership" options={options.types || []} selected={filters.types || []} onChange={opt => handleOptionChange('types', opt)} />
+                        <FilterSection title="Course" options={options.courses || []} selected={filters.courses || []} onChange={opt => handleOptionChange('courses', opt)} />
                     </div>
                 </div>
             </aside>

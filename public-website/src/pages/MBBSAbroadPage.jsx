@@ -5,7 +5,6 @@ import {
     GraduationCap,
     Award,
     Users,
-    MapPin,
     Clock,
     Shield,
     TrendingUp,
@@ -15,7 +14,6 @@ import SEO from '../components/SEO';
 import FAQSection from '../shared/ui/FAQSection';
 import MBBSAbroadHero from '../components/sections/mbbs-abroad/MBBSAbroadHero';
 import WhyStudyAbroad from '../components/sections/mbbs-abroad/WhyStudyAbroad';
-import CountryDestinations from '../components/sections/mbbs-abroad/CountryDestinations';
 import AdmissionProcess from '../components/sections/mbbs-abroad/AdmissionProcess';
 import MBBSAbroadCTA from '../components/sections/mbbs-abroad/MBBSAbroadCTA';
 import { analytics } from '../shared/utils/analytics';
@@ -62,112 +60,6 @@ const MBBSAbroadPage = () => {
             icon: Shield,
             title: 'Safe Environment',
             description: 'Partner universities ensure safe accommodation, 24/7 security, and dedicated support for international students.'
-        }
-    ];
-
-    const countries = [
-        {
-            name: 'Russia',
-            flag: '🇷🇺',
-            image: MapPin,
-            tuitionFee: '₹15-25 Lakhs',
-            duration: '6 Years',
-            universities: '50+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'No donation or capitation fees',
-                'European standard medical education',
-                'Low cost of living (₹15,000-20,000/month)',
-                'Direct admission without IELTS'
-            ],
-            popular: true
-        },
-        {
-            name: 'China',
-            flag: '🇨🇳',
-            image: MapPin,
-            tuitionFee: '₹18-35 Lakhs',
-            duration: '6 Years',
-            universities: '45+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'World-class infrastructure',
-                'Clinical exposure from 2nd year',
-                'Scholarships available for Indian students',
-                'Low living expenses'
-            ]
-        },
-        {
-            name: 'Kazakhstan',
-            flag: '🇰🇿',
-            image: MapPin,
-            tuitionFee: '₹18-28 Lakhs',
-            duration: '5 Years',
-            universities: '15+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'Direct admission process',
-                'Indian food available',
-                'Safe and student-friendly environment',
-                'Only 5 years duration'
-            ]
-        },
-        {
-            name: 'Philippines',
-            flag: '🇵🇭',
-            image: MapPin,
-            tuitionFee: '₹35-50 Lakhs',
-            duration: '5.5 Years',
-            universities: '25+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'US-based medical curriculum',
-                'English-speaking country',
-                'Tropical climate similar to India',
-                'High passing rate in NMC screening'
-            ]
-        },
-        {
-            name: 'Bangladesh',
-            flag: '🇧🇩',
-            image: MapPin,
-            tuitionFee: '₹25-45 Lakhs',
-            duration: '5 Years',
-            universities: '40+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'Similar culture and language',
-                'Easy travel to and from India',
-                'Quality medical education',
-                'Growing medical infrastructure'
-            ]
-        },
-        {
-            name: 'Georgia',
-            flag: '🇬🇪',
-            image: MapPin,
-            tuitionFee: '₹20-30 Lakhs',
-            duration: '6 Years',
-            universities: '20+',
-            mediumOfTeaching: 'English',
-            eligibility: '50% in PCB',
-            recognition: 'NMC, WHO Approved',
-            highlights: [
-                'European medical education standards',
-                '100% visa approval rate',
-                'Modern infrastructure',
-                'Safe for Indian students'
-            ]
         }
     ];
 
@@ -241,7 +133,6 @@ const MBBSAbroadPage = () => {
             <main className="pt-20">
                 <MBBSAbroadHero stats={stats} />
                 <WhyStudyAbroad reasons={whyAbroad} />
-                <CountryDestinations countries={countries} />
                 <AdmissionProcess steps={admissionProcess} />
 
                 <FAQSection

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, User, ThumbsUp, MessageSquare, Shield, Send } from 'lucide-react';
+import { Star, User, ThumbsUp, MessageSquare, Shield, Send, Filter, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 
@@ -233,6 +233,10 @@ export function ReviewList({ collegeId, refreshTrigger }) {
     const [votedIds, setVotedIds] = useState([]);
     const [isAdmin, setIsAdmin] = useState(false);
 
+    // Filtering State
+    const [filterRating, setFilterRating] = useState('All Ratings');
+    const [searchQuery, setSearchQuery] = useState('');
+
     useEffect(() => {
         if (collegeId) fetchReviews();
     }, [collegeId, refreshTrigger]);
@@ -282,11 +286,51 @@ export function ReviewList({ collegeId, refreshTrigger }) {
         );
     }
 
+    const filteredReviews = reviews.filter(r => {
+        const matchesRating = filterRating === 'All Ratings' || r.rating === parseInt(filterRating.charAt(0));
+        const matchesSearch = !searchQuery.trim() ||
+            (r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                r.review_text?.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesRating && matchesSearch;
+    });
+
     return (
         <div className="space-y-5">
-            {reviews.map(review => (
-                <ReviewCard key={review.id} review={review} votedIds={votedIds} onVote={handleVote} isAdmin={isAdmin} />
-            ))}
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                        type="text"
+                        placeholder="Search in reviews..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-red-500/50"
+                    />
+                </div>
+                <div className="relative min-w-[140px]">
+                    <select
+                        value={filterRating}
+                        onChange={(e) => setFilterRating(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer"
+                    >
+                        {['All Ratings', '5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'].map(r => (
+                            <option key={r} value={r}>{r}</option>
+                        ))}
+                    </select>
+                    <Filter className="w-3.5 h-3.5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+            </div>
+
+            {filteredReviews.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 bg-slate-900/20 border border-slate-800 rounded-xl">
+                    No reviews match your filters.
+                </div>
+            ) : (
+                filteredReviews.map(review => (
+                    <ReviewCard key={review.id} review={review} votedIds={votedIds} onVote={handleVote} isAdmin={isAdmin} />
+                ))
+            )}
         </div>
     );
 }

@@ -9,7 +9,6 @@ export function QASection({ collegeId }) {
     const [loading, setLoading] = useState(true);
     const [newQuestion, setNewQuestion] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => { fetchQuestions(); }, [collegeId]);
 

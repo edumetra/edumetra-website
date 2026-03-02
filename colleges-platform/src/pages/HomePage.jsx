@@ -5,6 +5,7 @@ import {
     MapPin, Award, BarChart3, MessageSquare
 } from 'lucide-react';
 import { useSignup } from '../contexts/SignupContext';
+import { FeaturedColleges } from '../components/home/FeaturedColleges';
 
 /* ─── Data ─── */
 const FEATURES = [
@@ -279,6 +280,9 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            {/* ── Featured Colleges ── */}
+            <FeaturedColleges />
 
             {/* ── Features ── */}
             <section id="features" className="py-20 px-4 scroll-mt-20">

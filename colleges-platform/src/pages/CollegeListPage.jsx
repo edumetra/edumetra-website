@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 import FilterSidebar from '../components/college-list/FilterSidebar';
@@ -6,13 +6,18 @@ import SearchHeader from '../components/college-list/SearchHeader';
 import CollegeCard from '../components/college-list/CollegeCard';
 import CollegeCardSkeleton from '../components/college-list/CollegeCardSkeleton';
 import SEOHead from '../components/SEOHead';
+import { useColleges } from '../hooks/useColleges';
 
 export default function CollegeListPage() {
     const { user } = useSignup();
-    const [colleges, setColleges] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { colleges, loading, error, hasMore, totalCount, fetchColleges, fetchFilterOptions } = useColleges();
+
     const [searchQuery, setSearchQuery] = useState('');
+    const [sort, setSort] = useState('rank_asc');
+    const [page, setPage] = useState(1);
+
     const [savedIds, setSavedIds] = useState([]);
+    const [filterOptions, setFilterOptions] = useState(null);
     const [filters, setFilters] = useState({
         streams: [],
         naacGrades: [],
@@ -25,46 +30,25 @@ export default function CollegeListPage() {
     });
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    useEffect(() => { fetchColleges(); }, []);
+    // Initial Data Fetch
+    useEffect(() => {
+        const loadInitialData = async () => {
+            const options = await fetchFilterOptions();
+            if (options) setFilterOptions(options);
+        };
+        loadInitialData();
+    }, [fetchFilterOptions]);
 
+    // Fetch colleges whenever dependencies change
+    useEffect(() => {
+        setPage(1); // Reset to page 1 on new search/filter
+        fetchColleges({ page: 1, query: searchQuery, filters, sort, isLoadMore: false });
+    }, [searchQuery, filters, sort, fetchColleges]);
+
+    // Fetch saved colleges for user
     useEffect(() => {
         if (user) fetchSavedIds();
     }, [user]);
-
-    const fetchColleges = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('colleges')
-                .select('*')
-                .eq('visibility', 'public')
-                .order('rank', { ascending: true });
-            if (error) throw error;
-            if (data) {
-                setColleges(data.map(c => ({
-                    id: c.id,
-                    rank: c.rank,
-                    name: c.name,
-                    location: `${c.location_city}, ${c.location_state}`,
-                    state: c.location_state,
-                    type: c.type,
-                    stream: c.stream,
-                    naac_grade: c.naac_grade,
-                    fees_numeric: c.fees_numeric,
-                    rating: c.rating || 0,
-                    fees: c.fees,
-                    avgPackage: c.avg_package,
-                    exams: c.exams,
-                    courses: c.courses || [],
-                    image: c.image || 'https://via.placeholder.com/800x600?text=No+Image'
-                })));
-            }
-        } catch (err) {
-            console.error('Error fetching colleges:', err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchSavedIds = async () => {
         const { data } = await supabase
@@ -86,21 +70,11 @@ export default function CollegeListPage() {
         }
     };
 
-    const filteredColleges = useMemo(() => {
-        return colleges.filter(college => {
-            const q = searchQuery.toLowerCase();
-            const matchesSearch = !q || college.name.toLowerCase().includes(q) || college.location.toLowerCase().includes(q);
-            const matchesStream = filters.streams.length === 0 || filters.streams.includes(college.stream);
-            const matchesNaac = filters.naacGrades.length === 0 || filters.naacGrades.includes(college.naac_grade);
-            const matchesFees = (!filters.feesMin && !filters.feesMax) ||
-                (college.fees_numeric && (!filters.feesMin || college.fees_numeric >= filters.feesMin) && (!filters.feesMax || college.fees_numeric <= filters.feesMax));
-            const matchesLocation = filters.locations.length === 0 || filters.locations.includes(college.location.split(',')[0]);
-            const matchesState = filters.states.length === 0 || filters.states.includes(college.state);
-            const matchesType = filters.types.length === 0 || filters.types.includes(college.type);
-            const matchesCourse = filters.courses.length === 0 || college.courses.some(c => filters.courses.includes(c));
-            return matchesSearch && matchesStream && matchesNaac && matchesFees && matchesLocation && matchesState && matchesType && matchesCourse;
-        });
-    }, [searchQuery, filters, colleges]);
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchColleges({ page: nextPage, query: searchQuery, filters, sort, isLoadMore: true });
+    };
 
     // Removing early return for `loading` as we now handle it inside the main render's layout
 
@@ -124,29 +98,59 @@ export default function CollegeListPage() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <FilterSidebar filters={filters} onFilterChange={handleFilterChange} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+                    <FilterSidebar filterOptions={filterOptions} filters={filters} onFilterChange={handleFilterChange} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                     <div className="flex-1">
-                        <SearchHeader query={searchQuery} onSearchChange={setSearchQuery} resultCount={filteredColleges.length} onToggleFilters={() => setSidebarOpen(true)} />
+                        <SearchHeader
+                            query={searchQuery}
+                            onSearchChange={setSearchQuery}
+                            resultCount={totalCount}
+                            onToggleFilters={() => setSidebarOpen(true)}
+                            sort={sort}
+                            onSortChange={setSort}
+                        />
+
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-6">
+                                {error}
+                            </div>
+                        )}
+
                         <div className="space-y-4">
                             {loading ? (
                                 [...Array(4)].map((_, i) => <CollegeCardSkeleton key={i} />)
-                            ) : filteredColleges.length > 0 ? (
-                                filteredColleges.map(college => (
-                                    <CollegeCard
-                                        key={college.id}
-                                        college={college}
-                                        savedIds={savedIds}
-                                        onSaveToggle={handleSaveToggle}
-                                    />
-                                ))
-                            ) : (
+                            ) : colleges.length > 0 ? (
+                                <>
+                                    {colleges.map(college => (
+                                        <CollegeCard
+                                            key={college.id}
+                                            college={college}
+                                            savedIds={savedIds}
+                                            onSaveToggle={handleSaveToggle}
+                                        />
+                                    ))}
+
+                                    {hasMore && (
+                                        <div className="pt-8 pb-4 flex justify-center">
+                                            <button
+                                                onClick={handleLoadMore}
+                                                disabled={loading}
+                                                className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-colors border border-slate-700 disabled:opacity-50 flex items-center gap-2"
+                                            >
+                                                {loading ? (
+                                                    <><div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin"></div> Loading...</>
+                                                ) : 'Load More Colleges'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            ) : !loading ? (
                                 <div className="text-center py-20 bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
                                     <p className="text-slate-500 text-lg">No colleges found matching your criteria.</p>
                                     <button onClick={() => handleFilterChange('reset')} className="mt-4 text-red-500 hover:text-red-400 font-medium hover:underline">
                                         Clear all filters
                                     </button>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 </div>

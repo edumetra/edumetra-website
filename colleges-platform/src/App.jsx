@@ -16,6 +16,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import { CommandPalette } from './components/ui/CommandPalette';
 import './index.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
       <CompareProvider>
         <PremiumProvider>
           <Router>
+            <CommandPalette />
             <Routes>
               {/* All routes rendered inside Navigation + Footer via Outlet */}
               <Route path="/" element={<MainLayout />}>

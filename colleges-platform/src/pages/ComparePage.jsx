@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useCompare } from '../contexts/CompareContext';
-import { Star, GitCompareArrows, MapPin, Trophy, Wallet, TrendingUp, Award, X } from 'lucide-react';
+import { Star, GitCompareArrows, MapPin, Trophy, Wallet, TrendingUp, Award, X, Plus } from 'lucide-react';
 
 const FIELDS = [
     { key: 'rating', label: 'Rating ⭐', best: 'max', format: v => v ? `${v} / 5` : '—' },
@@ -20,13 +20,27 @@ const FIELDS = [
 export default function ComparePage() {
     const { compareList, removeFromCompare, clearCompare } = useCompare();
     const [colleges, setColleges] = useState([]);
+    const [popularColleges, setPopularColleges] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (compareList.length === 0) return;
-        fetchDetails();
+        if (compareList.length > 0) {
+            fetchDetails();
+        } else {
+            fetchPopular();
+        }
     }, [compareList]);
+
+    const fetchPopular = async () => {
+        const { data } = await supabase
+            .from('colleges')
+            .select('id, name, type, rating, image, rank')
+            .eq('visibility', 'public')
+            .order('rank', { ascending: true, nullsFirst: false })
+            .limit(4);
+        setPopularColleges(data || []);
+    };
 
     const fetchDetails = async () => {
         setLoading(true);
@@ -62,14 +76,64 @@ export default function ComparePage() {
 
     if (compareList.length === 0) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="text-center px-4">
-                    <GitCompareArrows className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                    <h1 className="text-2xl font-black text-white mb-3">No Colleges to Compare</h1>
-                    <p className="text-slate-400 mb-6">Go browse colleges and click the Compare button to add them here.</p>
-                    <Link to="/colleges" className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all">
-                        Browse Colleges
-                    </Link>
+            <div className="min-h-screen bg-black">
+                {/* Header */}
+                <div className="bg-gradient-to-b from-slate-900 to-black pt-24 pb-8 border-b border-slate-900">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <GitCompareArrows className="w-6 h-6 text-red-400" />
+                            <span className="text-red-400 text-sm font-bold uppercase tracking-wider">Side by Side</span>
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-black text-white">Compare Colleges</h1>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 text-center mb-16 shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+                        <GitCompareArrows className="w-16 h-16 text-slate-700 mx-auto mb-6 relative z-10" />
+                        <h2 className="text-3xl font-black text-white mb-4 relative z-10">Select Colleges to Compare</h2>
+                        <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto relative z-10">
+                            Add up to {compareList.length >= 2 ? "the maximum allowed" : 4} colleges side-by-side to compare fees, placements, ratings, and campus facilities.
+                        </p>
+                        <Link to="/colleges" className="inline-flex items-center gap-2 px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:scale-105 relative z-10">
+                            Browse All Colleges
+                        </Link>
+                    </div>
+
+                    {/* Popular Comparisons Widget */}
+                    {popularColleges.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <Trophy className="w-6 h-6 text-amber-400" />
+                                <h3 className="text-2xl font-bold text-white">Trending Colleges to Compare</h3>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {popularColleges.map((c) => (
+                                    <div key={c.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden group hover:border-red-500/50 transition-all">
+                                        <div className="h-32 relative">
+                                            {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /> : <div className="w-full h-full bg-slate-800" />}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-90" />
+                                            {c.rank && (
+                                                <span className="absolute top-2 right-2 px-2 py-1 bg-amber-500/90 text-amber-950 text-[10px] uppercase font-black tracking-wider rounded">
+                                                    Rank #{c.rank}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="p-4 relative">
+                                            <h4 className="font-bold text-white text-sm line-clamp-2 mb-3 h-10 group-hover:text-red-400 transition-colors">{c.name}</h4>
+                                            <button
+                                                onClick={() => addToCompare(c)}
+                                                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <Plus className="w-3 h-3" /> Add to Compare
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

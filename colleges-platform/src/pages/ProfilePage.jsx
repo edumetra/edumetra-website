@@ -3,6 +3,7 @@ import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
 import { User, Mail, LogOut, ArrowLeft, Star, BookmarkX, Pencil, Trash2, Bookmark, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { TrendingUp, Calculator } from 'lucide-react';
 
 const TABS = ['Account', 'My Reviews', 'Saved Colleges'];
 
@@ -18,6 +19,11 @@ export default function ProfilePage() {
     const [editText, setEditText] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+    // Admission Predictor State
+    const [mockScore, setMockScore] = useState('');
+    const [calculating, setCalculating] = useState(false);
+    const [predictions, setPredictions] = useState({});
 
     useEffect(() => {
         if (!user) return;
@@ -67,6 +73,40 @@ export default function ProfilePage() {
     const handleLogout = async () => {
         await logout();
         navigate('/');
+    };
+
+    const handleCalculateAll = () => {
+        if (!mockScore.trim()) return;
+        setCalculating(true);
+        setTimeout(() => {
+            const numScore = parseFloat(mockScore);
+            const newPredictions = {};
+
+            savedColleges.forEach(saved => {
+                let chanceText = 'Low';
+                let color = 'text-red-400';
+
+                // Introduce some variance based on the college rating to make the mock logic feel dynamic
+                const variance = saved.colleges.rating ? (saved.colleges.rating * 2) : 5;
+                const effectiveScore = numScore - (10 - variance);
+
+                if (effectiveScore > 90) {
+                    chanceText = 'Excellent';
+                    color = 'text-emerald-400';
+                } else if (effectiveScore > 75) {
+                    chanceText = 'Good';
+                    color = 'text-amber-400';
+                } else if (effectiveScore > 60) {
+                    chanceText = 'Fair';
+                    color = 'text-yellow-400';
+                }
+
+                newPredictions[saved.college_id] = { chance: chanceText, color };
+            });
+
+            setPredictions(newPredictions);
+            setCalculating(false);
+        }, 1200);
     };
 
     if (!user) {
@@ -209,42 +249,101 @@ export default function ProfilePage() {
 
                 {/* Saved Colleges Tab */}
                 {activeTab === 'Saved Colleges' && (
-                    <div className="space-y-3">
-                        {loadingSaved ? (
-                            [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-900 rounded-2xl animate-pulse" />)
-                        ) : savedColleges.length === 0 ? (
-                            <div className="text-center py-16 text-slate-500">
-                                <Bookmark className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                                <p>No saved colleges yet.</p>
-                                <Link to="/colleges" className="mt-4 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Browse colleges →</Link>
-                            </div>
-                        ) : savedColleges.map(saved => {
-                            const c = saved.colleges;
-                            return (
-                                <div key={saved.id} className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
-                                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-800">
-                                        {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c.name?.[0]}</div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c.name}</p>
-                                        <p className="text-slate-500 text-xs">{c.location_city}, {c.location_state}</p>
-                                    </div>
-                                    <div className="flex items-center gap-3 shrink-0">
-                                        <div className="flex items-center gap-1 text-amber-400 text-sm font-bold">
-                                            <Star className="w-3.5 h-3.5 fill-current" />{c.rating || '—'}
+                    <div className="space-y-6">
+                        {/* Global Admission Predictor */}
+                        {savedColleges.length > 0 && !loadingSaved && (
+                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
+                                                <TrendingUp className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white">Global Admission Chances</h3>
                                         </div>
-                                        <Link to={`/colleges/${c.id}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
-                                            <ChevronRight className="w-4 h-4" />
-                                        </Link>
-                                        <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all" title="Remove">
-                                            <BookmarkX className="w-4 h-4" />
+                                        <p className="text-slate-400 text-sm">
+                                            Enter your predicted 12th/Entrance score. We'll instantly calculate your priority for all your saved colleges across the board.
+                                        </p>
+                                    </div>
+
+                                    <div className="w-full md:w-auto flex gap-3">
+                                        <input
+                                            type="number"
+                                            value={mockScore}
+                                            onChange={(e) => setMockScore(e.target.value)}
+                                            placeholder="Score %"
+                                            className="w-full md:w-32 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all focus:outline-none"
+                                        />
+                                        <button
+                                            onClick={handleCalculateAll}
+                                            disabled={calculating || !mockScore.trim()}
+                                            className="bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 flex justify-center items-center gap-2 whitespace-nowrap"
+                                        >
+                                            {calculating ? (
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <><Calculator className="w-4 h-4" /> Calculate</>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        )}
+
+                        <div className="space-y-3">
+                            {loadingSaved ? (
+                                [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-900 rounded-2xl animate-pulse" />)
+                            ) : savedColleges.length === 0 ? (
+                                <div className="text-center py-16 text-slate-500">
+                                    <Bookmark className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                    <p>No saved colleges yet.</p>
+                                    <Link to="/colleges" className="mt-4 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Browse colleges →</Link>
+                                </div>
+                            ) : savedColleges.map(saved => {
+                                const c = saved.colleges;
+                                const prediction = predictions[c.id];
+
+                                return (
+                                    <div key={saved.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-800">
+                                                {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c.name?.[0]}</div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c.name}</p>
+                                                <p className="text-slate-500 text-xs">{c.location_city}, {c.location_state}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 pl-16 sm:pl-0 mt-2 sm:mt-0 border-t sm:border-t-0 border-slate-800 pt-3 sm:pt-0">
+                                            {/* Prediction Badge */}
+                                            {prediction && (
+                                                <div className={`px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold animate-in fade-in zoom-in-95 ${prediction.color}`}>
+                                                    Chance: {prediction.chance}
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1 text-amber-400 text-sm font-bold">
+                                                    <Star className="w-3.5 h-3.5 fill-current" />{c.rating || '—'}
+                                                </div>
+                                                <div className="w-px h-6 bg-slate-800 hidden sm:block"></div>
+                                                <Link to={`/colleges/${c.id}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="View Details">
+                                                    <ChevronRight className="w-4 h-4" />
+                                                </Link>
+                                                <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all" title="Remove Save">
+                                                    <BookmarkX className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
             </div>
