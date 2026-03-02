@@ -28,7 +28,7 @@ export default async function RootLayout({
             .from('admins')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .single() as { data: { role: string } | null };
         if (adminProfile) {
             userRole = adminProfile.role;
         }
