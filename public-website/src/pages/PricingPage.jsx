@@ -15,69 +15,60 @@ const PricingPage = () => {
         {
             name: 'Free',
             price: '₹0',
-            period: 'forever',
-            description: 'Perfect for exploring medical colleges',
+            period: 'Forever',
+            description: 'Perfect for getting started with college exploration.',
             features: [
-                { text: 'View ANY 5 colleges per day', included: true },
-                { text: 'Basic college profiles (no department details)', included: true },
-                { text: '2024 cutoffs only (no historical data)', included: true },
-                { text: 'NIRF rankings view', included: true },
-                { text: 'Mobile & web access', included: true },
-                { text: 'Complete 10-year cutoff history', included: false },
-                { text: 'AI predictions with 95% accuracy', included: false },
-                { text: 'Daily WhatsApp/Email/SMS alerts', included: false },
+                { text: 'Search all 10,000+ colleges', included: true },
+                { text: 'View basic college profiles', included: true },
+                { text: 'Read up to 5 reviews/month', included: true },
+                { text: 'Access to entrance exam info', included: true },
+                { text: 'Email support', included: true },
+                { text: 'Placement data & salary stats', included: false },
+                { text: 'Application tracking', included: false },
+                { text: 'Priority deadline alerts', included: false },
             ],
             cta: 'Start Free',
             variant: 'outline',
-        },
-        {
-            name: 'Essential',
-            price: '₹149',
-            period: '/month',
-            description: 'Great for focused research and alerts',
-            features: [
-                { text: 'Unlimited access to 500+ colleges', included: true },
-                { text: 'Complete 5-year cutoff history', included: true },
-                { text: 'Basic AI predictions', included: true },
-                { text: 'Smart college finder based on your NEET rank', included: true },
-                { text: 'Email alerts during counseling', included: true },
-                { text: 'Real-time counseling date notifications', included: true },
-                { text: 'Standard email support', included: true },
-                { text: 'Ad-free experience', included: true },
-            ],
-            cta: 'Get Essential',
-            variant: 'secondary',
             popular: false,
         },
         {
             name: 'Premium',
             price: '₹299',
-            period: '/month',
-            description: 'The smart choice for competitive aspirants',
-            badge: '88% OFF',
-            valueStack: {
-                items: [
-                    { name: 'AI Admission Engine', value: 999 },
-                    { name: '10-Year Cutoff Analyzer', value: 799 },
-                    { name: 'WhatsApp Concierge', value: 499 },
-                    { name: 'Priority Email Support', value: 299 },
-                ],
-                total: 2596,
-                savings: 2297,
-            },
+            period: 'per month',
+            description: 'Best for serious applicants comparing multiple colleges.',
+            badge: 'Most Popular',
             features: [
-                { text: 'Unlimited access to 500+ colleges (save 40+ hrs research)', included: true },
-                { text: 'Complete 10-year cutoff history & trend analysis', included: true },
-                { text: 'AI predictions with 95% accuracy - know your exact chances', included: true },
-                { text: 'Smart college finder based on your NEET rank (Coming Soon)', included: true },
-                { text: 'Daily WhatsApp alerts during counseling (never miss openings)', included: true },
-                { text: 'Real-time counseling date & cutoff drop notifications', included: true },
-                { text: 'Priority support - responses within 2 hours', included: true },
-                { text: 'Ad-free experience + downloadable cutoff reports', included: true },
+                { text: 'Everything in Free', included: true },
+                { text: 'Full placement stats & recruiters', included: true },
+                { text: 'Unlimited college shortlisting', included: true },
+                { text: 'Side-by-side comparison (up to 4)', included: true },
+                { text: 'Unlimited reviews access', included: true },
+                { text: 'Priority deadline reminders', included: true },
+                { text: 'Application tracker', included: true },
+                { text: 'Expert counselling sessions', included: false },
             ],
             cta: 'Start Premium',
             variant: 'primary',
             popular: true,
+        },
+        {
+            name: 'Pro',
+            price: '₹799',
+            period: 'per month',
+            description: 'For students who want expert guidance and full access.',
+            features: [
+                { text: 'Everything in Premium', included: true },
+                { text: '1-on-1 expert counselling (2/month)', included: true },
+                { text: 'Personalised college roadmap', included: true },
+                { text: 'Priority application reviews', included: true },
+                { text: 'Early access to new features', included: true },
+                { text: 'Dedicated account manager', included: true },
+                { text: 'Interview preparation resources', included: true },
+                { text: 'Scholarship discovery engine', included: true },
+            ],
+            cta: 'Start Pro',
+            variant: 'secondary',
+            popular: false,
         },
     ];
 
@@ -96,11 +87,11 @@ const PricingPage = () => {
         },
         {
             question: 'Can I cancel my subscription?',
-            answer: 'Absolutely. You can cancel your Premium subscription anytime from your account settings. No cancellation fees.',
+            answer: 'Absolutely. You can cancel your Premium or Pro subscription anytime from your account settings. No cancellation fees.',
         },
         {
             question: 'Do you offer student discounts?',
-            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Premium is less than ₹10/day!',
+            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Premium/Pro are packed with value!',
         },
     ];
 
@@ -123,7 +114,7 @@ const PricingPage = () => {
                                 Simple, <span className="gradient-text">Transparent Pricing</span>
                             </h1>
                             <p className="text-slate-300 text-lg md:text-xl">
-                                Explore medical colleges for free. Upgrade to Essential or Premium for complete predictions and automated guidance.
+                                Start free. Upgrade when you're ready to dive deeper with Premium or Pro guidance.
                             </p>
                         </motion.div>
                     </div>
@@ -140,7 +131,7 @@ const PricingPage = () => {
                         >
                             <div className="text-center mb-4">
                                 <h3 className="text-xl font-semibold text-white mb-6">
-                                    Join 5,000+ NEET Students Who Chose Premium
+                                    Join 5,000+ NEET Students Who Chose Premium & Pro
                                 </h3>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
@@ -190,15 +181,6 @@ const PricingPage = () => {
                                             <span className="text-slate-400">{plan.period}</span>
                                         </div>
                                         <p className="text-slate-300">{plan.description}</p>
-
-                                        {plan.valueStack && (
-                                            <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
-                                                <div className="text-xs text-slate-400 mb-2">Total Value: ₹{plan.valueStack.total.toLocaleString()}</div>
-                                                <div className="text-sm font-semibold text-primary-400">
-                                                    You Save: ₹{plan.valueStack.savings.toLocaleString()} ({plan.badge})
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
 
                                     <ul className="space-y-4 mb-8 flex-grow">
