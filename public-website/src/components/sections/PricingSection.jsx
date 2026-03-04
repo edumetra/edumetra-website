@@ -23,6 +23,23 @@ const PricingSection = () => {
             popular: false,
         },
         {
+            name: 'Essential',
+            price: '₹149',
+            period: '/month',
+            description: 'Great for focused research and alerts',
+            features: [
+                'Unlimited 500+ access',
+                '5-year cutoff history & predictions',
+                'Email counseling alerts',
+                'Smart college finder',
+                'Standard email support',
+                'Ad-free experience',
+            ],
+            cta: 'Get Essential',
+            variant: 'secondary',
+            popular: false,
+        },
+        {
             name: 'Premium',
             price: '₹299',
             period: '/month',
@@ -31,11 +48,10 @@ const PricingSection = () => {
                 'Access to 1000+ colleges',
                 'Advanced AI predictions',
                 'Real-time cutoff updates',
-                'Smart automated alerts',
+                'Smart automated WhatsApp alerts',
                 'Premium analytics & insights',
                 'Branch-wise recommendations',
-                'Priority support',
-                'Ad-free experience',
+                'Priority 2-hour support',
             ],
             cta: 'Get Premium',
             variant: 'primary',
@@ -62,11 +78,11 @@ const PricingSection = () => {
                 </div>
 
                 {/* Pricing Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-center">
                     {plans.map((plan, index) => (
                         <motion.div
                             key={index}
-                            className={`card relative ${plan.popular ? 'ring-2 ring-primary-500' : ''
+                            className={`card relative w-full h-full flex flex-col ${plan.popular ? 'ring-2 ring-primary-500 lg:scale-105 z-10' : ''
                                 }`}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -84,7 +100,7 @@ const PricingSection = () => {
                             )}
 
                             {/* Plan Header */}
-                            <div className="text-center mb-6">
+                            <div className="text-center mb-6 flex-grow-0">
                                 <h3 className="text-2xl font-bold text-white mb-2">
                                     {plan.name}
                                 </h3>
@@ -98,25 +114,27 @@ const PricingSection = () => {
                             </div>
 
                             {/* Features List */}
-                            <ul className="space-y-3 mb-8">
+                            <ul className="space-y-3 mb-8 flex-grow">
                                 {plan.features.map((feature, i) => (
                                     <li key={i} className="flex items-start gap-3">
                                         <Check className="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" />
-                                        <span className="text-slate-200">{feature}</span>
+                                        <span className="text-slate-200 text-sm xl:text-base">{feature}</span>
                                     </li>
                                 ))}
                             </ul>
 
                             {/* CTA Button */}
-                            <Button
-                                variant={plan.variant}
-                                size="lg"
-                                className="w-full"
-                                icon={plan.popular ? Zap : undefined}
-                                onClick={() => handlePlanClick(plan.name)}
-                            >
-                                {plan.cta}
-                            </Button>
+                            <div className="mt-auto">
+                                <Button
+                                    variant={plan.variant}
+                                    size="lg"
+                                    className="w-full"
+                                    icon={plan.popular ? Zap : undefined}
+                                    onClick={() => handlePlanClick(plan.name)}
+                                >
+                                    {plan.cta}
+                                </Button>
+                            </div>
                         </motion.div>
                     ))}
                 </div>

@@ -31,6 +31,25 @@ const PricingPage = () => {
             variant: 'outline',
         },
         {
+            name: 'Essential',
+            price: '₹149',
+            period: '/month',
+            description: 'Great for focused research and alerts',
+            features: [
+                { text: 'Unlimited access to 500+ colleges', included: true },
+                { text: 'Complete 5-year cutoff history', included: true },
+                { text: 'Basic AI predictions', included: true },
+                { text: 'Smart college finder based on your NEET rank', included: true },
+                { text: 'Email alerts during counseling', included: true },
+                { text: 'Real-time counseling date notifications', included: true },
+                { text: 'Standard email support', included: true },
+                { text: 'Ad-free experience', included: true },
+            ],
+            cta: 'Get Essential',
+            variant: 'secondary',
+            popular: false,
+        },
+        {
             name: 'Premium',
             price: '₹299',
             period: '/month',
@@ -65,7 +84,7 @@ const PricingPage = () => {
     const faqs = [
         {
             question: 'Can I switch plans anytime?',
-            answer: 'Yes! You can upgrade to Premium anytime or downgrade back to Free. Changes take effect immediately.',
+            answer: 'Yes! You can upgrade or downgrade anytime. Changes take effect immediately.',
         },
         {
             question: 'What payment methods do you accept?',
@@ -104,7 +123,7 @@ const PricingPage = () => {
                                 Simple, <span className="gradient-text">Transparent Pricing</span>
                             </h1>
                             <p className="text-slate-300 text-lg md:text-xl">
-                                Explore medical colleges for free. Upgrade to Premium for complete predictions and automated guidance.
+                                Explore medical colleges for free. Upgrade to Essential or Premium for complete predictions and automated guidance.
                             </p>
                         </motion.div>
                     </div>
@@ -145,11 +164,11 @@ const PricingPage = () => {
                 {/* Pricing Cards */}
                 <section className="section bg-slate-900/30">
                     <div className="container-custom">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-center">
                             {plans.map((plan, index) => (
                                 <motion.div
                                     key={index}
-                                    className={`card relative ${plan.popular ? 'ring-2 ring-primary-500 lg:scale-105' : ''
+                                    className={`card relative w-full h-full flex flex-col ${plan.popular ? 'ring-2 ring-primary-500 lg:scale-105 z-10' : ''
                                         }`}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -164,7 +183,7 @@ const PricingPage = () => {
                                         </div>
                                     )}
 
-                                    <div className="text-center mb-8">
+                                    <div className="text-center mb-8 flex-grow-0">
                                         <h2 className="text-2xl font-bold text-white mb-2">{plan.name}</h2>
                                         <div className="flex items-baseline justify-center gap-1 mb-2">
                                             <span className="text-5xl font-bold gradient-text">{plan.price}</span>
@@ -182,23 +201,25 @@ const PricingPage = () => {
                                         )}
                                     </div>
 
-                                    <ul className="space-y-4 mb-8">
+                                    <ul className="space-y-4 mb-8 flex-grow">
                                         {plan.features.map((feature, i) => (
                                             <li key={i} className="flex items-start gap-3">
                                                 <Check
                                                     className={`w-5 h-5 flex-shrink-0 mt-0.5 ${feature.included ? 'text-primary-400' : 'text-slate-600'
                                                         }`}
                                                 />
-                                                <span className={feature.included ? 'text-slate-200' : 'text-slate-500 line-through'}>
+                                                <span className={feature.included ? 'text-slate-200 text-sm md:text-base' : 'text-slate-500 line-through text-sm md:text-base'}>
                                                     {feature.text}
                                                 </span>
                                             </li>
                                         ))}
                                     </ul>
 
-                                    <Button variant={plan.variant} size="lg" className="w-full">
-                                        {plan.cta}
-                                    </Button>
+                                    <div className="mt-auto">
+                                        <Button variant={plan.variant} size="lg" className="w-full">
+                                            {plan.cta}
+                                        </Button>
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
