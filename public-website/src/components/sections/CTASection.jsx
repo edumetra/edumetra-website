@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
 
+import { motion } from 'framer-motion';
 const CTASection = () => {
     const handleCTAClick = () => {
         analytics.trackCTAClick('Get Started Now', 'Final CTA Section', 'button');

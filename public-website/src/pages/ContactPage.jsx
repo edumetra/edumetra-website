@@ -4,6 +4,7 @@ import SEO from '../components/SEO';
 import ContactForm from '../shared/ui/ContactForm';
 import { analytics } from '../shared/utils/analytics';
 
+import { motion } from 'framer-motion';
 const ContactPage = () => {
     useEffect(() => {
         analytics.trackPageView('/contact', 'Contact');

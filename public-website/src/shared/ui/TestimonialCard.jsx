@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const TestimonialCard = ({
     name,
     role,

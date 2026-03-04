@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const FeatureCard = ({ title, description, delay = 0 }) => {
     return (
         <motion.div

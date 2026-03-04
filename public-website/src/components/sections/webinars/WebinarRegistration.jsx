@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const WebinarRegistration = () => {
     return (
         <section className="section bg-slate-900/30">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Target, Zap, Bell, BarChart3, Shield, Clock } from 'lucide-react';
 import FeatureCard from '../../shared/ui/FeatureCard';
 
+import { motion } from 'framer-motion';
 const FeaturesGrid = () => {
     const features = [
         {

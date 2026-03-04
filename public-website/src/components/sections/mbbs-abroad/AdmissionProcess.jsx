@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { motion } from 'framer-motion';
 const AdmissionProcess = ({ steps }) => {
     return (
         <section className="section bg-slate-900/30">

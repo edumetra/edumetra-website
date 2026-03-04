@@ -5,6 +5,7 @@ import Button from '../shared/ui/Button';
 import { analytics } from '../shared/utils/analytics';
 import { generateStructuredData } from '../shared/utils/seo';
 
+import { motion } from 'framer-motion';
 const PricingPage = () => {
     useEffect(() => {
         analytics.trackPageView('/pricing', 'Pricing');

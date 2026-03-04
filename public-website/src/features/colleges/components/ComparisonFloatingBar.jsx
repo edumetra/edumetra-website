@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, ArrowRight } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { motion,  AnimatePresence  } from 'framer-motion';
 
 const ComparisonFloatingBar = ({ selectedColleges, onRemove, onCompareNow }) => {
     if (selectedColleges.length === 0) return null;

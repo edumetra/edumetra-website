@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
 
+import { motion } from 'framer-motion';
 const ContactForm = () => {
     const [formData, setFormData] = useState({
         name: '',

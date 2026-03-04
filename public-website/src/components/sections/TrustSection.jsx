@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, Award, CheckCircle, Lock, Users, Star, TrendingUp, Verified } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const TrustSection = () => {
     const certifications = [
         {

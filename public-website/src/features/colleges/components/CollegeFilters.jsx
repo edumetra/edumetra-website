@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Filter, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { motion,  AnimatePresence  } from 'framer-motion';
 
 const FilterSection = ({ title, options, selected, onChange, isOpen, onToggle }) => {
     return (

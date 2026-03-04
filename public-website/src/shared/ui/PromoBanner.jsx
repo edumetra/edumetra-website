@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { motion,  AnimatePresence  } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
 
 const PromoBanner = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { motion,  AnimatePresence  } from 'framer-motion';
 import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../../features/auth/AuthProvider';
 

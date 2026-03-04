@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, Quote, Award, Sparkles } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const SuccessStoriesSection = () => {
     const testimonials = [
         {

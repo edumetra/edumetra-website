@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Brain, CheckCircle } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const HowItWorks = () => {
     const steps = [
         {

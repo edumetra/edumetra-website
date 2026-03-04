@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Star, Send, CheckCircle, Upload, Award } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const WriteReviewPage = () => {
     const [formData, setFormData] = useState({
         name: '',

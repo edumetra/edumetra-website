@@ -3,6 +3,7 @@ import { Check, Star, Zap } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
 
+import { motion } from 'framer-motion';
 const PricingSection = () => {
     const plans = [
         {

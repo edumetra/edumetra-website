@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, Play } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const PastWebinars = ({ events }) => {
     return (
         <section className="section">

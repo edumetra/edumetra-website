@@ -4,6 +4,7 @@ import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 
+import { motion } from 'framer-motion';
 const SignupPage = () => {
     const navigate = useNavigate();
     const { signUp } = useAuth();

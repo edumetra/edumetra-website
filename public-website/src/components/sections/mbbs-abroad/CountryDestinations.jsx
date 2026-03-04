@@ -1,6 +1,7 @@
 import React from 'react';
 import { Award, CheckCircle } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const CountryDestinations = ({ countries }) => {
     return (
         <section className="section">

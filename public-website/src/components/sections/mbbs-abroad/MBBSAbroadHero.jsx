@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plane } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const MBBSAbroadHero = ({ stats }) => {
     return (
         <section className="section pt-32 bg-gradient-to-b from-slate-900 to-slate-900/50">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useInView } from 'framer-motion';
+import { motion,  useInView  } from 'framer-motion';
 
 const StatsCounter = ({ end, duration = 2, suffix = '', prefix = '', label }) => {
     const [count, setCount] = useState(0);

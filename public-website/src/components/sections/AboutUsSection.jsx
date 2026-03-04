@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, Target, Eye, Heart, TrendingUp, Building, Globe, CheckCircle, GraduationCap, Users } from 'lucide-react';
 
+import { motion } from 'framer-motion';
 const AboutUsSection = () => {
     const differentiators = [
         {

@@ -4,6 +4,7 @@ import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 
+import { motion } from 'framer-motion';
 const LoginPage = () => {
     const navigate = useNavigate();
     const { signIn } = useAuth();

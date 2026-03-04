@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion';
 import React, { useEffect } from 'react';
 import {
+
     Target, Zap, Bell, BarChart3, Shield, Clock,
     TrendingUp, Users, Globe, Smartphone, Lock, Headphones
 } from 'lucide-react';

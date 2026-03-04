@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion,  AnimatePresence  } from 'framer-motion';
 import { Calendar, AlertCircle, TrendingUp, Award } from 'lucide-react';
 
 const ScrollingNewsTicker = () => {
