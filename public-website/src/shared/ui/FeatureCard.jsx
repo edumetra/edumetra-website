@@ -1,7 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
-const FeatureCard = ({ icon: Icon, title, description, delay = 0 }) => {
+const FeatureCard = ({ title, description, delay = 0 }) => {
     return (
         <motion.div
             className="card group cursor-default"

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
@@ -30,7 +29,7 @@ const LoginPage = () => {
         setLoading(true);
         setError('');
 
-        const { data, error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(formData.email, formData.password);
 
         if (error) {
             setError(error);

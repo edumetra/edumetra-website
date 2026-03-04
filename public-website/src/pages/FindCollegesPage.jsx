@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Search, Filter as FilterIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
 import CollegeCard from '../features/colleges/components/CollegeCard';
 import CollegeFilters from '../features/colleges/components/CollegeFilters';
 import ComparisonFloatingBar from '../features/colleges/components/ComparisonFloatingBar';
@@ -9,7 +8,7 @@ import ComparisonModal from '../features/colleges/components/ComparisonModal';
 import { colleges as initialColleges, filters } from '../data/colleges';
 
 const FindCollegesPage = () => {
-    const [colleges, setColleges] = useState(initialColleges);
+    // We compute this from initialColleges based on filters
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilters, setSelectedFilters] = useState({
         countries: [],
@@ -22,7 +21,7 @@ const FindCollegesPage = () => {
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
     // Filtering Logic
-    useEffect(() => {
+    const filteredColleges = React.useMemo(() => {
         let filtered = initialColleges;
 
         // Search
@@ -41,9 +40,13 @@ const FindCollegesPage = () => {
             filtered = filtered.filter(c => selectedFilters.types.includes(c.type));
         }
         // Add logic for fees range if needed (requires parsing strings to numbers)
+        // Add logic for fees range if needed (requires parsing strings to numbers)
 
-        setColleges(filtered);
+        return filtered;
     }, [searchQuery, selectedFilters]);
+
+    // Use derived state for colleges instead of manually syncing
+    const colleges = filteredColleges;
 
     const handleFilterChange = (category, value) => {
         setSelectedFilters(prev => {

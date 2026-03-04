@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Video } from 'lucide-react';
 
 const WebinarsHero = ({ categories, selectedCategory, onCategoryChange }) => {

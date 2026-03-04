@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
@@ -52,7 +51,7 @@ const SignupPage = () => {
         setLoading(true);
         setError('');
 
-        const { data, error } = await signUp(formData.email, formData.password, {
+        const { error } = await signUp(formData.email, formData.password, {
             full_name: formData.name,
         });
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Target, Zap, Bell, BarChart3, Shield, Clock } from 'lucide-react';
 import FeatureCard from '../../shared/ui/FeatureCard';
 

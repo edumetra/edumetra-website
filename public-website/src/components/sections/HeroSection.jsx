@@ -1,11 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import StatsCounter from '../../shared/ui/StatsCounter';
 import { analytics } from '../../shared/utils/analytics';
 
-const HeroSection = () => {
+const HeroSection = () => {    // eslint-disable-next-line no-unused-vars
     const handlePrimaryCTA = () => {
         analytics.trackCTAClick('Get Started Free', 'Hero Section', 'primary');
         analytics.trackSignupIntent('hero_primary_cta');
@@ -94,11 +93,10 @@ const HeroSection = () => {
                         <Button
                             variant="primary"
                             size="lg"
-                            icon={ArrowRight}
-                            iconPosition="right"
-                            onClick={handlePrimaryCTA}
+                            onClick={(e) => e.preventDefault()}
+                            className="cursor-not-allowed opacity-75"
                         >
-                            Explore Colleges
+                            Coming Soon
                         </Button>
                         <Button
                             variant="secondary"

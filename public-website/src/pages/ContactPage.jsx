@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import SEO from '../components/SEO';
 import ContactForm from '../shared/ui/ContactForm';

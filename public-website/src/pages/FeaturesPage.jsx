@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
     Target, Zap, Bell, BarChart3, Shield, Clock,
     TrendingUp, Users, Globe, Smartphone, Lock, Headphones
@@ -174,8 +173,8 @@ const FeaturesPage = () => {
                                 Start exploring colleges for free or upgrade to Premium for complete predictions and automated guidance.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Button variant="primary" size="lg">
-                                    Explore Colleges
+                                <Button variant="primary" size="lg" onClick={(e) => e.preventDefault()} className="cursor-not-allowed opacity-75">
+                                    Coming Soon
                                 </Button>
                                 <Button variant="secondary" size="lg">
                                     View Pricing

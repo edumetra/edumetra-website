@@ -1,6 +1,5 @@
 import React from 'react';
 import { MapPin, Star, Award, CheckCircle, Heart, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const CollegeCard = ({ college, onCompare, isSelected }) => {
     return (

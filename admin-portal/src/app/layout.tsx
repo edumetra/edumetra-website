@@ -84,6 +84,12 @@ export default async function RootLayout({
                             <Link href="/reviews" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Reviews
                             </Link>
+                            <Link href="/cutoffs" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
+                                Cutoffs Engine
+                            </Link>
+                            <Link href="/rankings" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
+                                Rankings
+                            </Link>
                             <Link href="/articles" className="block px-6 py-3 text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 text-slate-400">
                                 Articles
                             </Link>

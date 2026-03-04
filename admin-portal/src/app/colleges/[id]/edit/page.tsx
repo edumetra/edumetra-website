@@ -33,6 +33,8 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
         website_url: "",
         highest_package: "",
         placement_rate: "",
+        intake_capacity: "",
+        accreditations: "",
     });
 
     useEffect(() => {
@@ -82,7 +84,9 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                     established_year: data.established_year?.toString() || "",
                     website_url: data.website_url || "",
                     highest_package: placementStats.highest_package || "",
-                    placement_rate: placementStats.placement_rate || ""
+                    placement_rate: placementStats.placement_rate || "",
+                    intake_capacity: data.intake_capacity?.toString() || "",
+                    accreditations: Array.isArray(data.accreditations) ? data.accreditations.join(", ") : data.accreditations || "",
                 });
             }
             setLoading(false);
@@ -124,6 +128,8 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                     description: formData.description,
                     established_year: parseInt(formData.established_year) || null,
                     website_url: formData.website_url,
+                    intake_capacity: parseInt(formData.intake_capacity) || null,
+                    accreditations: formData.accreditations.split(",").map(a => a.trim()).filter(Boolean),
                 })
                 .eq("id", id);
 
@@ -174,10 +180,16 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                         <h1 className="text-3xl font-extrabold text-white tracking-tight">Edit College</h1>
                         <p className="text-slate-400 mt-2">Update institution details and placement statistics.</p>
                     </div>
-                    <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-full shadow-sm">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                        Cancel
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link href={`/colleges/${id}/courses`} className="flex items-center gap-2 text-sm font-semibold text-white transition-colors bg-blue-600 hover:bg-blue-500 border border-blue-500 px-5 py-2.5 rounded-full shadow-sm">
+                            <BookOpen className="w-4 h-4" />
+                            Manage Courses & Fees
+                        </Link>
+                        <Link href="/" className="group flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-full shadow-sm">
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                            Cancel
+                        </Link>
+                    </div>
                 </div>
 
                 {error && (
@@ -197,10 +209,10 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                                 type="button"
                                 onClick={() => setFormData({ ...formData, visibility: v })}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${formData.visibility === v
-                                        ? v === "public" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-                                            : v === "hidden" ? "bg-slate-700 border-slate-600 text-slate-300"
-                                                : "bg-amber-500/15 border-amber-500/40 text-amber-400"
-                                        : "bg-slate-800/50 border-slate-700 text-slate-500 hover:text-slate-300"
+                                    ? v === "public" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                                        : v === "hidden" ? "bg-slate-700 border-slate-600 text-slate-300"
+                                            : "bg-amber-500/15 border-amber-500/40 text-amber-400"
+                                    : "bg-slate-800/50 border-slate-700 text-slate-500 hover:text-slate-300"
                                     }`}
                             >
                                 <span className={`w-2 h-2 rounded-full ${v === "public" ? "bg-emerald-400" : v === "hidden" ? "bg-slate-500" : "bg-amber-400"
@@ -430,6 +442,30 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                                     name="placement_rate"
                                     placeholder="e.g. 92%"
                                     value={formData.placement_rate}
+                                    onChange={handleChange}
+                                    className={inputClasses}
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClasses}>Intake Capacity</label>
+                                <input
+                                    type="number"
+                                    name="intake_capacity"
+                                    placeholder="e.g. 500"
+                                    value={formData.intake_capacity}
+                                    onChange={handleChange}
+                                    className={inputClasses}
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClasses}>Accreditations (Comma separated)</label>
+                                <input
+                                    type="text"
+                                    name="accreditations"
+                                    placeholder="e.g. NAAC A++, NBA"
+                                    value={formData.accreditations}
                                     onChange={handleChange}
                                     className={inputClasses}
                                 />

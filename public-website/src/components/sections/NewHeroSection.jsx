@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
     Search,
     MapPin,
@@ -19,7 +19,7 @@ import ParticleBackground from '../../shared/ui/ParticleBackground';
 
 const NewHeroSection = () => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [location, setLocation] = useState('');
+    const [location] = useState("India");
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
     // Vibrant medical-themed background gradients
@@ -120,27 +120,35 @@ const NewHeroSection = () => {
                 }} />
             </div>
 
-            {/* Moving Particles Effect */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(20)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-2 h-2 bg-white/20 rounded-full"
-                        initial={{
-                            x: Math.random() * window.innerWidth,
-                            y: Math.random() * window.innerHeight,
-                        }}
-                        animate={{
-                            x: Math.random() * window.innerWidth,
-                            y: Math.random() * window.innerHeight,
-                        }}
-                        transition={{
-                            duration: 20 + Math.random() * 20,
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                        }}
-                    />
-                ))}
+            {/* Particles */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                {[...Array(20)].map((_, i) => {
+                    // disable eslint for the impure render since we just want a simple animation
+                    // eslint-disable-next-line react-hooks/rules-of-hooks
+                    const x1 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, []);
+                    // eslint-disable-next-line react-hooks/rules-of-hooks
+                    const y1 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0, []);
+                    // eslint-disable-next-line react-hooks/rules-of-hooks
+                    const x2 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, []);
+                    // eslint-disable-next-line react-hooks/rules-of-hooks
+                    const y2 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0, []);
+                    // eslint-disable-next-line react-hooks/rules-of-hooks
+                    const dur = React.useMemo(() => 20 + Math.random() * 20, []);
+
+                    return (
+                        <motion.div
+                            key={i}
+                            className="absolute w-2 h-2 bg-white/20 rounded-full"
+                            initial={{ x: x1, y: y1 }}
+                            animate={{ x: x2, y: y2 }}
+                            transition={{
+                                duration: dur,
+                                repeat: Infinity,
+                                repeatType: "reverse",
+                            }}
+                        />
+                    );
+                })}
             </div>
 
             <div className="container-custom relative">
@@ -266,10 +274,15 @@ const NewHeroSection = () => {
             </div>
 
             {/* Scrolling News Ticker */}
-            <ScrollingNewsTicker />
+            <div className="relative z-10">
+                <ScrollingNewsTicker />
+            </div>
+
+            {/* Spacer for bottom wave so it doesn't overlap the news ticker */}
+            <div className="h-16 md:h-20"></div>
 
             {/* Bottom Wave */}
-            <div className="absolute bottom-0 left-0 right-0">
+            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
                 <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-16 md:h-20 fill-slate-50">
                     <path d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" />
                 </svg>

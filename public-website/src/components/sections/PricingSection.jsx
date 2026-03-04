@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Check, Star, Zap } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';

@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Award, CheckCircle } from 'lucide-react';
 
 const CountryDestinations = ({ countries }) => {

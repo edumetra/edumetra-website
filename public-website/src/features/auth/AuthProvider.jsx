@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../../services/supabaseClient';
 
@@ -10,6 +11,7 @@ export const useAuth = () => {
     }
     return context;
 };
+
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -116,5 +118,3 @@ export const AuthProvider = ({ children }) => {
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export default AuthContext;

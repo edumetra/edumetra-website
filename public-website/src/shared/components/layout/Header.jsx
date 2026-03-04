@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../../features/auth/AuthProvider';
 
@@ -69,16 +69,13 @@ const Header = () => {
                     <nav className="hidden lg:flex items-center gap-6">
                         {mainNavLinks.slice(0, 5).map((link, index) => (
                             link.name === 'Find Colleges' ? (
-                                <a
+                                <button
                                     key={index}
-                                    href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-300 hover:text-white`}
+                                    onClick={(e) => e.preventDefault()}
+                                    className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-500 cursor-not-allowed`}
                                 >
-                                    {link.name}
-                                    <span className="absolute inset-0 rounded-lg bg-red-500/0 group-hover:bg-red-500/10 transition-colors duration-300" />
-                                </a>
+                                    Coming Soon
+                                </button>
                             ) : (
                                 <Link
                                     key={index}
@@ -279,16 +276,13 @@ const Header = () => {
                                     <p className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Main Pages</p>
                                     {mainNavLinks.map((link, index) => (
                                         link.name === 'Find Colleges' ? (
-                                            <a
+                                            <button
                                                 key={index}
-                                                href={import.meta.env.VITE_COLLEGES_URL || 'https://colleges.edumetra.in'}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="block px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={(e) => e.preventDefault()}
+                                                className="block w-full text-left px-4 py-2.5 rounded-lg text-slate-500 cursor-not-allowed transition-all duration-200"
                                             >
-                                                {link.name}
-                                            </a>
+                                                Coming Soon
+                                            </button>
                                         ) : (
                                             <Link
                                                 key={index}

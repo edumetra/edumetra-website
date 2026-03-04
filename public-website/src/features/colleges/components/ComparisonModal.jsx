@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Check, Minus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const ComparisonModal = ({ isOpen, onClose, colleges, onRemove }) => {
     if (!isOpen) return null;

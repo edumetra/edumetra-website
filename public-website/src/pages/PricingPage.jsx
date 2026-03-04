@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Check, HelpCircle, Star } from 'lucide-react';
 import SEO from '../components/SEO';
 import Button from '../shared/ui/Button';
@@ -50,7 +49,7 @@ const PricingPage = () => {
                 { text: 'Unlimited access to 500+ colleges (save 40+ hrs research)', included: true },
                 { text: 'Complete 10-year cutoff history & trend analysis', included: true },
                 { text: 'AI predictions with 95% accuracy - know your exact chances', included: true },
-                { text: 'Smart college finder based on your NEET rank', included: true },
+                { text: 'Smart college finder based on your NEET rank (Coming Soon)', included: true },
                 { text: 'Daily WhatsApp alerts during counseling (never miss openings)', included: true },
                 { text: 'Real-time counseling date & cutoff drop notifications', included: true },
                 { text: 'Priority support - responses within 2 hours', included: true },

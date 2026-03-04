@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Star, Quote, Award, Sparkles } from 'lucide-react';
 
 const SuccessStoriesSection = () => {

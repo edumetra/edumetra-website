@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Calendar, Clock, Users, CheckCircle } from 'lucide-react';
 
 const UpcomingWebinars = ({ events }) => {

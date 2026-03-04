@@ -1,5 +1,72 @@
 import React, { useEffect, useRef } from 'react';
 
+// Particle class
+class Particle {
+    constructor(width, height, colors) {
+        this.reset(width, colors);
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+    }
+
+    reset(width, colors) {
+        this.x = Math.random() * width;
+        this.y = -10;
+        this.size = Math.random() * 3 + 1;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = Math.random() * 0.5 + 0.2;
+    }
+
+    update(width, height, mouse) {
+        // Move particle
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Mouse interaction
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 100) {
+            const angle = Math.atan2(dy, dx);
+            this.vx -= Math.cos(angle) * 0.05;
+            this.vy -= Math.sin(angle) * 0.05;
+        }
+
+        // Damping
+        this.vx *= 0.99;
+        this.vy *= 0.99;
+
+        // Reset if out of bounds
+        if (this.y > height + 10 || this.x < -10 || this.x > width + 10) {
+            // we don't know colors, but it's okay just let it retain old color and reset coords
+            this.x = Math.random() * width;
+            this.y = -10;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = Math.random() * 0.5 + 0.2;
+        }
+
+        // Pulse opacity
+        this.opacity += (Math.random() - 0.5) * 0.01;
+        this.opacity = Math.max(0.2, Math.min(0.7, this.opacity));
+    }
+
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + Math.floor(this.opacity * 255).toString(16).padStart(2, '0');
+        ctx.fill();
+
+        // Glow effect
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
 const ParticleBackground = ({
     particleCount = 50,
     colors = ['#3b82f6', '#60a5fa', '#14b8a6', '#2dd4bf'],
@@ -28,71 +95,8 @@ const ParticleBackground = ({
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Particle class
-        class Particle {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-            }
-
-            reset() {
-                this.x = Math.random() * width;
-                this.y = -10;
-                this.size = Math.random() * 3 + 1;
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                this.opacity = Math.random() * 0.5 + 0.2;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = Math.random() * 0.5 + 0.2;
-            }
-
-            update() {
-                // Move particle
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // Mouse interaction
-                const dx = mouseRef.current.x - this.x;
-                const dy = mouseRef.current.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < 100) {
-                    const angle = Math.atan2(dy, dx);
-                    this.vx -= Math.cos(angle) * 0.05;
-                    this.vy -= Math.sin(angle) * 0.05;
-                }
-
-                // Damping
-                this.vx *= 0.99;
-                this.vy *= 0.99;
-
-                // Reset if out of bounds
-                if (this.y > height + 10 || this.x < -10 || this.x > width + 10) {
-                    this.reset();
-                }
-
-                // Pulse opacity
-                this.opacity += (Math.random() - 0.5) * 0.01;
-                this.opacity = Math.max(0.2, Math.min(0.7, this.opacity));
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color + Math.floor(this.opacity * 255).toString(16).padStart(2, '0');
-                ctx.fill();
-
-                // Glow effect
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-
         // Initialize particles
-        particlesRef.current = Array.from({ length: particleCount }, () => new Particle());
+        particlesRef.current = Array.from({ length: particleCount }, () => new Particle(width, height, colors));
 
         // Animation loop
         const animate = () => {
@@ -100,8 +104,8 @@ const ParticleBackground = ({
 
             // Update and draw particles
             particlesRef.current.forEach(particle => {
-                particle.update();
-                particle.draw();
+                particle.update(width, height, mouseRef.current);
+                particle.draw(ctx);
             });
 
             // Draw connections

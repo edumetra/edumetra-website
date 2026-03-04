@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Shield, Target, Eye, Heart, TrendingUp, Building, Globe, CheckCircle, GraduationCap, Users } from 'lucide-react';
 
 const AboutUsSection = () => {

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
 
@@ -82,7 +81,7 @@ const ContactForm = () => {
 
             // Reset success message after 5 seconds
             setTimeout(() => setStatus('idle'), 5000);
-        } catch (error) {
+        } catch {
             setStatus('error');
             setTimeout(() => setStatus('idle'), 5000);
         }
