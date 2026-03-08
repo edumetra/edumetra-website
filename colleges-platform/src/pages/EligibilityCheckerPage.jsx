@@ -34,7 +34,7 @@ export default function EligibilityCheckerPage() {
         setLoading(true);
         const { data } = await supabase
             .from('colleges')
-            .select('id, name, location_city, location_state, type, stream, rating, fees, rank, image, cutoffs, naac_grade')
+            .select('id, slug, name, location_city, location_state, type, stream, rating, fees, rank, image, cutoffs, naac_grade')
             .eq('visibility', 'public')
             .order('rank', { ascending: true });
 
@@ -151,8 +151,8 @@ export default function EligibilityCheckerPage() {
                                                     <Star className="w-3.5 h-3.5 fill-current" />{c.rating}
                                                 </div>
                                             )}
-                                            <Link to={`/colleges/${c.id}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
-                                                <ArrowRight className="w-4 h-4" />
+                                            <Link to={`/colleges/${c.slug}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+                                                <ChevronRight className="w-5 h-5" />
                                             </Link>
                                         </div>
                                     </div>

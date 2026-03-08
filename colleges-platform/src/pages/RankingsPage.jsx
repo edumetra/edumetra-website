@@ -23,7 +23,7 @@ export default function RankingsPage() {
         setLoading(true);
         let query = supabase
             .from('colleges')
-            .select('id, name, location_city, location_state, type, stream, naac_grade, rating, review_count, avg_package, image, rank')
+            .select('id, slug, name, location_city, location_state, type, stream, naac_grade, rating, review_count, avg_package, image, rank')
             .eq('visibility', 'public')
             .limit(50);
 
@@ -102,7 +102,7 @@ export default function RankingsPage() {
                         {colleges.map((college, index) => (
                             <button
                                 key={college.id}
-                                onClick={() => navigate(`/colleges/${college.id}`)}
+                                onClick={() => navigate(`/colleges/${college.slug}`)}
                                 className="w-full flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-red-500/40 hover:bg-slate-900/80 transition-all text-left group"
                             >
                                 {/* Rank */}

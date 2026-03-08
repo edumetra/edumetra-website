@@ -14,7 +14,7 @@ export function FeaturedColleges() {
                 // Fetch top 4 public colleges ordered by rank ascending (lowest rank number = best), falling back to rating
                 const { data, error } = await supabase
                     .from('colleges')
-                    .select('id, name, location_city, location_state, type, fees, rating, image, rank')
+                    .select('id, slug, name, location_city, location_state, type, fees, rating, image, rank')
                     .eq('visibility', 'public')
                     .order('rank', { ascending: true, nullsFirst: false })
                     .order('rating', { ascending: false })
@@ -70,7 +70,7 @@ export function FeaturedColleges() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {colleges.map((c, index) => (
                         <Link
-                            to={`/colleges/${c.id}`}
+                            to={`/colleges/${c.slug}`}
                             key={c.id}
                             className="group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-red-500/50 transition-all hover:shadow-[0_0_30px_rgba(220,38,38,0.15)] hover:-translate-y-1 block relative"
                         >

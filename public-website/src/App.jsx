@@ -19,6 +19,7 @@ import WebinarsAndSeminarsPage from './pages/WebinarsAndSeminarsPage';
 import MBBSAbroadPage from './pages/MBBSAbroadPage';
 import NewsAndBlogsPage from './pages/NewsAndBlogsPage';
 import CoursePage from './pages/CoursePage';
+import CollegeDetailPage from './pages/CollegeDetailPage';
 import { analytics } from './shared/utils/analytics';
 
 // ScrollToTop component to handle route changes
@@ -59,6 +60,7 @@ function App() {
                 <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
                 <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
                 <Route path="/find-colleges" element={<FindCollegesPage />} />
+                <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
                 <Route path="/courses/:courseId" element={<CoursePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />

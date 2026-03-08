@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Search, Filter as FilterIcon } from 'lucide-react';
+import { Search, Filter as FilterIcon, Loader2 } from 'lucide-react';
 import CollegeCard from '../features/colleges/components/CollegeCard';
 import CollegeFilters from '../features/colleges/components/CollegeFilters';
 import ComparisonFloatingBar from '../features/colleges/components/ComparisonFloatingBar';
 import ComparisonModal from '../features/colleges/components/ComparisonModal';
-import { colleges as initialColleges, filters } from '../data/colleges';
+import { filters } from '../data/colleges';
+import { supabase } from '../services/supabaseClient';
 
 const FindCollegesPage = () => {
-    // We compute this from initialColleges based on filters
+    const [initialColleges, setInitialColleges] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilters, setSelectedFilters] = useState({
         countries: [],
@@ -16,12 +20,53 @@ const FindCollegesPage = () => {
         feesRange: [],
         courses: []
     });
-    const [compareList, setCompareList] = useState([]);
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+    // Fetch live colleges from Supabase
+    useEffect(() => {
+        const fetchColleges = async () => {
+            try {
+                // Fetch published colleges
+                const { data, error } = await supabase
+                    .from('colleges')
+                    .select('*')
+                    .eq('visibility', 'public');
+
+                if (error) throw error;
+
+                // Map Supabase rows to the format CollegeCard expects
+                const mappedData = data.map(c => ({
+                    id: c.id,
+                    slug: c.slug,
+                    name: c.name,
+                    location: c.city || 'Unknown City',
+                    country: c.state || 'India', // Fallback mapping
+                    type: c.type || 'Private',
+                    rating: 4.5, // Placeholder if no reviews system exists yet
+                    reviews: 0,
+                    ranking: `#${c.ranking || 'N/A'}`,
+                    fees: `₹${(c.fees || 0).toLocaleString()}/yr`,
+                    cutoff: `${c.cutoff || 'N/A'}%`,
+                    images: c.gallery_images?.length > 0 ? c.gallery_images : ['https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1000'],
+                    badges: c.type === 'Government' ? ['Govt. Approved', 'Top Ranked'] : ['Top Private', 'UGC Approved'],
+                    facilities: ['Hostel', 'Library', 'Hospital', 'Cafeteria', 'Labs'] // Mocks for now, expand DB schema if needed
+                }));
+
+                setInitialColleges(mappedData);
+            } catch (err) {
+                console.error("Error fetching colleges:", err);
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchColleges();
+    }, []);
+
     // Filtering Logic
-    const filteredColleges = React.useMemo(() => {
+    const filteredColleges = useMemo(() => {
         let filtered = initialColleges;
 
         // Search
@@ -154,35 +199,53 @@ const FindCollegesPage = () => {
 
                         {/* College Grid */}
                         <div className="flex-1">
-                            <div className="mb-4 text-slate-400">
-                                Showing <span className="text-white font-bold">{colleges.length}</span> colleges
-                            </div>
-
-                            {colleges.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {colleges.map(college => (
-                                        <CollegeCard
-                                            key={college.id}
-                                            college={college}
-                                            onCompare={toggleCompare}
-                                            isSelected={compareList.some(c => c.id === college.id)}
-                                        />
-                                    ))}
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                                    <Loader2 className="w-12 h-12 text-red-500 animate-spin mb-4" />
+                                    <h3 className="text-xl font-bold text-white mb-2">Loading Colleges...</h3>
+                                    <p className="text-slate-400">Fetching the latest data for you.</p>
                                 </div>
-                            ) : (
-                                <div className="text-center py-20 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                                    <div className="text-6xl mb-4">🔍</div>
-                                    <h3 className="text-2xl font-bold text-white mb-2">No colleges found</h3>
-                                    <p className="text-slate-400 max-w-xs mx-auto mb-6">
-                                        Try adjusting your filters or search query to find what you're looking for.
-                                    </p>
-                                    <button
-                                        onClick={clearFilters}
-                                        className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-                                    >
-                                        Clear All Filters
+                            ) : error ? (
+                                <div className="text-center py-20 bg-red-500/10 rounded-2xl border border-red-500/30">
+                                    <h3 className="text-2xl font-bold text-red-400 mb-2">Error Loading Data</h3>
+                                    <p className="text-slate-300 max-w-xs mx-auto mb-6">{error}</p>
+                                    <button onClick={() => window.location.reload()} className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                                        Try Again
                                     </button>
                                 </div>
+                            ) : (
+                                <>
+                                    <div className="mb-4 text-slate-400">
+                                        Showing <span className="text-white font-bold">{colleges.length}</span> colleges
+                                    </div>
+
+                                    {colleges.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {colleges.map(college => (
+                                                <CollegeCard
+                                                    key={college.id}
+                                                    college={college}
+                                                    onCompare={toggleCompare}
+                                                    isSelected={compareList.some(c => c.id === college.id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-20 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                                            <div className="text-6xl mb-4">🔍</div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">No colleges found</h3>
+                                            <p className="text-slate-400 max-w-xs mx-auto mb-6">
+                                                Try adjusting your filters or search query to find what you're looking for.
+                                            </p>
+                                            <button
+                                                onClick={clearFilters}
+                                                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                                            >
+                                                Clear All Filters
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -202,7 +265,7 @@ const FindCollegesPage = () => {
                     colleges={compareList}
                     onRemove={removeFromCompare}
                 />
-            </main>
+            </main >
         </>
     );
 };

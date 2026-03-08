@@ -14,11 +14,16 @@ const LIMITS = {
 export function PremiumProvider({ children }) {
     const { user } = useSignup();
     const [tier, setTier] = useState('free');
+    const [visibilityTier, setVisibilityTier] = useState('free');
     const [loadingTier, setLoadingTier] = useState(false);
 
     useEffect(() => {
-        if (user) fetchTier();
-        else setTier('free');
+        if (user) {
+            fetchTier();
+        } else {
+            setTier('free');
+            setVisibilityTier('free');
+        }
     }, [user]);
 
     const fetchTier = async () => {
@@ -28,7 +33,18 @@ export function PremiumProvider({ children }) {
             .select('subscription_tier')
             .eq('id', user.id)
             .single();
-        setTier(data?.subscription_tier || 'free');
+        const apiTier = data?.subscription_tier;
+        setTier(apiTier || 'free');
+
+        // Resolve visibility tier:
+        // - 'pro' or 'premium' = stay as is
+        // - 'free' (but logged in) = 'signed_up'
+        if (apiTier === 'pro' || apiTier === 'premium') {
+            setVisibilityTier(apiTier);
+        } else {
+            setVisibilityTier('signed_up');
+        }
+
         setLoadingTier(false);
     };
 
@@ -42,8 +58,26 @@ export function PremiumProvider({ children }) {
         return true;
     };
 
+    /**
+     * Checks if a section is fully visible to the user based on the college's visibility arrays.
+     * @param {string} sectionId - The ID of the section (e.g., 'placement', 'reviews')
+     * @param {object} collegeDetails - The college details object containing visible_in_* arrays
+     * @returns {boolean} True if visible, false if locked
+     */
+    const isSectionVisible = (sectionId, collegeDetails) => {
+        if (!collegeDetails) return true; // Default to true if no details
+
+        // Map the current visibilityTier to the exact column name in DB
+        const arrayKey = `visible_in_${visibilityTier}`;
+
+        const allowedSections = collegeDetails[arrayKey];
+        if (!Array.isArray(allowedSections)) return true; // Default true if array is missing/malformed
+
+        return allowedSections.includes(sectionId);
+    };
+
     return (
-        <PremiumContext.Provider value={{ tier, isPremium, isPro, limits, can, loadingTier }}>
+        <PremiumContext.Provider value={{ tier, visibilityTier, isPremium, isPro, limits, can, loadingTier, isSectionVisible }}>
             {children}
         </PremiumContext.Provider>
     );

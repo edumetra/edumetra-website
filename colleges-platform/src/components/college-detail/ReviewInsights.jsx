@@ -52,8 +52,14 @@ export function ReviewInsights({ collegeId }) {
     const [showUpgrade, setShowUpgrade] = useState(false);
 
     // Read premium tier via hook — PremiumContext is always mounted above
-    const { can } = usePremium();
+    const { can, isSectionVisible } = usePremium();
     const canUseAI = can('aiInsights'); // false for free, true for premium/pro
+
+    // If the entire reviews section is locked for this user on this college, don't even render the insights box
+    // To do this properly, we need the college details, but ReviewInsights only gets collegeId.
+    // Instead of doing a heavy fetch here, we will rely on CollegeDetailPage to not render ReviewInsights if the section is locked.
+    // However, since we wrapped it in LockedSection in CollegeDetailPage, the component still mounts under the blur!
+    // So we just let it mount. The user can't click it anyway because of pointer-events-none.
 
     const handleGenerate = async () => {
         if (!canUseAI) { setShowUpgrade(true); return; }

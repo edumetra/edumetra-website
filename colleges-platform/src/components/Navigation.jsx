@@ -51,6 +51,7 @@ const Navigation = () => {
         { label: 'Find Colleges', to: '/colleges', internal: true },
         { label: 'Rankings', to: '/rankings', internal: true },
         { label: 'Articles', to: '/articles', internal: true },
+        { label: 'Pricing', to: '/pricing', internal: true },
         {
             label: 'Tools',
             dropdown: [

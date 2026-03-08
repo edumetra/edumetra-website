@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
-import { User, Mail, LogOut, ArrowLeft, Star, BookmarkX, Pencil, Trash2, Bookmark, ChevronRight } from 'lucide-react';
+import { User, Mail, LogOut, ArrowLeft, Star, BookmarkX, Pencil, Trash2, Bookmark, ChevronRight, Save } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator } from 'lucide-react';
 
@@ -13,6 +13,16 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState('Account');
     const [reviews, setReviews] = useState([]);
     const [savedColleges, setSavedColleges] = useState([]);
+    const [profileData, setProfileData] = useState({
+        full_name: '',
+        phone_number: '',
+        state: '',
+        city: '',
+        stream: ''
+    });
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+
     const [loadingReviews, setLoadingReviews] = useState(false);
     const [loadingSaved, setLoadingSaved] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -27,15 +37,36 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (!user) return;
+        if (activeTab === 'Account') fetchProfile();
         if (activeTab === 'My Reviews') fetchReviews();
         if (activeTab === 'Saved Colleges') fetchSaved();
     }, [activeTab, user]);
+
+    const fetchProfile = async () => {
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('full_name, phone_number, state, city, stream')
+            .eq('id', user.id)
+            .single();
+
+        if (data) {
+            setProfileData({
+                full_name: data.full_name || user.user_metadata?.full_name || '',
+                phone_number: data.phone_number || '',
+                state: data.state || '',
+                city: data.city || '',
+                stream: data.stream || ''
+            });
+        } else if (!data && user.user_metadata?.full_name) {
+            setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
+        }
+    };
 
     const fetchReviews = async () => {
         setLoadingReviews(true);
         const { data } = await supabase
             .from('reviews')
-            .select('id, college_id, rating, title, review_text, moderation_status, created_at, helpful_count, colleges(name)')
+            .select('id, college_id, rating, title, review_text, moderation_status, created_at, helpful_count, colleges(name, slug)')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
         setReviews(data || []);
@@ -46,7 +77,7 @@ export default function ProfilePage() {
         setLoadingSaved(true);
         const { data } = await supabase
             .from('saved_colleges')
-            .select('id, created_at, colleges(id, name, location_city, location_state, rating, type, image)')
+            .select('id, created_at, colleges(id, slug, name, location_city, location_state, rating, type, image)')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
         setSavedColleges(data || []);
@@ -68,6 +99,28 @@ export default function ProfilePage() {
     const handleUnsave = async (savedId) => {
         await supabase.from('saved_colleges').delete().eq('id', savedId);
         setSavedColleges(prev => prev.filter(s => s.id !== savedId));
+    };
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        // Save to our custom Profiles table
+        await supabase.from('user_profiles').update({
+            full_name: profileData.full_name,
+            phone_number: profileData.phone_number,
+            state: profileData.state,
+            city: profileData.city,
+            stream: profileData.stream
+        }).eq('id', user.id);
+
+        // Also sync the core Auth user_metadata casually
+        if (profileData.full_name !== user.user_metadata?.full_name) {
+            await supabase.auth.updateUser({
+                data: { full_name: profileData.full_name }
+            });
+        }
+
+        setIsEditingProfile(false);
+        setSavingProfile(false);
     };
 
     const handleLogout = async () => {
@@ -156,25 +209,114 @@ export default function ProfilePage() {
 
                 {/* Account Tab */}
                 {activeTab === 'Account' && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
-                        <div>
-                            <label className="text-xs text-slate-500 uppercase tracking-wider">Full Name</label>
-                            <p className="text-slate-200 mt-1">{user.user_metadata?.full_name || 'Not provided'}</p>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-8 relative overflow-hidden">
+
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Personal Information</h3>
+                                <p className="text-sm text-slate-400">Manage your profile details and academic preferences.</p>
+                            </div>
+                            {!isEditingProfile ? (
+                                <button onClick={() => setIsEditingProfile(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                                    <Pencil className="w-4 h-4" /> Edit
+                                </button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <button onClick={() => setIsEditingProfile(false)} className="px-4 py-2 bg-slate-800 text-slate-300 hover:text-white text-sm font-semibold rounded-lg transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button onClick={handleSaveProfile} disabled={savingProfile} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50">
+                                        {savingProfile ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                                        Save
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <div>
-                            <label className="text-xs text-slate-500 uppercase tracking-wider">Email</label>
-                            <p className="text-slate-200 mt-1">{user.email}</p>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Full Name</label>
+                                {isEditingProfile ? (
+                                    <input value={profileData.full_name} onChange={e => setProfileData(p => ({ ...p, full_name: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.full_name || 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number</label>
+                                {isEditingProfile ? (
+                                    <input value={profileData.phone_number} onChange={e => setProfileData(p => ({ ...p, phone_number: e.target.value }))} placeholder="+91" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.phone_number || 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">City</label>
+                                {isEditingProfile ? (
+                                    <input value={profileData.city} onChange={e => setProfileData(p => ({ ...p, city: e.target.value }))} placeholder="e.g. Mumbai" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.city || 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">State</label>
+                                {isEditingProfile ? (
+                                    <select value={profileData.state} onChange={e => setProfileData(p => ({ ...p, state: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50">
+                                        <option value="">Select State</option>
+                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Gujarat">Gujarat</option>
+                                        <option value="Karnataka">Karnataka</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Tamil Nadu">Tamil Nadu</option>
+                                        <option value="Telangana">Telangana</option>
+                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                        <option value="West Bengal">West Bengal</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.state || 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1 md:col-span-2">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Target Stream</label>
+                                {isEditingProfile ? (
+                                    <select value={profileData.stream} onChange={e => setProfileData(p => ({ ...p, stream: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50">
+                                        <option value="">Select Stream</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Medical">Medical</option>
+                                        <option value="Management">Management</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commerce">Commerce</option>
+                                        <option value="Law">Law</option>
+                                    </select>
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.stream || 'Not specified'}</p>
+                                )}
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-xs text-slate-500 uppercase tracking-wider">User ID</label>
-                            <p className="text-slate-500 text-xs font-mono mt-1">{user.id}</p>
+
+                        <div className="pt-6 border-t border-slate-800 space-y-4">
+                            <h4 className="text-sm font-bold text-white mb-2">Account Security</h4>
+                            <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                                <div>
+                                    <p className="text-sm font-bold text-slate-200">Email Address</p>
+                                    <p className="text-xs text-slate-500">{user.email}</p>
+                                </div>
+                                <div className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/20">Verified</div>
+                            </div>
+
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3.5 rounded-xl font-bold transition-colors mt-8"
+                            >
+                                <LogOut className="w-4 h-4" /> Sign Out
+                            </button>
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-3 rounded-xl font-medium transition-colors"
-                        >
-                            <LogOut className="w-4 h-4" /> Sign Out
-                        </button>
                     </div>
                 )}
 
@@ -193,7 +335,7 @@ export default function ProfilePage() {
                             <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
-                                        <Link to={`/colleges/${review.college_id}`} className="font-bold text-white hover:text-red-400 transition-colors text-sm">
+                                        <Link to={`/colleges/${review.colleges?.slug || review.college_id}`} className="font-bold text-white hover:text-red-400 transition-colors text-sm">
                                             {review.colleges?.name || 'College'}
                                         </Link>
                                         <div className="flex items-center gap-2 mt-1">
@@ -332,7 +474,7 @@ export default function ProfilePage() {
                                                     <Star className="w-3.5 h-3.5 fill-current" />{c.rating || '—'}
                                                 </div>
                                                 <div className="w-px h-6 bg-slate-800 hidden sm:block"></div>
-                                                <Link to={`/colleges/${c.id}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="View Details">
+                                                <Link to={`/colleges/${c.slug}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="View Details">
                                                     <ChevronRight className="w-4 h-4" />
                                                 </Link>
                                                 <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all" title="Remove Save">

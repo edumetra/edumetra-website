@@ -191,9 +191,11 @@ export default function ShortlistPage() {
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0">
                                             {c.rating > 0 && <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><Star className="w-3.5 h-3.5 fill-current" />{c.rating}</div>}
-                                            <Link to={`/colleges/${c.id}`} className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-                                                View <ArrowRight className="w-3 h-3" />
-                                            </Link>
+                                            <div className="flex gap-2 w-full mt-3">
+                                                <Link to={`/colleges/${c.slug}`} className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                                                    View <ArrowRight className="w-3 h-3" />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

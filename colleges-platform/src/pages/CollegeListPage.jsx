@@ -7,6 +7,7 @@ import CollegeCard from '../components/college-list/CollegeCard';
 import CollegeCardSkeleton from '../components/college-list/CollegeCardSkeleton';
 import SEOHead from '../components/SEOHead';
 import { useColleges } from '../hooks/useColleges';
+import { motion } from 'framer-motion';
 
 export default function CollegeListPage() {
     const { user } = useSignup();
@@ -85,19 +86,31 @@ export default function CollegeListPage() {
                 description="Explore 10,000+ colleges by stream, NAAC grade, fees, location and more. Compare side-by-side and read verified student reviews."
                 url="/colleges"
             />
-            <div className="bg-gradient-to-b from-slate-900 to-black pt-24 pb-12 border-b border-slate-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+            <div className="relative pt-28 pb-16 overflow-hidden border-b border-slate-800/60">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-slate-900 to-black z-0" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-red-600/10 blur-[120px] rounded-full point-events-none" />
+
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 text-white tracking-tight"
+                    >
                         Top Colleges & Universities
-                    </h1>
-                    <p className="text-lg text-slate-400 max-w-2xl">
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto md:mx-0"
+                    >
                         Discover the best institutions ranked by top agencies. Filter by stream, NAAC grade, fees, and more.
-                    </p>
+                    </motion.p>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
                     <FilterSidebar filterOptions={filterOptions} filters={filters} onFilterChange={handleFilterChange} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                     <div className="flex-1">
                         <SearchHeader
@@ -115,19 +128,36 @@ export default function CollegeListPage() {
                             </div>
                         )}
 
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             {loading ? (
                                 [...Array(4)].map((_, i) => <CollegeCardSkeleton key={i} />)
                             ) : colleges.length > 0 ? (
                                 <>
-                                    {colleges.map(college => (
-                                        <CollegeCard
-                                            key={college.id}
-                                            college={college}
-                                            savedIds={savedIds}
-                                            onSaveToggle={handleSaveToggle}
-                                        />
-                                    ))}
+                                    <motion.div
+                                        initial="hidden"
+                                        animate="visible"
+                                        variants={{
+                                            hidden: { opacity: 0 },
+                                            visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                                        }}
+                                        className="space-y-5"
+                                    >
+                                        {colleges.map((college, index) => (
+                                            <motion.div
+                                                key={college.id}
+                                                variants={{
+                                                    hidden: { opacity: 0, y: 20 },
+                                                    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                                                }}
+                                            >
+                                                <CollegeCard
+                                                    college={college}
+                                                    savedIds={savedIds}
+                                                    onSaveToggle={handleSaveToggle}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
 
                                     {hasMore && (
                                         <div className="pt-8 pb-4 flex justify-center">

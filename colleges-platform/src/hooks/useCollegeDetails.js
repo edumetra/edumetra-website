@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-export function useCollegeDetails(collegeId) {
+export function useCollegeDetails(collegeSlug) {
     const [college, setCollege] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchCollegeDetails = async () => {
-            if (!collegeId) return;
+            if (!collegeSlug) return;
 
             try {
                 setLoading(true);
@@ -18,7 +18,7 @@ export function useCollegeDetails(collegeId) {
                     .schema('public')
                     .from('colleges')
                     .select('*')
-                    .eq('id', collegeId)
+                    .eq('slug', collegeSlug)
                     .single();
 
                 if (collegeError) throw collegeError;
@@ -27,7 +27,7 @@ export function useCollegeDetails(collegeId) {
                     .schema('public')
                     .from('college_details')
                     .select('*')
-                    .eq('college_id', collegeId)
+                    .eq('college_id', collegeData.id)
                     .single();
 
                 // If no detail record exists right now, we don't necessarily want to throw an error 
@@ -70,7 +70,7 @@ export function useCollegeDetails(collegeId) {
         };
 
         fetchCollegeDetails();
-    }, [collegeId]);
+    }, [collegeSlug]);
 
     return {
         college,

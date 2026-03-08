@@ -22,14 +22,17 @@ import { QASection } from '../components/college-detail/QASection';
 import { FAQSection } from '../components/college-detail/FAQSection';
 import { ReviewInsights } from '../components/college-detail/ReviewInsights';
 import { SimilarColleges } from '../components/college-detail/SimilarColleges';
+import { LockedSection } from '../components/college-detail/LockedSection';
+import { usePremium } from '../contexts/PremiumContext';
 import SEOHead from '../components/SEOHead';
 
 export default function CollegeDetailPage() {
-    const { collegeId } = useParams();
+    const { slug } = useParams();
     const navigate = useNavigate();
 
-    // Custom Hook
-    const { college, loading, error } = useCollegeDetails(collegeId);
+    // Custom Hooks
+    const { college, loading, error } = useCollegeDetails(slug);
+    const { isSectionVisible, visibilityTier } = usePremium();
 
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshReviews, setRefreshReviews] = useState(false);
@@ -78,7 +81,7 @@ export default function CollegeDetailPage() {
         '@type': 'EducationalOrganization',
         name: college.name,
         description: college.description || `${college.name} is located in ${college.location}. Type: ${college.type}.`,
-        url: `https://colleges.edumetra.in/colleges/${college.id}`,
+        url: `https://colleges.edumetra.in/colleges/${college.slug}`,
         image: college.image,
         address: {
             '@type': 'PostalAddress',
@@ -128,7 +131,7 @@ export default function CollegeDetailPage() {
                 title={college.name}
                 description={`${college.name} in ${college.location} — Fees: ${college.fees || 'N/A'}, Rating: ${college.rating || 'N/A'}/5. Read student reviews and compare with other colleges.`}
                 image={college.image}
-                url={`/colleges/${college.id}`}
+                url={`/colleges/${college.slug}`}
                 jsonLd={jsonLd}
             />
             {/* Parallax Hero */}
@@ -260,19 +263,31 @@ export default function CollegeDetailPage() {
                                 <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                     <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Placements & ROI
                                 </h2>
-                                <PlacementChart stats={stats} />
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <PlacementHighlight
-                                        label="Highest Package"
-                                        value={stats.highest_package || "₹45 LPA"}
-                                        subtext="Domestic"
-                                    />
-                                    <PlacementHighlight
-                                        label="Average Package"
-                                        value={stats.average_package || college.avg_package || "₹8.5 LPA"}
-                                        subtext="Across all streams"
-                                    />
-                                </div>
+                                {!isSectionVisible('placement', college) ? (
+                                    <LockedSection title="Placements & ROI" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                        <PlacementChart stats={stats} />
+                                        <div className="grid sm:grid-cols-2 gap-4 mt-8">
+                                            <PlacementHighlight label="Highest Package" value="₹-- LPA" subtext="Hidden" />
+                                            <PlacementHighlight label="Average Package" value="₹-- LPA" subtext="Hidden" />
+                                        </div>
+                                    </LockedSection>
+                                ) : (
+                                    <>
+                                        <PlacementChart stats={stats} />
+                                        <div className="grid sm:grid-cols-2 gap-4 mt-8">
+                                            <PlacementHighlight
+                                                label="Highest Package"
+                                                value={stats.highest_package || "₹45 LPA"}
+                                                subtext="Domestic"
+                                            />
+                                            <PlacementHighlight
+                                                label="Average Package"
+                                                value={stats.average_package || college.avg_package || "₹8.5 LPA"}
+                                                subtext="Across all streams"
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </section>
                         )}
 
@@ -281,7 +296,13 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Facilities
                             </h2>
-                            <CampusLife />
+                            {!isSectionVisible('campus', college) ? (
+                                <LockedSection title="Campus Facilities" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <CampusLife />
+                                </LockedSection>
+                            ) : (
+                                <CampusLife />
+                            )}
                         </section>
 
                         {/* Photos Gallery */}
@@ -289,7 +310,13 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Gallery
                             </h2>
-                            <PhotosGallery photos={college.campus_photos || []} />
+                            {!isSectionVisible('photos', college) ? (
+                                <LockedSection title="Campus Gallery" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <PhotosGallery photos={[]} />
+                                </LockedSection>
+                            ) : (
+                                <PhotosGallery photos={college.campus_photos || []} />
+                            )}
                         </section>
 
                         {/* Courses & Fees */}
@@ -297,7 +324,13 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Courses &amp; Fees
                             </h2>
-                            <CoursesTable courses={college.courses_fees || []} />
+                            {!isSectionVisible('courses', college) ? (
+                                <LockedSection title="Courses & Fees" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <CoursesTable courses={(college.courses_fees || []).slice(0, 2)} />
+                                </LockedSection>
+                            ) : (
+                                <CoursesTable courses={college.courses_fees || []} />
+                            )}
                         </section>
 
                         {/* Popular Programs */}
@@ -325,7 +358,13 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Questions & Answers
                             </h2>
-                            <QASection collegeId={collegeId} />
+                            {!isSectionVisible('q&a', college) ? (
+                                <LockedSection title="Questions & Answers" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                </LockedSection>
+                            ) : (
+                                <QASection collegeId={college.id} />
+                            )}
                         </section>
 
                         {/* FAQs */}
@@ -333,7 +372,13 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Frequently Asked Questions
                             </h2>
-                            <FAQSection collegeName={college.name} />
+                            {!isSectionVisible('faq', college) ? (
+                                <LockedSection title="Frequently Asked Questions" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                </LockedSection>
+                            ) : (
+                                <FAQSection collegeName={college.name} />
+                            )}
                         </section>
 
                         {/* Reviews */}
@@ -351,11 +396,19 @@ export default function CollegeDetailPage() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-8">
-                                <ReviewForm collegeId={collegeId} onReviewSubmitted={() => setRefreshReviews(prev => !prev)} />
-                                <ReviewInsights collegeId={collegeId} />
-                                <ReviewList collegeId={collegeId} refreshTrigger={refreshReviews} />
-                            </div>
+                            {!isSectionVisible('reviews', college) ? (
+                                <LockedSection title="Student Reviews" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <div className="grid gap-8">
+                                        <div className="h-96 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                    </div>
+                                </LockedSection>
+                            ) : (
+                                <div className="grid gap-8">
+                                    <ReviewForm collegeId={college.id} onReviewSubmitted={() => setRefreshReviews(prev => !prev)} />
+                                    <ReviewInsights collegeId={college.id} />
+                                    <ReviewList collegeId={college.id} refreshTrigger={refreshReviews} />
+                                </div>
+                            )}
                         </section>
 
                         {/* Similar Colleges */}

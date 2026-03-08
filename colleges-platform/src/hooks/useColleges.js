@@ -97,6 +97,7 @@ export function useColleges() {
 
             const formattedData = (data || []).map(c => ({
                 id: c.id,
+                slug: c.slug,
                 rank: c.rank,
                 name: c.name,
                 location: `${c.location_city}, ${c.location_state}`,
@@ -125,9 +126,11 @@ export function useColleges() {
             setHasMore(from + formattedData.length < count);
 
         } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error('Error fetching colleges:', err.message);
-                setError(err.message);
+            // Supabase sometimes shapes AbortErrors slightly differently
+            const isAbortError = err.name === 'AbortError' || err.message?.includes('Fetch is aborted') || err.message?.includes('aborted');
+            if (!isAbortError) {
+                console.error('Error fetching colleges:', err.message || err);
+                setError(err.message || 'Failed to fetch colleges');
             }
         } finally {
             setLoading(false);

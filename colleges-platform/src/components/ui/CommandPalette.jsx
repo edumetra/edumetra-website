@@ -49,7 +49,7 @@ export function CommandPalette() {
             setLoading(true);
             const { data } = await supabase
                 .from('colleges')
-                .select('id, name, location_city, location_state, type')
+                .select('id, slug, name, location_city, location_state, type')
                 .ilike('name', `%${query}%`)
                 .eq('visibility', 'public')
                 .limit(5);
@@ -85,9 +85,9 @@ export function CommandPalette() {
         return () => window.removeEventListener('keydown', handleNav);
     }, [isOpen, results, selectedIndex]);
 
-    const handleSelect = (id) => {
+    const handleSelect = (slug) => {
         setIsOpen(false);
-        navigate(`/colleges/${id}`);
+        navigate(`/colleges/${slug}`);
     };
 
     if (!isOpen) return null;
@@ -149,7 +149,7 @@ export function CommandPalette() {
                             {results.map((c, index) => (
                                 <button
                                     key={c.id}
-                                    onClick={() => handleSelect(c.id)}
+                                    onClick={() => handleSelect(c.slug)}
                                     className={`w-full text-left flex items-center justify-between p-3 rounded-lg transition-colors group ${index === selectedIndex ? 'bg-red-500/10 border border-red-500/20' : 'hover:bg-slate-800/50 border border-transparent'}`}
                                 >
                                     <div>

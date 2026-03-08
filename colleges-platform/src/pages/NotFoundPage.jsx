@@ -13,7 +13,7 @@ export default function NotFoundPage() {
         // Fetch top 4 public colleges by rating as suggestions
         supabase
             .from('colleges')
-            .select('id, name, location_city, location_state, rating, type, image')
+            .select('id, slug, name, location_city, location_state, rating, type, image')
             .eq('visibility', 'public')
             .order('rating', { ascending: false })
             .limit(4)
@@ -110,7 +110,7 @@ export default function NotFoundPage() {
                                     transition={{ duration: 0.4, delay: 0.25 + i * 0.07 }}
                                 >
                                     <Link
-                                        to={`/colleges/${college.id}`}
+                                        to={`/colleges/${college.slug}`}
                                         className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-red-500/30 hover:bg-slate-800/60 transition-all group"
                                     >
                                         {/* College image / initial */}

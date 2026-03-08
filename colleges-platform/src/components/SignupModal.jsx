@@ -62,6 +62,23 @@ export default function SignupModal({ isOpen, onClose }) {
         }
     };
 
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/`,
+                },
+            });
+            if (error) throw error;
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleClose = () => {
@@ -295,6 +312,26 @@ export default function SignupModal({ isOpen, onClose }) {
                                 }
                             </button>
                         </form>
+
+                        <div className="mt-5 flex items-center justify-center gap-3">
+                            <div className="flex-1 h-px bg-white/10"></div>
+                            <span className="text-xs font-semibold text-slate-500 uppercase">Or continue with</span>
+                            <div className="flex-1 h-px bg-white/10"></div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignIn}
+                            disabled={loading || !!successMsg}
+                            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                        >
+                            <img
+                                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                                alt="Google logo"
+                                className="w-5 h-5 bg-white p-0.5 rounded-full"
+                            />
+                            Google
+                        </button>
 
                         {/* Toggle sign in <-> sign up */}
                         <div className="mt-5 text-center">

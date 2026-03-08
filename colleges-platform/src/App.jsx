@@ -16,6 +16,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import PricingPage from './pages/PricingPage';
 import { CommandPalette } from './components/ui/CommandPalette';
 import './index.css';
 
@@ -31,7 +32,7 @@ function App() {
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="colleges" element={<CollegeListPage />} />
-                <Route path="colleges/:collegeId" element={<CollegeDetailPage />} />
+                <Route path="colleges/:slug" element={<CollegeDetailPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="review" element={<WriteReviewPage />} />
                 <Route path="compare" element={<ComparePage />} />
@@ -40,6 +41,7 @@ function App() {
                 <Route path="shortlist" element={<ShortlistPage />} />
                 <Route path="articles" element={<ArticlesPage />} />
                 <Route path="articles/:slug" element={<ArticleDetailPage />} />
+                <Route path="pricing" element={<PricingPage />} />
                 {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
                 <Route path="404" element={<NotFoundPage />} />
                 <Route path="*" element={<NotFoundPage />} />

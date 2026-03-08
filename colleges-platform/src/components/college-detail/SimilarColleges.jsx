@@ -15,7 +15,7 @@ export function SimilarColleges({ collegeId, stream, state }) {
                 // Try to find colleges in same stream, prioritizing same state
                 let query = supabase
                     .from('colleges')
-                    .select('id, name, location_city, location_state, type, fees, rating, image, rank')
+                    .select('id, slug, name, location_city, location_state, type, fees, rating, image, rank')
                     .eq('visibility', 'public')
                     .eq('stream', stream)
                     .neq('id', collegeId)
@@ -56,7 +56,7 @@ export function SimilarColleges({ collegeId, stream, state }) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {colleges.map(c => (
                     <Link
-                        to={`/colleges/${c.id}`}
+                        to={`/colleges/${c.slug}`}
                         key={c.id}
                         className="group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-red-500/50 transition-all hover:shadow-[0_0_30px_rgba(220,38,38,0.15)] hover:-translate-y-1 block"
                     >

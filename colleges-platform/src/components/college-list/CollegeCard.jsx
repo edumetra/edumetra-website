@@ -54,7 +54,7 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
     return (
         <>
             <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} featureName="Save more than 5 colleges" />
-            <div className="group bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:-translate-y-1 hover:border-red-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20 flex flex-col md:flex-row">
+            <div className="group bg-slate-900/40 backdrop-blur-md border border-slate-800/60 rounded-2xl overflow-hidden hover:-translate-y-1 hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 flex flex-col md:flex-row relative">
                 {/* Image */}
                 <div className="relative w-full md:w-64 h-48 md:h-auto flex-shrink-0 overflow-hidden">
                     <img src={college.image} alt={college.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -70,7 +70,7 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 p-5 md:p-6 flex flex-col justify-between">
+                <div className="flex-1 p-5 md:p-7 flex flex-col justify-between">
                     <div>
                         <div className="flex justify-between items-start mb-2">
                             <div>
@@ -80,11 +80,14 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                                         <span className="inline-block px-2 py-0.5 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20">{college.stream}</span>
                                     )}
                                 </div>
-                                <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors line-clamp-1">{college.name}</h3>
+                                <h3 className="text-2xl font-bold text-white group-hover:text-red-400 transition-colors line-clamp-1">{college.name}</h3>
                             </div>
-                            <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700/50">
-                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                                <span className="text-sm font-semibold text-slate-200">{college.rating || '—'}</span>
+                            <div className="flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-1.5 bg-slate-800/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-slate-700/50">
+                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                    <span className="text-sm font-bold text-slate-100">{college.rating || '—'}</span>
+                                </div>
+                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Rating</span>
                             </div>
                         </div>
 
@@ -92,35 +95,35 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                             <MapPin className="w-4 h-4 shrink-0" />{college.location}
                         </div>
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4 py-4 border-y border-slate-800/50">
-                            <div>
-                                <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><Wallet className="w-3 h-3" /> Total Fees</p>
-                                <p className="text-sm font-semibold text-slate-200">{college.fees}</p>
+                        {/* Stats - Redesigned Grid */}
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-0 mb-5 border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20 divide-x divide-y lg:divide-y-0 divide-slate-800/60">
+                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors">
+                                <p className="text-xs text-slate-400 mb-1 flex items-center gap-1.5 font-medium"><Wallet className="w-3.5 h-3.5 text-red-400" /> Avg First Year</p>
+                                <p className="text-base font-bold text-white">₹{college.fees_numeric ? (college.fees_numeric).toLocaleString() : 'N/A'}</p>
                             </div>
-                            <div>
-                                <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><BookOpen className="w-3 h-3" /> Avg. Package</p>
-                                <p className="text-sm font-semibold text-green-400">{college.avgPackage}</p>
+                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors">
+                                <p className="text-xs text-slate-400 mb-1 flex items-center gap-1.5 font-medium"><BookOpen className="w-3.5 h-3.5 text-green-400" /> Top Package</p>
+                                <p className="text-base font-bold text-green-400">{college.avgPackage || 'N/A'}</p>
                             </div>
-                            <div className="hidden lg:block">
-                                <p className="text-xs text-slate-500 mb-1">Exam Accepted</p>
-                                <p className="text-sm font-semibold text-slate-200">{college.exams}</p>
+                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors col-span-2 lg:col-span-1">
+                                <p className="text-xs text-slate-400 mb-1 font-medium">Exams Accepted</p>
+                                <p className="text-sm font-semibold text-slate-200 line-clamp-1">{college.exams || 'Merit Based'}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-auto">
-                        <button className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-red-900/20">
+                    <div className="flex items-center gap-3 mt-auto pt-2">
+                        <button className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-full transition-all shadow-[0_0_15px_rgba(220,38,38,0.15)] hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] active:scale-95">
                             Apply Now
                         </button>
-                        <Link to={`/colleges/${college.id}`} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors border border-slate-700 flex items-center gap-2 group/btn">
-                            View <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        <Link to={`/colleges/${college.slug}`} className="px-5 py-3 bg-transparent hover:bg-slate-800/80 text-white text-sm font-semibold rounded-full transition-all border border-slate-700 flex items-center gap-2 group/btn active:scale-95">
+                            Details <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                         </Link>
                         {/* Compare */}
                         <button
                             onClick={handleCompare}
                             title={inCompare ? 'Remove from compare' : isFull ? `Compare list full (max ${maxCompare})` : 'Add to compare'}
-                            className={`p-2.5 rounded-lg border transition-all ${inCompare ? 'bg-red-600 border-red-600 text-white' : isFull ? 'border-slate-700 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
+                            className={`p-3 rounded-full border transition-all active:scale-95 ${inCompare ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20' : isFull ? 'border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
                         >
                             <GitCompareArrows className="w-4 h-4" />
                         </button>
@@ -130,7 +133,7 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                                 onClick={handleSave}
                                 disabled={saving}
                                 title={isSaved ? 'Remove from saved' : 'Save college'}
-                                className={`p-2.5 rounded-lg border transition-all ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
+                                className={`p-3 rounded-full border transition-all active:scale-95 ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
                             >
                                 {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                             </button>

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { FileText, Plus, Edit2, Trash2, CheckCircle, XCircle, Eye, EyeOff } from "lucide-react";
+import { FileText, Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
+import ArticleImageUpload from "@/components/ArticleImageUpload";
 
 type Article = {
     id: string;
@@ -313,19 +314,12 @@ export default function ArticlesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-1">Feature Image URL</label>
-                                    <input
-                                        type="url"
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">Feature Image</label>
+                                    <ArticleImageUpload
                                         value={formData.image_url}
-                                        onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 text-sm"
-                                        placeholder="https://example.com/image.jpg"
+                                        onChange={(url) => setFormData({ ...formData, image_url: url })}
+                                        disabled={actionLoading === "saving"}
                                     />
-                                    {formData.image_url && (
-                                        <div className="mt-3 aspect-video bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
-                                            <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div>
