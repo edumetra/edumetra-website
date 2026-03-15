@@ -36,14 +36,9 @@ export function PremiumProvider({ children }) {
         const apiTier = data?.subscription_tier;
         setTier(apiTier || 'free');
 
-        // Resolve visibility tier:
-        // - 'pro' or 'premium' = stay as is
-        // - 'free' (but logged in) = 'signed_up'
-        if (apiTier === 'pro' || apiTier === 'premium') {
-            setVisibilityTier(apiTier);
-        } else {
-            setVisibilityTier('signed_up');
-        }
+        // The database manages the Exact 'apiTier' out of the 4 tiers now.
+        // We just map it directly.
+        setVisibilityTier(apiTier || 'free');
 
         setLoadingTier(false);
     };

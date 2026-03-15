@@ -18,7 +18,19 @@ export default function ProfilePage() {
         phone_number: '',
         state: '',
         city: '',
-        stream: ''
+        stream: '',
+        gender: '',
+        dob: '',
+        tenth_board: '',
+        tenth_passing_year: '',
+        tenth_percentage: '',
+        twelfth_board: '',
+        twelfth_passing_year: '',
+        twelfth_percentage: '',
+        entrance_exams: [],
+        preferred_courses: [],
+        preferred_locations: [],
+        budget_range: ''
     });
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
@@ -45,7 +57,7 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
         const { data, error } = await supabase
             .from('user_profiles')
-            .select('full_name, phone_number, state, city, stream')
+            .select('*')
             .eq('id', user.id)
             .single();
 
@@ -55,7 +67,19 @@ export default function ProfilePage() {
                 phone_number: data.phone_number || '',
                 state: data.state || '',
                 city: data.city || '',
-                stream: data.stream || ''
+                stream: data.stream || '',
+                gender: data.gender || '',
+                dob: data.dob || '',
+                tenth_board: data.tenth_board || '',
+                tenth_passing_year: data.tenth_passing_year || '',
+                tenth_percentage: data.tenth_percentage || '',
+                twelfth_board: data.twelfth_board || '',
+                twelfth_passing_year: data.twelfth_passing_year || '',
+                twelfth_percentage: data.twelfth_percentage || '',
+                entrance_exams: Array.isArray(data.entrance_exams) ? data.entrance_exams : (data.entrance_exams ? JSON.parse(data.entrance_exams) : []),
+                preferred_courses: Array.isArray(data.preferred_courses) ? data.preferred_courses : (data.preferred_courses ? JSON.parse(data.preferred_courses) : []),
+                preferred_locations: Array.isArray(data.preferred_locations) ? data.preferred_locations : (data.preferred_locations ? JSON.parse(data.preferred_locations) : []),
+                budget_range: data.budget_range || ''
             });
         } else if (!data && user.user_metadata?.full_name) {
             setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
@@ -109,7 +133,19 @@ export default function ProfilePage() {
             phone_number: profileData.phone_number,
             state: profileData.state,
             city: profileData.city,
-            stream: profileData.stream
+            stream: profileData.stream,
+            gender: profileData.gender,
+            dob: profileData.dob || null, // handle empty dates for postgres
+            tenth_board: profileData.tenth_board,
+            tenth_passing_year: profileData.tenth_passing_year ? parseInt(profileData.tenth_passing_year) : null,
+            tenth_percentage: profileData.tenth_percentage ? parseFloat(profileData.tenth_percentage) : null,
+            twelfth_board: profileData.twelfth_board,
+            twelfth_passing_year: profileData.twelfth_passing_year ? parseInt(profileData.twelfth_passing_year) : null,
+            twelfth_percentage: profileData.twelfth_percentage ? parseFloat(profileData.twelfth_percentage) : null,
+            entrance_exams: profileData.entrance_exams,
+            preferred_courses: profileData.preferred_courses,
+            preferred_locations: profileData.preferred_locations,
+            budget_range: profileData.budget_range
         }).eq('id', user.id);
 
         // Also sync the core Auth user_metadata casually
@@ -253,6 +289,30 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Gender</label>
+                                {isEditingProfile ? (
+                                    <select value={profileData.gender} onChange={e => setProfileData(p => ({ ...p, gender: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                        <option value="Prefer not to say">Prefer not to say</option>
+                                    </select>
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.gender || 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Date of Birth</label>
+                                {isEditingProfile ? (
+                                    <input type="date" value={profileData.dob} onChange={e => setProfileData(p => ({ ...p, dob: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50 [color-scheme:dark]" />
+                                ) : (
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.dob ? new Date(profileData.dob).toLocaleDateString() : 'Not provided'}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
                                 <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">City</label>
                                 {isEditingProfile ? (
                                     <input value={profileData.city} onChange={e => setProfileData(p => ({ ...p, city: e.target.value }))} placeholder="e.g. Mumbai" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
@@ -297,6 +357,187 @@ export default function ProfilePage() {
                                 ) : (
                                     <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.stream || 'Not specified'}</p>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Education Details Section */}
+                        <div className="pt-6 border-t border-slate-800 space-y-6">
+                            <h4 className="text-sm font-bold text-white mb-2">Education Details</h4>
+
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {/* 10th Details */}
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">10th Board</label>
+                                    {isEditingProfile ? (
+                                        <input value={profileData.tenth_board} onChange={e => setProfileData(p => ({ ...p, tenth_board: e.target.value }))} placeholder="CBSE, ICSE, State Board" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent truncate">{profileData.tenth_board || '—'}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">10th Passing Year</label>
+                                    {isEditingProfile ? (
+                                        <input type="number" value={profileData.tenth_passing_year} onChange={e => setProfileData(p => ({ ...p, tenth_passing_year: e.target.value }))} placeholder="YYYY" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.tenth_passing_year || '—'}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">10th Percentage</label>
+                                    {isEditingProfile ? (
+                                        <input type="number" step="0.01" value={profileData.tenth_percentage} onChange={e => setProfileData(p => ({ ...p, tenth_percentage: e.target.value }))} placeholder="%" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.tenth_percentage ? `${profileData.tenth_percentage}%` : '—'}</p>
+                                    )}
+                                </div>
+
+                                {/* 12th Details */}
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">12th Board</label>
+                                    {isEditingProfile ? (
+                                        <input value={profileData.twelfth_board} onChange={e => setProfileData(p => ({ ...p, twelfth_board: e.target.value }))} placeholder="CBSE, ICSE, State Board" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent truncate">{profileData.twelfth_board || '—'}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">12th Passing Year</label>
+                                    {isEditingProfile ? (
+                                        <input type="number" value={profileData.twelfth_passing_year} onChange={e => setProfileData(p => ({ ...p, twelfth_passing_year: e.target.value }))} placeholder="YYYY" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.twelfth_passing_year || '—'}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">12th Percentage</label>
+                                    {isEditingProfile ? (
+                                        <input type="number" step="0.01" value={profileData.twelfth_percentage} onChange={e => setProfileData(p => ({ ...p, twelfth_percentage: e.target.value }))} placeholder="%" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.twelfth_percentage ? `${profileData.twelfth_percentage}%` : '—'}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Entrance Exams Section */}
+                        <div className="pt-6 border-t border-slate-800 space-y-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-sm font-bold text-white">Entrance Exams</h4>
+                                {isEditingProfile && (
+                                    <button
+                                        onClick={() => setProfileData(p => ({ ...p, entrance_exams: [...p.entrance_exams, { exam: '', score: '', rank: '' }] }))}
+                                        className="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1 bg-red-500/10 rounded"
+                                    >
+                                        + Add Exam
+                                    </button>
+                                )}
+                            </div>
+
+                            {profileData.entrance_exams.length === 0 ? (
+                                <p className="text-slate-500 text-sm">No entrance exams added.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {profileData.entrance_exams.map((exam, index) => (
+                                        <div key={index} className="flex flex-wrap md:flex-nowrap gap-3 items-end bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                            <div className="flex-1 min-w-[120px]">
+                                                {isEditingProfile && <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Exam Name</label>}
+                                                {isEditingProfile ? (
+                                                    <input value={exam.exam} onChange={e => {
+                                                        const newExams = [...profileData.entrance_exams];
+                                                        newExams[index].exam = e.target.value;
+                                                        setProfileData(p => ({ ...p, entrance_exams: newExams }));
+                                                    }} placeholder="e.g. JEE Main" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-red-500/50 text-sm" />
+                                                ) : <span className="text-white font-semibold">{exam.exam || 'Unnamed Exam'}</span>}
+                                            </div>
+                                            <div className="w-full md:w-32">
+                                                {isEditingProfile && <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Score/%ile</label>}
+                                                {isEditingProfile ? (
+                                                    <input value={exam.score} onChange={e => {
+                                                        const newExams = [...profileData.entrance_exams];
+                                                        newExams[index].score = e.target.value;
+                                                        setProfileData(p => ({ ...p, entrance_exams: newExams }));
+                                                    }} placeholder="Score" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-red-500/50 text-sm" />
+                                                ) : <span className="text-slate-400 text-sm ml-2">Score: {exam.score || '—'}</span>}
+                                            </div>
+                                            <div className="w-full md:w-32">
+                                                {isEditingProfile && <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Rank</label>}
+                                                {isEditingProfile ? (
+                                                    <input value={exam.rank} onChange={e => {
+                                                        const newExams = [...profileData.entrance_exams];
+                                                        newExams[index].rank = e.target.value;
+                                                        setProfileData(p => ({ ...p, entrance_exams: newExams }));
+                                                    }} placeholder="Rank" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-red-500/50 text-sm" />
+                                                ) : <span className="text-slate-400 text-sm ml-2">Rank: {exam.rank || '—'}</span>}
+                                            </div>
+                                            {isEditingProfile && (
+                                                <button onClick={() => {
+                                                    setProfileData(p => ({ ...p, entrance_exams: p.entrance_exams.filter((_, i) => i !== index) }));
+                                                }} className="p-2.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-lg shrink-0">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* College Preferences Section */}
+                        <div className="pt-6 border-t border-slate-800 space-y-6">
+                            <h4 className="text-sm font-bold text-white mb-2">College Preferences</h4>
+
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Preferred Courses</label>
+                                    {isEditingProfile ? (
+                                        <input
+                                            value={profileData.preferred_courses.join(', ')}
+                                            onChange={e => setProfileData(p => ({ ...p, preferred_courses: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                                            placeholder="e.g. B.Tech CSE, BBA, MBBS (comma separated)"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {profileData.preferred_courses.length ? profileData.preferred_courses.map((course, i) => (
+                                                <span key={i} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-sm rounded-lg border border-slate-700">{course}</span>
+                                            )) : <span className="text-slate-500 text-sm">Not specified</span>}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Preferred Locations</label>
+                                    {isEditingProfile ? (
+                                        <input
+                                            value={profileData.preferred_locations.join(', ')}
+                                            onChange={e => setProfileData(p => ({ ...p, preferred_locations: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                                            placeholder="e.g. Mumbai, Pune, Delhi (comma separated)"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {profileData.preferred_locations.length ? profileData.preferred_locations.map((loc, i) => (
+                                                <span key={i} className="px-3 py-1 bg-slate-800/50 text-slate-300 text-sm rounded-lg border border-slate-700">{loc}</span>
+                                            )) : <span className="text-slate-500 text-sm">Not specified</span>}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Budget Range</label>
+                                    {isEditingProfile ? (
+                                        <select value={profileData.budget_range} onChange={e => setProfileData(p => ({ ...p, budget_range: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50">
+                                            <option value="">Select Budget</option>
+                                            <option value="< 5 Lakhs">Under 5 Lakhs</option>
+                                            <option value="5-10 Lakhs">5 - 10 Lakhs</option>
+                                            <option value="10-15 Lakhs">10 - 15 Lakhs</option>
+                                            <option value="15-25 Lakhs">15 - 25 Lakhs</option>
+                                            <option value="25+ Lakhs">Above 25 Lakhs</option>
+                                        </select>
+                                    ) : (
+                                        <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent w-full md:w-1/2">{profileData.budget_range || 'Not specified'}</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

@@ -35,22 +35,32 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => (
     </div>
 );
 
-export const FAQSection = ({ collegeName }) => {
+export const FAQSection = ({ collegeName, customFaqs = [] }) => {
     const [openIndex, setOpenIndex] = useState(0);
 
-    const faqs = [
+    const standardFaqs = [
         { q: `What is the admission process for ${collegeName}?`, a: "Admission is primarily based on entrance exam scores followed by counseling rounds. Candidates must meet the eligibility criteria and participate in the centralized seat allocation process." },
         { q: "Are there any scholarship opportunities?", a: "Yes, merit-based and need-based scholarships are available for deserving students. Please check the official website for deadline and application details." },
         { q: "How are the hostel facilities?", a: "The campus provides separate hostels for boys and girls with 24/7 security, Wi-Fi connectivity, and mess facilities offering nutritious meals." },
     ];
 
+    let parsedCustomFaqs = [];
+    if (typeof customFaqs === 'string') {
+        try {
+            parsedCustomFaqs = JSON.parse(customFaqs);
+        } catch (e) {
+            console.error("Failed to parse custom FAQs", e);
+        }
+    } else if (Array.isArray(customFaqs)) {
+        parsedCustomFaqs = customFaqs;
+    }
+
+    const formattedCustomFaqs = parsedCustomFaqs.map(faq => ({ q: faq.question, a: faq.answer }));
+    const allFaqs = [...standardFaqs, ...formattedCustomFaqs];
+
     return (
-        <section className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <HelpCircle className="w-6 h-6 text-blue-400" />
-                Frequently Asked Questions
-            </h2>
-            {faqs.map((item, idx) => (
+        <div className="space-y-3">
+            {allFaqs.map((item, idx) => (
                 <AccordionItem
                     key={idx}
                     question={item.q}
@@ -59,6 +69,6 @@ export const FAQSection = ({ collegeName }) => {
                     onClick={() => setOpenIndex(openIndex === idx ? -1 : idx)}
                 />
             ))}
-        </section>
+        </div>
     );
 };

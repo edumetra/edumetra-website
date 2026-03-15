@@ -93,7 +93,7 @@ export default function EligibilityCheckerPage() {
                                 min={exam.min}
                                 max={exam.max}
                                 placeholder={`Enter your ${exam.unit}`}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-2xl font-bold text-white placeholder-slate-600 focus:outline-none focus:border-red-500/60 transition-colors"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-2xl font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/60 transition-colors"
                             />
                             <p className="text-slate-600 text-xs mt-2">Valid range: {exam.min} — {exam.max}</p>
                         </div>

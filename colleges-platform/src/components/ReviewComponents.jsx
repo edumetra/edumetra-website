@@ -212,7 +212,7 @@ function ReviewCard({ review, votedIds, onVote, isAdmin }) {
                                 onChange={e => setReplyText(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleReply()}
                                 placeholder="Reply as College Representative..."
-                                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-red-500/50"
+                                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50"
                             />
                             <button onClick={handleReply} disabled={submittingReply || !replyText.trim()} className="p-2 bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white rounded-lg transition-colors">
                                 <Send className="w-4 h-4" />

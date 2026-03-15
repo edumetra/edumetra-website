@@ -5,13 +5,15 @@ import { Save, AlertCircle, CheckCircle2, Globe, Eye, EyeOff } from "lucide-reac
 import { updateGlobalPremiumLocks } from "@/app/actions/collegeFeatures";
 
 const AVAILABLE_FEATURES = [
-    { id: "placements", label: "Placement Statistics" },
     { id: "cutoffs", label: "Exam Cutoffs" },
     { id: "rankings", label: "Rankings & Accreditations" },
     { id: "reviews", label: "Student Reviews" },
     { id: "gallery", label: "Campus Gallery" },
     { id: "courses", label: "Courses & Fees" },
     { id: "contact", label: "Contact Information" },
+    { id: "admissions", label: "Admission Details" },
+    { id: "qna", label: "Questions & Answers" },
+    { id: "faq", label: "Frequently Asked Questions" },
 ];
 
 type VisibilityConfig = {

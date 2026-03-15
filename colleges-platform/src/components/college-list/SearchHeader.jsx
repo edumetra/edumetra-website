@@ -11,7 +11,7 @@ export default function SearchHeader({ query, onSearchChange, resultCount, onTog
                         placeholder="Search colleges, courses, or exams..."
                         value={query}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 rounded-full pl-12 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all shadow-inner"
+                        className="w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 rounded-full pl-12 pr-4 py-3 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all shadow-inner"
                     />
                 </div>
 

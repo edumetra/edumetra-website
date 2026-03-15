@@ -13,22 +13,42 @@ export function useSignup() {
 
 export function SignupProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState('signup'); // 'signup' | 'login'
     const [collegeClickCount, setCollegeClickCount] = useState(0);
 
     useEffect(() => {
+        const fetchProfile = async (userId) => {
+            if (!userId) {
+                setProfile(null);
+                return;
+            }
+            const { data } = await supabase
+                .from('user_profiles')
+                .select('account_type, phone_verified')
+                .eq('id', userId)
+                .single();
+            setProfile(data);
+        };
+
         const getSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
+            if (session?.user) await fetchProfile(session.user.id);
             setLoading(false);
         };
 
         getSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setUser(session?.user ?? null);
+            if (session?.user) {
+                await fetchProfile(session.user.id);
+            } else {
+                setProfile(null);
+            }
             setLoading(false);
         });
 
@@ -80,6 +100,7 @@ export function SignupProvider({ children }) {
 
     const value = {
         user,
+        profile,
         loading,
         showModal,
         setShowModal,

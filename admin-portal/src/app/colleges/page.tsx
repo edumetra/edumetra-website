@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import {
     Plus, Search, GraduationCap, Building2,
-    Star, Award, DollarSign, Eye, Edit2, Trash2,
+    Star, Award, IndianRupee, Eye, Edit2, Trash2,
     ChevronDown, CheckCheck, EyeOff, ArrowUpDown,
     LayoutGrid, List, Upload,
 } from "lucide-react";
@@ -444,10 +444,10 @@ export default function CollegesPage() {
                                             {/* Fees */}
                                             <td className="px-4 py-3.5 hidden xl:table-cell text-sm text-slate-400">
                                                 {college.fees ? (
-                                                    <span className="flex items-center gap-1">
-                                                        <DollarSign className="w-3 h-3 text-slate-600" />
-                                                        {college.fees}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 min-w-[120px]">
+                                                        <IndianRupee className="w-3 h-3 text-slate-600" />
+                                                        <span className="truncate">{college.fees || "N/A"}</span>
+                                                    </div>
                                                 ) : <span className="text-slate-600">—</span>}
                                             </td>
                                             {/* Actions */}

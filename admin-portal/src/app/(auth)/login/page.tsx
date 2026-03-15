@@ -46,26 +46,7 @@ export default async function Login({
         return redirect("/");
     };
 
-    const signInWithGoogle = async () => {
-        "use server";
-        const cookieStore = await cookies();
-        const supabase = createClient(cookieStore);
 
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-            },
-        });
-
-        if (error) {
-            return redirect("/login?message=Could not authenticate with Google");
-        }
-
-        if (data.url) {
-            redirect(data.url);
-        }
-    };
 
     // Build contextual banner message
     let bannerMessage: string | null = null;
@@ -151,26 +132,6 @@ export default async function Login({
                             className="w-full py-3 mt-2 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/30"
                         >
                             Sign In
-                        </button>
-                    </form>
-
-                    <div className="mt-4 flex items-center gap-3">
-                        <div className="flex-1 h-px bg-slate-800"></div>
-                        <span className="text-xs font-semibold text-slate-500 uppercase">Or</span>
-                        <div className="flex-1 h-px bg-slate-800"></div>
-                    </div>
-
-                    <form action={signInWithGoogle} className="mt-4">
-                        <button
-                            type="submit"
-                            className="w-full flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg"
-                        >
-                            <img
-                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                alt="Google logo"
-                                className="w-5 h-5 bg-white p-0.5 rounded-full"
-                            />
-                            Continue with Google
                         </button>
                     </form>
                 </div>

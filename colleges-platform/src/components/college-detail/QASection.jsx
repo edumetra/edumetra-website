@@ -55,7 +55,7 @@ export function QASection({ collegeId }) {
                         onKeyDown={e => e.key === 'Enter' && handleAsk()}
                         placeholder={user ? "Ask a question about this college..." : "Sign in to ask a question"}
                         disabled={!user}
-                        className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                         onClick={user ? handleAsk : () => setShowModal(true)}

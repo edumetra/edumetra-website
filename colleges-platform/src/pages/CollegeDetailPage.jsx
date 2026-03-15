@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, MapPin, Users, DollarSign, Calendar, Award,
+    ArrowLeft, MapPin, Users, IndianRupee, Calendar, Award,
     BookOpen, CheckCircle, TrendingUp, Building2, GraduationCap,
     Star, ExternalLink, ChevronRight
 } from 'lucide-react';
@@ -14,9 +14,7 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { StatCard, PlacementHighlight } from '../components/college-detail/StatsComponents';
 import { PlacementChart } from '../components/college-detail/PlacementChart';
-import { CampusLife } from '../components/college-detail/CampusLife';
 import { ReviewForm, ReviewList } from '../components/ReviewComponents';
-import { PhotosGallery } from '../components/college-detail/PhotosGallery';
 import { CoursesTable } from '../components/college-detail/CoursesTable';
 import { QASection } from '../components/college-detail/QASection';
 import { FAQSection } from '../components/college-detail/FAQSection';
@@ -36,11 +34,6 @@ export default function CollegeDetailPage() {
 
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshReviews, setRefreshReviews] = useState(false);
-
-    // Admission Chances State
-    const [score, setScore] = useState('');
-    const [calculating, setCalculating] = useState(false);
-    const [admissionChance, setAdmissionChance] = useState(null);
 
     // Parallax Scroll Hooks
     const targetRef = useRef(null);
@@ -75,6 +68,8 @@ export default function CollegeDetailPage() {
 
 
     const stats = college.placementStats || {};
+    const reservationPercentages = typeof college.reservation_percentages === "string" ? JSON.parse(college.reservation_percentages) : college.reservation_percentages;
+    const categoryFees = typeof college.category_fees === "string" ? JSON.parse(college.category_fees) : college.category_fees;
 
     const jsonLd = {
         '@context': 'https://schema.org',
@@ -98,31 +93,6 @@ export default function CollegeDetailPage() {
                 ratingCount: college.review_count || 1,
             }
         } : {}),
-    };
-
-    const handleCalculateChances = () => {
-        if (!score.trim()) return;
-        setCalculating(true);
-        setTimeout(() => {
-            const numScore = parseFloat(score);
-            let chanceText = 'Low';
-            let color = 'text-red-400';
-
-            // basic mock logic depending on score/rank scale
-            if (numScore > 90) {
-                chanceText = 'Excellent';
-                color = 'text-emerald-400';
-            } else if (numScore > 75) {
-                chanceText = 'Good';
-                color = 'text-amber-400';
-            } else if (numScore > 60) {
-                chanceText = 'Fair';
-                color = 'text-yellow-400';
-            }
-
-            setAdmissionChance({ chance: chanceText, color });
-            setCalculating(false);
-        }, 1000);
     };
 
     return (
@@ -217,7 +187,7 @@ export default function CollegeDetailPage() {
             {/* Quick Stats Grid (Floating Overlap) */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                    <StatCard icon={DollarSign} label="Annual Fees" value={college.tuition} delay={0.1} />
+                    <StatCard icon={IndianRupee} label="Annual Fees" value={college.tuition} delay={0.1} />
                     <StatCard icon={TrendingUp} label="Avg Package" value={college.avg_package || "N/A"} delay={0.2} />
                     <StatCard icon={Calendar} label="Exams Accepted" value={college.exams || "Merit Based"} delay={0.3} />
                     <StatCard icon={GraduationCap} label="Total Courses" value={`${college.programs.length}+ Courses`} delay={0.4} />
@@ -226,10 +196,10 @@ export default function CollegeDetailPage() {
                 <div className="grid lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
                     {/* Main Left Column */}
                     <div className="lg:col-span-3 space-y-16 lg:space-y-20">
-                        {/* Hidden Glassmorphic Tabs (Now handled by sticky sidebar on desktop, but keep minimal visible top-nav on mobile) */}
+                        {/* Hidden Glassmorphic Tabs */}
                         <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
                             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
-                                {['Overview', 'Placement', 'Photos', 'Courses', 'Campus', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
+                                {['Overview', 'Admissions', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => {
@@ -257,67 +227,70 @@ export default function CollegeDetailPage() {
                             </p>
                         </section>
 
-                        {/* Visual Placement Stats */}
-                        {(stats || college.placement_stats) && (
-                            <section id="placement" className="scroll-mt-32">
+                        {/* Detail Admissions & Capacity */}
+                        {(college.intake_capacity > 0 || college.minority_status || categoryFees || reservationPercentages) && (
+                            <section id="admissions" className="scroll-mt-32">
                                 <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Placements & ROI
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Admission Details
                                 </h2>
-                                {!isSectionVisible('placement', college) ? (
-                                    <LockedSection title="Placements & ROI" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
-                                        <PlacementChart stats={stats} />
-                                        <div className="grid sm:grid-cols-2 gap-4 mt-8">
-                                            <PlacementHighlight label="Highest Package" value="₹-- LPA" subtext="Hidden" />
-                                            <PlacementHighlight label="Average Package" value="₹-- LPA" subtext="Hidden" />
-                                        </div>
+                                {!isSectionVisible('admissions', college) ? (
+                                    <LockedSection title="Admission Details" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                        <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                     </LockedSection>
                                 ) : (
-                                    <>
-                                        <PlacementChart stats={stats} />
-                                        <div className="grid sm:grid-cols-2 gap-4 mt-8">
-                                            <PlacementHighlight
-                                                label="Highest Package"
-                                                value={stats.highest_package || "₹45 LPA"}
-                                                subtext="Domestic"
-                                            />
-                                            <PlacementHighlight
-                                                label="Average Package"
-                                                value={stats.average_package || college.avg_package || "₹8.5 LPA"}
-                                                subtext="Across all streams"
-                                            />
+                                    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-8">
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            {college.intake_capacity > 0 && (
+                                                <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-start gap-4">
+                                                    <div className="p-3 bg-red-500/10 text-red-500 rounded-xl"><Users className="w-5 h-5"/></div>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Intake</div>
+                                                        <div className="text-xl font-bold text-slate-200">{college.intake_capacity} Seats</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {college.minority_status && (
+                                                <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-start gap-4">
+                                                    <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl"><Award className="w-5 h-5"/></div>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Minority Status</div>
+                                                        <div className="text-xl font-bold text-amber-500">Minority Institution</div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </>
+
+                                        {reservationPercentages && Object.keys(reservationPercentages).length > 0 && (
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-300 mb-4 border-b border-slate-800 pb-2">Seat Reservations Breakdown</h3>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                                    {Object.entries(reservationPercentages).map(([cat, pct]) => (
+                                                        <div key={cat} className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-center">
+                                                            <div className="text-red-400 font-bold mb-1">{cat}</div>
+                                                            <div className="text-2xl font-black text-white">{pct}%</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {categoryFees && Object.keys(categoryFees).length > 0 && (
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-300 mb-4 border-b border-slate-800 pb-2">Category-wise Fee Structure</h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {Object.entries(categoryFees).map(([cat, fee]) => (
+                                                        <div key={cat} className="flex justify-between items-center bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                                                            <span className="font-semibold text-slate-400">{cat}</span>
+                                                            <span className="font-bold text-emerald-400">{fee}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </section>
                         )}
-
-                        {/* Campus Life */}
-                        <section id="campus" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Facilities
-                            </h2>
-                            {!isSectionVisible('campus', college) ? (
-                                <LockedSection title="Campus Facilities" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
-                                    <CampusLife />
-                                </LockedSection>
-                            ) : (
-                                <CampusLife />
-                            )}
-                        </section>
-
-                        {/* Photos Gallery */}
-                        <section id="photos" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Campus Gallery
-                            </h2>
-                            {!isSectionVisible('photos', college) ? (
-                                <LockedSection title="Campus Gallery" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
-                                    <PhotosGallery photos={[]} />
-                                </LockedSection>
-                            ) : (
-                                <PhotosGallery photos={college.campus_photos || []} />
-                            )}
-                        </section>
 
                         {/* Courses & Fees */}
                         <section id="courses" className="scroll-mt-32">
@@ -358,7 +331,7 @@ export default function CollegeDetailPage() {
                             <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Questions & Answers
                             </h2>
-                            {!isSectionVisible('q&a', college) ? (
+                            {!isSectionVisible('qna', college) ? (
                                 <LockedSection title="Questions & Answers" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
                                     <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                 </LockedSection>
@@ -377,7 +350,7 @@ export default function CollegeDetailPage() {
                                     <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                 </LockedSection>
                             ) : (
-                                <FAQSection collegeName={college.name} />
+                                <FAQSection collegeName={college.name} customFaqs={college.faq} />
                             )}
                         </section>
 
@@ -421,7 +394,7 @@ export default function CollegeDetailPage() {
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Jump to Section</h3>
                             <nav className="flex flex-col gap-1">
-                                {['Overview', 'Placement', 'Campus', 'Photos', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
+                                {['Overview', 'Admissions', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => {
@@ -435,51 +408,6 @@ export default function CollegeDetailPage() {
                                     </button>
                                 ))}
                             </nav>
-                        </div>
-
-                        {/* Admission Probability Calculator */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                            <div className="relative z-10">
-                                <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-4">
-                                    <TrendingUp className="w-6 h-6 text-red-500" />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Admission Chances</h3>
-                                <p className="text-slate-400 text-sm mb-6">
-                                    Enter your expected percentage/score to predict your priority for {college.name}.
-                                </p>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Your Score (%)</label>
-                                        <input
-                                            type="number"
-                                            value={score}
-                                            onChange={(e) => setScore(e.target.value)}
-                                            placeholder="e.g. 85"
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all focus:outline-none"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleCalculateChances}
-                                        disabled={calculating || !score.trim()}
-                                        className="w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-                                    >
-                                        {calculating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Calculate Chances'}
-                                    </button>
-                                </div>
-
-                                {admissionChance && (
-                                    <div className="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800 animate-in fade-in slide-in-from-bottom-2">
-                                        <div className="text-sm text-slate-400 mb-1">Prediction</div>
-                                        <div className={`text-2xl font-bold ${admissionChance.color}`}>
-                                            {admissionChance.chance}
-                                        </div>
-                                        <p className="text-xs text-slate-500 mt-2">
-                                            Based on historical cutoffs and recent trends. This is an estimate, not a guarantee.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>

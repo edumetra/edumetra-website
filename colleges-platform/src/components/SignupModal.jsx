@@ -3,11 +3,11 @@ import { X, GraduationCap, Mail, User, Lock, LogIn, Phone, ArrowLeft, KeyRound }
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 
-// view: 'signup' | 'login' | 'forgot'
+// view: 'signup' | 'login' | 'forgot' | 'verify'
 export default function SignupModal({ isOpen, onClose }) {
-    const { closeModal, modalMode } = useSignup();
+    const { closeModal, modalMode, user, profile } = useSignup();
     const [view, setView] = useState('signup');
-    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', otp: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
@@ -18,7 +18,7 @@ export default function SignupModal({ isOpen, onClose }) {
             setView(modalMode === 'login' ? 'login' : 'signup');
             setError(null);
             setSuccessMsg(null);
-            setFormData({ name: '', email: '', phone: '', password: '' });
+            setFormData({ name: '', email: '', phone: '', password: '', otp: '' });
         }
     }, [isOpen, modalMode]);
 
@@ -39,7 +39,6 @@ export default function SignupModal({ isOpen, onClose }) {
                 if (error) throw error;
                 closeModal();
                 onClose && onClose();
-
             } else if (view === 'signup') {
                 const { error } = await supabase.auth.signUp({
                     email: formData.email,
@@ -169,7 +168,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                             value={formData.email}
                                             onChange={handleChange}
                                             required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                             placeholder="john@example.com"
                                         />
                                     </div>
@@ -218,7 +217,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                             value={formData.name}
                                             onChange={handleChange}
                                             required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -226,128 +225,128 @@ export default function SignupModal({ isOpen, onClose }) {
                             )}
 
                             {/* Email */}
-                            <div>
-                                <label htmlFor="email" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                                    Email Address
-                                </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                        placeholder="john@example.com"
-                                    />
-                                </div>
-                            </div>
+                                        <div>
+                                            <label htmlFor="email" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                                                Email Address
+                                            </label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                <input
+                                                    type="email"
+                                                    id="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                    placeholder="john@example.com"
+                                                />
+                                            </div>
+                                        </div>
 
-                            {/* Phone — signup only */}
-                            {view === 'signup' && (
-                                <div>
-                                    <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                                        Phone Number <span className="text-slate-600 normal-case font-normal">(optional)</span>
-                                    </label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                                        <input
-                                            type="tel"
-                                            id="phone"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                            placeholder="+91 98765 43210"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                                        {/* Phone — signup only */}
+                                        {view === 'signup' && (
+                                            <div>
+                                                <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                                                    Phone Number <span className="text-slate-600 normal-case font-normal">(optional)</span>
+                                                </label>
+                                                <div className="relative">
+                                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                    <input
+                                                        type="tel"
+                                                        id="phone"
+                                                        name="phone"
+                                                        value={formData.phone}
+                                                        onChange={handleChange}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                        placeholder="+91 98765 43210"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
 
-                            {/* Password */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label htmlFor="password" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                        Password
-                                    </label>
-                                    {view === 'login' && (
+                                        {/* Password */}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label htmlFor="password" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                                    Password
+                                                </label>
+                                                {view === 'login' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => switchView('forgot')}
+                                                        className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                                                    >
+                                                        Forgot password?
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                <input
+                                                    type="password"
+                                                    id="password"
+                                                    name="password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    required
+                                                    minLength={6}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                    placeholder="Min. 6 characters"
+                                                />
+                                            </div>
+                                        </div>
+
                                         <button
-                                            type="button"
-                                            onClick={() => switchView('forgot')}
-                                            className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                                            type="submit"
+                                            disabled={loading || !!successMsg}
+                                            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-2"
                                         >
-                                            Forgot password?
+                                            {loading
+                                                ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                : <>
+                                                    {view === 'login' ? <LogIn className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
+                                                    {view === 'login' ? 'Sign In' : 'Create Account'}
+                                                </>
+                                            }
                                         </button>
-                                    )}
-                                </div>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        required
-                                        minLength={6}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                        placeholder="Min. 6 characters"
-                                    />
-                                </div>
+                                    </form>
+
+                                    <div className="mt-5 flex items-center justify-center gap-3">
+                                        <div className="flex-1 h-px bg-white/10"></div>
+                                        <span className="text-xs font-semibold text-slate-500 uppercase">Or continue with</span>
+                                        <div className="flex-1 h-px bg-white/10"></div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleGoogleSignIn}
+                                        disabled={loading || !!successMsg}
+                                        className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                                    >
+                                        <img
+                                            src="https://www.svgrepo.com/show/475656/google-color.svg"
+                                            alt="Google logo"
+                                            className="w-5 h-5 bg-white p-0.5 rounded-full"
+                                        />
+                                        Google
+                                    </button>
+
+                                    {/* Toggle sign in <-> sign up */}
+                            <div className="mt-5 text-center">
+                                <button
+                                    onClick={() => switchView(view === 'login' ? 'signup' : 'login')}
+                                    className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+                                >
+                                    {view === 'login'
+                                        ? <span>Don&apos;t have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign Up</span></span>
+                                        : <span>Already have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign In</span></span>
+                                    }
+                                </button>
                             </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading || !!successMsg}
-                                className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-2"
-                            >
-                                {loading
-                                    ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    : <>
-                                        {view === 'login' ? <LogIn className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-                                        {view === 'login' ? 'Sign In' : 'Create Account'}
-                                    </>
-                                }
-                            </button>
-                        </form>
-
-                        <div className="mt-5 flex items-center justify-center gap-3">
-                            <div className="flex-1 h-px bg-white/10"></div>
-                            <span className="text-xs font-semibold text-slate-500 uppercase">Or continue with</span>
-                            <div className="flex-1 h-px bg-white/10"></div>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={handleGoogleSignIn}
-                            disabled={loading || !!successMsg}
-                            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
-                        >
-                            <img
-                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                alt="Google logo"
-                                className="w-5 h-5 bg-white p-0.5 rounded-full"
-                            />
-                            Google
-                        </button>
-
-                        {/* Toggle sign in <-> sign up */}
-                        <div className="mt-5 text-center">
-                            <button
-                                onClick={() => switchView(view === 'login' ? 'signup' : 'login')}
-                                className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
-                            >
-                                {view === 'login'
-                                    ? <span>Don&apos;t have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign Up</span></span>
-                                    : <span>Already have an account? <span className="text-red-400 hover:text-red-300 font-semibold">Sign In</span></span>
-                                }
-                            </button>
-                        </div>
-                    </>
-                )}
+                        </>
+                            )}
+                    </div>
             </div>
-        </div>
-    );
+            );
 }

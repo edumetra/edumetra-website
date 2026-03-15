@@ -48,7 +48,7 @@ const RangeFilter = ({ label, min, max, onMinChange, onMaxChange }) => (
                     value={min || ''}
                     onChange={e => onMinChange(e.target.value ? parseInt(e.target.value) * 100000 : 0)}
                     placeholder="0"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-red-500/60"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/60"
                 />
             </div>
             <span className="text-slate-600 mt-5">–</span>
@@ -61,7 +61,7 @@ const RangeFilter = ({ label, min, max, onMinChange, onMaxChange }) => (
                     value={max ? max / 100000 : ''}
                     onChange={e => onMaxChange(e.target.value ? parseInt(e.target.value) * 100000 : 0)}
                     placeholder="50"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-red-500/60"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/60"
                 />
             </div>
         </div>

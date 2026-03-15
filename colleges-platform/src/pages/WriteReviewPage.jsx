@@ -132,7 +132,7 @@ export default function WriteReviewPage() {
                             value={collegeSearch}
                             onChange={e => { setCollegeSearch(e.target.value); searchColleges(e.target.value); }}
                             placeholder="Search college by name..."
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all"
                         />
                     </div>
 
@@ -215,7 +215,7 @@ export default function WriteReviewPage() {
                             value={formData.title}
                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                             placeholder="Summarise your experience in one line..."
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all"
                         />
                     </div>
 
@@ -228,7 +228,7 @@ export default function WriteReviewPage() {
                             value={formData.review_text}
                             onChange={e => setFormData({ ...formData, review_text: e.target.value })}
                             placeholder="Share your honest experience — academics, placements, campus life, faculty..."
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all resize-none"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all resize-none"
                         />
                     </div>
 

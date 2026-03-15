@@ -91,7 +91,7 @@ const Navigation = () => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search colleges, cities, courses..."
-                                    className="flex-1 bg-transparent text-white text-lg placeholder-slate-500 focus:outline-none"
+                                    className="flex-1 bg-transparent text-white text-lg placeholder:text-slate-500 focus:outline-none"
                                 />
                                 <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors">
                                     Search

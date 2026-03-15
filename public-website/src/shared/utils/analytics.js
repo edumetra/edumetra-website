@@ -1,5 +1,7 @@
 // Analytics utility for tracking user interactions
 
+import { supabase } from '../services/supabaseClient';
+
 class Analytics {
     constructor() {
         this.initialized = false;
@@ -28,16 +30,14 @@ class Analytics {
 
         if (this.initialized) {
             console.log('📊 Page View:', event);
-            // Add your analytics provider here
-            // Example: gtag('event', 'page_view', event);
-            // Example: mixpanel.track('Page View', event);
+            this.track('page_view', event);
         } else {
             this.queue.push({ name: 'page_view', properties: event });
         }
     }
 
     // Track events
-    track(eventName, properties = {}) {
+    async track(eventName, properties = {}) {
         const event = {
             event_name: eventName,
             ...properties,
@@ -46,9 +46,24 @@ class Analytics {
 
         if (this.initialized) {
             console.log('📊 Event:', eventName, event);
-            // Add your analytics provider here
-            // Example: gtag('event', eventName, event);
-            // Example: mixpanel.track(eventName, event);
+
+            // Persist to Supabase if user is logged in
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { error } = await supabase.from('analytics_events').insert({
+                        user_id: user.id,
+                        event_type: properties.event_type || 'custom_event',
+                        event_name: eventName,
+                        page_path: properties.page_path || window.location.pathname,
+                        properties: properties
+                    });
+                    if (error) console.error('Error persisting analytics:', error);
+                }
+            } catch (err) {
+                console.error('Failed to persist analytics to Supabase:', err);
+            }
+
         } else {
             this.queue.push({ name: eventName, properties: event });
         }

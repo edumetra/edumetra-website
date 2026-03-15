@@ -5,9 +5,10 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-    ArrowLeft, Building2, MapPin, GraduationCap, DollarSign,
+    ArrowLeft, Building2, MapPin, GraduationCap, IndianRupee,
     BookOpen, Globe, FileText, Upload, X, ImageIcon,
     AlertCircle, Loader2, Star, GripVertical, CheckCircle2,
+    Users, ShieldCheck, Trash2, Plus
 } from "lucide-react";
 
 const BUCKET = "college-images";
@@ -51,6 +52,12 @@ export default function NewCollegePage() {
         description: "",
         established_year: "",
         website_url: "",
+        // New college_details fields
+        minority_status: "false",
+        intake_capacity: "",
+        reservation_percentages: [] as { category: string; percentage: string }[],
+        category_fees: [] as { category: string; fee: string }[],
+        faq: [] as { question: string; answer: string }[],
     });
 
     const [errors, setErrors] = useState<Partial<typeof formData>>({});
@@ -77,6 +84,9 @@ export default function NewCollegePage() {
                 errs.established_year = "Enter a valid year";
             }
         }
+        if (formData.intake_capacity && isNaN(parseInt(formData.intake_capacity))) {
+            errs.intake_capacity = "Must be a valid number";
+        }
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -92,22 +102,33 @@ export default function NewCollegePage() {
             prev.map((i) => i.id === img.id ? { ...i, uploading: true, error: null } : i)
         );
 
-        const { error: uploadErr } = await supabase.storage
-            .from(BUCKET)
-            .upload(path, img.file, { cacheControl: "3600", upsert: false });
+        const formData = new FormData();
+        formData.append("file", img.file);
+        formData.append("bucket", BUCKET);
+        formData.append("path", path);
 
-        if (uploadErr) {
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Upload failed");
+            }
+
+            const data = await res.json();
+            
             setImages((prev) =>
-                prev.map((i) => i.id === img.id ? { ...i, uploading: false, error: uploadErr.message } : i)
+                prev.map((i) => i.id === img.id ? { ...i, uploading: false, url: data.publicUrl } : i)
             );
-            return;
+        } catch (err: any) {
+            setImages((prev) =>
+                prev.map((i) => i.id === img.id ? { ...i, uploading: false, error: err.message } : i)
+            );
         }
-
-        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        setImages((prev) =>
-            prev.map((i) => i.id === img.id ? { ...i, uploading: false, url: data.publicUrl } : i)
-        );
-    }, [supabase]);
+    }, []);
 
     const addFiles = useCallback((files: FileList | null) => {
         if (!files) return;
@@ -213,7 +234,18 @@ export default function NewCollegePage() {
 
             if (insertError) throw insertError;
 
-            // Insert placement stats into college_details
+            // Prepare JSONB fields
+            const resData = formData.reservation_percentages.reduce((acc, curr) => {
+                if (curr.category && curr.percentage) acc[curr.category] = parseFloat(curr.percentage);
+                return acc;
+            }, {} as Record<string, number>);
+
+            const feeData = formData.category_fees.reduce((acc, curr) => {
+                if (curr.category && curr.fee) acc[curr.category] = curr.fee;
+                return acc;
+            }, {} as Record<string, string>);
+
+            // Insert placement stats & new JSONB fields into college_details
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { error: detailsError } = await (supabase.from("college_details") as any)
                 .insert({
@@ -223,6 +255,11 @@ export default function NewCollegePage() {
                         placement_rate: formData.placement_rate,
                         average_package: formData.avg_package,
                     }),
+                    minority_status: formData.minority_status === "true",
+                    intake_capacity: parseInt(formData.intake_capacity) || 0,
+                    reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
+                    category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
+                    faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
                 });
 
             if (detailsError) console.error("Details insert error:", detailsError);
@@ -544,7 +581,7 @@ export default function NewCollegePage() {
                             <div>
                                 <label className={labelClasses}>Annual Fees</label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                     <input type="text" name="fees" placeholder="e.g. ₹2.5 Lakhs/yr"
                                         value={formData.fees} onChange={handleChange}
                                         className={`${inputClasses()} pl-10`}
@@ -576,6 +613,132 @@ export default function NewCollegePage() {
                                 <input type="text" name="placement_rate" placeholder="e.g. 92%"
                                     value={formData.placement_rate} onChange={handleChange} className={inputClasses()} />
                             </div>
+                        </div>
+                    </section>
+
+                    {/* ── CAPACITY & CATEGORIES ── */}
+                    <section className={sectionClasses}>
+                        <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400"><Users className="w-5 h-5" /></div>
+                            <h2 className="text-lg font-bold text-white">Capacity & Admission Details</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className={labelClasses}>Total Intake Capacity</label>
+                                <input type="number" name="intake_capacity" placeholder="e.g. 120"
+                                    value={formData.intake_capacity} onChange={handleChange} className={inputClasses("intake_capacity")} />
+                                {errors.intake_capacity && <p className="text-red-400 text-xs mt-1">{errors.intake_capacity}</p>}
+                            </div>
+                            <div>
+                                <label className={labelClasses}>Minority Status</label>
+                                <select name="minority_status" value={formData.minority_status} onChange={handleChange} className={inputClasses()}>
+                                    <option value="false">Non-Minority</option>
+                                    <option value="true">Minority Institution</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Reservation Percentages */}
+                        <div className="mt-8">
+                            <label className={labelClasses}>Reservation Percentages</label>
+                            {formData.reservation_percentages.map((res, i) => (
+                                <div key={`res-${i}`} className="flex gap-3 mb-3 items-center">
+                                    <input type="text" placeholder="Category (e.g. SC/ST)" value={res.category}
+                                        onChange={(e) => setFormData(p => {
+                                            const arr = [...p.reservation_percentages];
+                                            arr[i].category = e.target.value;
+                                            return { ...p, reservation_percentages: arr };
+                                        })}
+                                        className={inputClasses()} />
+                                    <input type="number" placeholder="Percentage (%)" value={res.percentage}
+                                        onChange={(e) => setFormData(p => {
+                                            const arr = [...p.reservation_percentages];
+                                            arr[i].percentage = e.target.value;
+                                            return { ...p, reservation_percentages: arr };
+                                        })}
+                                        className={inputClasses()} />
+                                    <button type="button" onClick={() => setFormData(p => ({
+                                        ...p, reservation_percentages: p.reservation_percentages.filter((_, idx) => idx !== i)
+                                    }))} className="p-3 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors">
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => setFormData(p => ({
+                                ...p, reservation_percentages: [...p.reservation_percentages, { category: "", percentage: "" }]
+                            }))} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 font-semibold mt-2">
+                                <Plus className="w-4 h-4" /> Add Reservation Category
+                            </button>
+                        </div>
+
+                        {/* Category-wise Fees */}
+                        <div className="mt-8 pt-8 border-t border-slate-800">
+                            <label className={labelClasses}>Category-wise Fee Structure</label>
+                            {formData.category_fees.map((fee, i) => (
+                                <div key={`fee-${i}`} className="flex gap-3 mb-3 items-center">
+                                    <input type="text" placeholder="Category (e.g. OBC)" value={fee.category}
+                                        onChange={(e) => setFormData(p => {
+                                            const arr = [...p.category_fees];
+                                            arr[i].category = e.target.value;
+                                            return { ...p, category_fees: arr };
+                                        })}
+                                        className={`${inputClasses()} flex-1`} />
+                                    <div className="relative flex-1">
+                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                        <input type="text" placeholder="Annual Fee (e.g. ₹50,000)" value={fee.fee}
+                                            onChange={(e) => setFormData(p => {
+                                                const arr = [...p.category_fees];
+                                                arr[i].fee = e.target.value;
+                                                return { ...p, category_fees: arr };
+                                            })}
+                                            className={`${inputClasses()} pl-10`} />
+                                    </div>
+                                    <button type="button" onClick={() => setFormData(p => ({
+                                        ...p, category_fees: p.category_fees.filter((_, idx) => idx !== i)
+                                    }))} className="p-3 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors">
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => setFormData(p => ({
+                                ...p, category_fees: [...p.category_fees, { category: "", fee: "" }]
+                            }))} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 font-semibold mt-2">
+                                <Plus className="w-4 h-4" /> Add Category Fee
+                            </button>
+                        </div>
+
+                        {/* Custom FAQs */}
+                        <div className="mt-8 pt-8 border-t border-slate-800">
+                            <label className={labelClasses}>Custom Frequently Asked Questions</label>
+                            <p className="text-xs text-slate-500 mb-4">Note: 3 standard FAQs are always shown on the college page. Add college-specific FAQs here.</p>
+                            {formData.faq.map((item, i) => (
+                                <div key={`faq-${i}`} className="flex flex-col gap-2 mb-4 bg-slate-950/50 p-4 rounded-xl border border-slate-800 relative">
+                                    <input type="text" placeholder="Question" value={item.question}
+                                        onChange={(e) => setFormData(p => {
+                                            const arr = [...p.faq];
+                                            arr[i].question = e.target.value;
+                                            return { ...p, faq: arr };
+                                        })}
+                                        className={inputClasses()} />
+                                    <textarea placeholder="Answer" value={item.answer} rows={2}
+                                        onChange={(e) => setFormData(p => {
+                                            const arr = [...p.faq];
+                                            arr[i].answer = e.target.value;
+                                            return { ...p, faq: arr };
+                                        })}
+                                        className={inputClasses()} />
+                                    <button type="button" onClick={() => setFormData(p => ({
+                                        ...p, faq: p.faq.filter((_, idx) => idx !== i)
+                                    }))} className="absolute top-2 right-2 p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => setFormData(p => ({
+                                ...p, faq: [...p.faq, { question: "", answer: "" }]
+                            }))} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 font-semibold">
+                                <Plus className="w-4 h-4" /> Add Custom FAQ
+                            </button>
                         </div>
                     </section>
 

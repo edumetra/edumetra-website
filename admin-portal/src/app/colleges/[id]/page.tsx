@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-    ArrowLeft, MapPin, Building2, Calendar, DollarSign,
+    ArrowLeft, MapPin, Building2, Calendar, IndianRupee,
     TrendingUp, Award, BookOpen, Star, ExternalLink,
     ShieldCheck, Edit, Eye, EyeOff, Images, GraduationCap,
     Globe, BarChart2, Users
@@ -58,12 +58,22 @@ export default async function CollegeViewPage({ params }: { params: Promise<{ id
         .limit(20);
 
     let stats: Record<string, string> | null = null;
-    if (details?.placement_stats) {
-        try {
-            stats = typeof details.placement_stats === "string"
-                ? JSON.parse(details.placement_stats)
-                : details.placement_stats;
-        } catch { /* ignore */ }
+    let categoryFees: Record<string, string> | null = null;
+    let reservationPercentages: Record<string, number> | null = null;
+
+    if (details) {
+        if (details.placement_stats) {
+            try { stats = typeof details.placement_stats === "string" ? JSON.parse(details.placement_stats) : details.placement_stats; }
+            catch { /* ignore */ }
+        }
+        if (details.category_fees) {
+            try { categoryFees = typeof details.category_fees === "string" ? JSON.parse(details.category_fees) : details.category_fees; }
+            catch { /* ignore */ }
+        }
+        if (details.reservation_percentages) {
+            try { reservationPercentages = typeof details.reservation_percentages === "string" ? JSON.parse(details.reservation_percentages) : details.reservation_percentages; }
+            catch { /* ignore */ }
+        }
     }
 
     const galleryImages: string[] = Array.isArray(college.gallery_images) ? college.gallery_images : [];
@@ -208,7 +218,7 @@ export default async function CollegeViewPage({ params }: { params: Promise<{ id
             {/* ── Quick Stats ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { icon: DollarSign, label: "Annual Fees", value: college.fees, color: "text-red-400" },
+                    { icon: IndianRupee, label: "Annual Fees", value: college.fees, color: "text-red-400" },
                     { icon: TrendingUp, label: "Avg Package", value: college.avg_package, color: "text-emerald-400" },
                     { icon: BookOpen, label: "Exams", value: college.exams, color: "text-blue-400" },
                     { icon: ShieldCheck, label: "Established", value: college.established_year, color: "text-purple-400" },
@@ -281,6 +291,57 @@ export default async function CollegeViewPage({ params }: { params: Promise<{ id
                             </div>
                         )}
                     </div>
+
+                    {/* Capacity & Detailed Admissions */}
+                    {(details?.intake_capacity > 0 || details?.minority_status || categoryFees || reservationPercentages) && (
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+                            <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><Users className="w-5 h-5" /></div>
+                                <h2 className="text-lg font-bold text-white">Capacity & Admission Details</h2>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Intake Capacity</div>
+                                    <div className="text-lg font-bold text-slate-200">{details.intake_capacity || "N/A"} Seats</div>
+                                </div>
+                                <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Minority Status</div>
+                                    <div className="text-lg font-bold text-slate-200">
+                                        {details.minority_status ? <span className="text-amber-400">Minority Institution</span> : "Non-Minority"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {reservationPercentages && Object.keys(reservationPercentages).length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-300 mb-3">Reservation Breakdown</h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        {Object.entries(reservationPercentages).map(([cat, pct]) => (
+                                            <div key={cat} className="flex justify-between items-center bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+                                                <span className="text-slate-400 font-medium text-sm">{cat}</span>
+                                                <span className="text-white font-bold">{pct}%</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {categoryFees && Object.keys(categoryFees).length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-300 mb-3">Category-wise Fees</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {Object.entries(categoryFees).map(([cat, fee]) => (
+                                            <div key={cat} className="flex justify-between items-center bg-slate-800 px-4 py-3 rounded-xl border border-slate-700">
+                                                <span className="text-slate-400 font-bold">{cat}</span>
+                                                <span className="text-emerald-400 font-bold">{fee}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Cutoffs Table */}
                     {cutoffs && cutoffs.length > 0 && (

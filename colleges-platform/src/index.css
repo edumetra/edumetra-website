@@ -62,6 +62,15 @@
     line-height: 1.7;
     color: rgb(203 213 225);
   }
+
+  input, textarea, select {
+    color: rgb(241 245 249) !important;
+    background-color: transparent;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: rgb(100 116 139) !important;
+  }
 }
 
 /* Custom Prose for Rich Text Styling (Articles) */
