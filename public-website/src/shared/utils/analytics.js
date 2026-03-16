@@ -1,6 +1,6 @@
 // Analytics utility for tracking user interactions
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../../services/supabaseClient';
 
 class Analytics {
     constructor() {
