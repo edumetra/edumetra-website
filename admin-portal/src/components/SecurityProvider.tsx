@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { Shield, X } from "lucide-react";
 
 const SESSION_POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
-const INACTIVITY_TIMEOUT = 60 * 60 * 1000; // 60 minutes idle logout
 
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const supabase = createClient();
-    const lastActivityRef = useRef(Date.now());
-    const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [showNotice, setShowNotice] = useState(false);
 
     const redirectToLogin = (reason?: string) => {
         const url = `/login${reason ? `?reason=${reason}` : ""}`;
@@ -20,12 +19,27 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     };
 
     // ──────────────────────────────────────────────
-    // 1. Auth state listener — react instantly to sign-out
+    // 1. Auth state listener — react instantly to sign-out/sign-in
     // ──────────────────────────────────────────────
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === "SIGNED_OUT" && pathname !== "/login" && pathname !== "/denied") {
                 redirectToLogin("session_expired");
+            }
+
+            if (event === "SIGNED_IN") {
+                // Only show notice once per browser session tab
+                const hasShown = sessionStorage.getItem("security_notice_shown");
+                if (!hasShown) {
+                    setShowNotice(true);
+                    sessionStorage.setItem("security_notice_shown", "true");
+                    
+                    // Auto-close after 2 seconds
+                    const timer = setTimeout(() => {
+                        setShowNotice(false);
+                    }, 2000);
+                    return () => clearTimeout(timer);
+                }
             }
         });
         return () => subscription.unsubscribe();
@@ -49,36 +63,32 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     }, [pathname]);
 
     // ──────────────────────────────────────────────
-    // 3. Tab/window close logic removed
+    // 3. Inactivity auto-logout — REMOVED per user request
     // ──────────────────────────────────────────────
 
-    // ──────────────────────────────────────────────
-    // 4. Inactivity auto-logout (60 min)
-    // ──────────────────────────────────────────────
-    useEffect(() => {
-        const resetTimer = () => {
-            lastActivityRef.current = Date.now();
-        };
-
-        const checkInactivity = async () => {
-            const idle = Date.now() - lastActivityRef.current;
-            if (idle >= INACTIVITY_TIMEOUT) {
-                await supabase.auth.signOut();
-                redirectToLogin("inactive");
-            }
-        };
-
-        const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
-        events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
-
-        inactivityTimerRef.current = setInterval(checkInactivity, 60 * 1000); // check every minute
-
-        return () => {
-            events.forEach((e) => window.removeEventListener(e, resetTimer));
-            if (inactivityTimerRef.current) clearInterval(inactivityTimerRef.current);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    return <>{children}</>;
+    return (
+        <>
+            {/* Security Notice Toast */}
+            {showNotice && (
+                <div className="fixed top-6 right-6 z-[9999] animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="bg-slate-900 border border-red-500/30 rounded-xl p-4 shadow-2xl flex items-center gap-4 max-w-sm">
+                        <div className="w-10 h-10 rounded-full bg-red-600/10 flex items-center justify-center shrink-0">
+                            <Shield className="w-5 h-5 text-red-500" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-slate-200 text-sm font-semibold">Security Tip</p>
+                            <p className="text-slate-400 text-xs">Please log out to secure your data and info.</p>
+                        </div>
+                        <button 
+                            onClick={() => setShowNotice(false)}
+                            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+            {children}
+        </>
+    );
 }
