@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/api/auth"];
+const PUBLIC_PATHS = ["/login", "/api/auth", "/api/webhooks"];
 
 export async function updateSession(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -38,8 +38,12 @@ export async function updateSession(request: NextRequest) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
+        // Safe redirect to login
         const loginUrl = new URL("/login", request.url);
         loginUrl.searchParams.set("redirected", "1");
+        
+        // Ensure we clear any stale session cookies by returning the redirect response
+        // which might have cookie-clearing headers if setAll was called
         return NextResponse.redirect(loginUrl);
     }
 

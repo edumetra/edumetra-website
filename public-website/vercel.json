@@ -1,6 +1,17 @@
 {
     "redirects": [
         {
+            "source": "/(.*)",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "edumetraglobal.com"
+                }
+            ],
+            "destination": "https://www.edumetraglobal.com/$1",
+            "permanent": true
+        },
+        {
             "source": "/debug-vercel",
             "destination": "https://google.com",
             "permanent": false

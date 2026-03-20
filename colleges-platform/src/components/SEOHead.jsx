@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-const BASE_URL = 'https://colleges.edumetra.in';
+const BASE_URL = 'https://colleges.edumetraglobal.com';
 const DEFAULT_IMAGE = `${BASE_URL}/og-default.png`;
 
 export default function SEOHead({

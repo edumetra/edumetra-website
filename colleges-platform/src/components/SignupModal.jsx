@@ -110,7 +110,7 @@ export default function SignupModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-            <div className="relative bg-[#0f1629] rounded-2xl shadow-2xl shadow-black/60 max-w-md w-full p-8 border border-white/10">
+            <div className="relative bg-[#0f1629] rounded-2xl shadow-2xl shadow-black/60 max-w-md w-full p-6 border border-white/10">
 
                 {/* Close button */}
                 <button
@@ -122,18 +122,18 @@ export default function SignupModal({ isOpen, onClose }) {
                 </button>
 
                 {/* Icon */}
-                <div className="flex justify-center mb-6">
-                    <div className="bg-red-500/15 p-4 rounded-2xl border border-red-500/20">
+                <div className="flex justify-center mb-4">
+                    <div className="bg-red-500/15 p-3 rounded-2xl border border-red-500/20">
                         {view === 'forgot'
-                            ? <KeyRound className="w-9 h-9 text-red-400" />
-                            : <GraduationCap className="w-9 h-9 text-red-400" />
+                            ? <KeyRound className="w-8 h-8 text-red-400" />
+                            : <GraduationCap className="w-8 h-8 text-red-400" />
                         }
                     </div>
                 </div>
 
                 {/* Header */}
-                <h2 className="text-2xl font-bold text-center mb-1.5 text-white">{title}</h2>
-                <p className="text-slate-400 text-center mb-6 text-sm">{sub}</p>
+                <h2 className="text-xl font-bold text-center mb-1 text-white">{title}</h2>
+                <p className="text-slate-400 text-center mb-4 text-sm">{sub}</p>
 
                 {/* Success */}
                 {successMsg && (
@@ -153,7 +153,7 @@ export default function SignupModal({ isOpen, onClose }) {
                 {view === 'forgot' && (
                     <>
                         {!successMsg && (
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-3">
                                 <div>
                                     <label htmlFor="forgot-email" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
                                         Email Address
@@ -168,7 +168,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                             value={formData.email}
                                             onChange={handleChange}
                                             required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                             placeholder="john@example.com"
                                         />
                                     </div>
@@ -177,7 +177,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-2"
+                                    className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-1"
                                 >
                                     {loading
                                         ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -200,7 +200,7 @@ export default function SignupModal({ isOpen, onClose }) {
                 {/* ── SIGN IN / SIGN UP VIEWS ── */}
                 {view !== 'forgot' && (
                     <>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-3">
 
                             {/* Name — signup only */}
                             {view === 'signup' && (
@@ -217,7 +217,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                             value={formData.name}
                                             onChange={handleChange}
                                             required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -238,7 +238,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                                     value={formData.email}
                                                     onChange={handleChange}
                                                     required
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                                     placeholder="john@example.com"
                                                 />
                                             </div>
@@ -258,7 +258,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                                         name="phone"
                                                         value={formData.phone}
                                                         onChange={handleChange}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                                         placeholder="+91 98765 43210"
                                                     />
                                                 </div>
@@ -291,7 +291,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                                     onChange={handleChange}
                                                     required
                                                     minLength={6}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                                     placeholder="Min. 6 characters"
                                                 />
                                             </div>
@@ -300,7 +300,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                         <button
                                             type="submit"
                                             disabled={loading || !!successMsg}
-                                            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-2"
+                                            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-1"
                                         >
                                             {loading
                                                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -312,7 +312,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                         </button>
                                     </form>
 
-                                    <div className="mt-5 flex items-center justify-center gap-3">
+                                    <div className="mt-4 flex items-center justify-center gap-3">
                                         <div className="flex-1 h-px bg-white/10"></div>
                                         <span className="text-xs font-semibold text-slate-500 uppercase">Or continue with</span>
                                         <div className="flex-1 h-px bg-white/10"></div>
@@ -322,7 +322,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                         type="button"
                                         onClick={handleGoogleSignIn}
                                         disabled={loading || !!successMsg}
-                                        className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                                        className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
                                     >
                                         <img
                                             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -333,7 +333,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                     </button>
 
                                     {/* Toggle sign in <-> sign up */}
-                            <div className="mt-5 text-center">
+                            <div className="mt-4 text-center">
                                 <button
                                     onClick={() => switchView(view === 'login' ? 'signup' : 'login')}
                                     className="text-slate-500 hover:text-slate-300 text-sm transition-colors"

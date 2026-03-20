@@ -4,7 +4,7 @@ export const seoConfig = {
     defaultTitle: 'Edumetra - NEET Cutoffs, Rankings & Admission Predictions',
     defaultDescription: 'Comprehensive medical college information portal for India. Access NEET cutoffs, NIRF rankings, college profiles, and AI-powered admission predictions to make informed decisions.',
     defaultKeywords: 'medical colleges India, NEET cutoff, Edumetra, medical admission, NIRF ranking, medical college seats, MBBS admission, NEET counseling',
-    siteUrl: 'https://edumetra.com', // Replace with actual domain
+    siteUrl: 'https://www.edumetraglobal.com', // Replace with actual domain
     ogImage: '/og-image.jpg', // Add OG image
     twitterHandle: '@edumetra', // Replace with actual handle
 };

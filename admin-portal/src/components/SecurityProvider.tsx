@@ -49,33 +49,8 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     }, [pathname]);
 
     // ──────────────────────────────────────────────
-    // 3. Tab/window close → sign out
+    // 3. Tab/window close logic removed
     // ──────────────────────────────────────────────
-    useEffect(() => {
-        const handleUnload = () => {
-            // Retrieve session synchronously from local storage if possible,
-            // or we use a fire-and-forget beacon for supabase auth.
-            // Note: await doesn't work reliably in beforeunload/unload.
-
-            const supabaseAuthStorageKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
-            if (supabaseAuthStorageKey) {
-                try {
-                    const sessionData = JSON.parse(localStorage.getItem(supabaseAuthStorageKey) || '{}');
-                    if (sessionData && sessionData.access_token) {
-                        navigator.sendBeacon(
-                            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/logout`,
-                            JSON.stringify({ access_token: sessionData.access_token })
-                        );
-                    }
-                } catch (e) {
-                    // ignore parse errors during unload
-                }
-            }
-        };
-
-        window.addEventListener("beforeunload", handleUnload);
-        return () => window.removeEventListener("beforeunload", handleUnload);
-    }, []);
 
     // ──────────────────────────────────────────────
     // 4. Inactivity auto-logout (60 min)

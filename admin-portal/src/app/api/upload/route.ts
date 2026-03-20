@@ -15,8 +15,16 @@ export async function POST(request: Request) {
             );
         }
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+            console.error("Upload API Error: Supabase URL or Key is missing from environment variables.");
+            return NextResponse.json(
+                { error: "Server configuration error: Supabase URL or Key is missing." },
+                { status: 500 }
+            );
+        }
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 

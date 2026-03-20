@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { signOut } from "@/app/actions/auth";
 import type { AdminPermissions, PermissionKey } from "@/shared/permissions";
 import {
     LayoutDashboard,
@@ -85,9 +86,7 @@ export function Sidebar({
     const isDashboard = pathname === "/";
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push("/login");
-        router.refresh();
+        await signOut();
     };
 
     const isSuperadmin = userRole === "superadmin";
