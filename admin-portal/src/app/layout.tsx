@@ -12,6 +12,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Edumetra Admin Portal",
     description: "Manage colleges, cutoffs, and rankings",
+    verification: {
+        google: "Xy-T0I9WvHWOcUjGkrvU7uuGg-i_UXSOYcTYDZCkA3I",
+    },
 };
 
 export default async function RootLayout({
