@@ -111,8 +111,8 @@ const Navigation = () => {
 
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-700 flex items-center justify-center shadow-lg shadow-red-900/50 group-hover:scale-110 transition-transform duration-300">
-                                <GraduationCap className="w-5 h-5 text-white" />
+                            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-lg overflow-hidden group-hover:scale-110 transition-transform duration-300">
+                                <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-lg font-bold hidden sm:block">
                                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-rose-300">Edu</span>

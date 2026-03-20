@@ -67,8 +67,8 @@ export default async function Login({
             <div className="relative w-full max-w-md">
                 {/* Logo / Brand */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 shadow-2xl shadow-red-900/40 mb-4">
-                        <GraduationCap className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-2xl shadow-red-900/40 mb-4 overflow-hidden">
+                        <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-white tracking-tight">Edumetra</h1>
                     <p className="text-slate-500 text-sm mt-1 font-medium">Admin Portal — Authorised Access Only</p>

@@ -95,9 +95,14 @@ export function Sidebar({
         <aside className="w-64 bg-slate-900 border-r border-slate-800 flex-shrink-0 hidden md:flex flex-col">
             {/* Brand */}
             <div className="p-5 border-b border-slate-800">
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-300">
-                    Edumetra
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                        <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
+                    </div>
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-300">
+                        Edumetra
+                    </h1>
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                     <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Admin</p>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold tracking-widest border ${isSuperadmin

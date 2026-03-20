@@ -111,8 +111,8 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
                         <a href={publicUrl} className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-                                <GraduationCap className="w-6 h-6 text-white" />
+                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center overflow-hidden">
+                                <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-xl font-bold">
                                 <span className="text-red-500">Edumetra</span>
