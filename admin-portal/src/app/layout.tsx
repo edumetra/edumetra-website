@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { Sidebar } from "@/components/Sidebar";
 import { SecurityProvider } from "@/components/SecurityProvider";
 import type { AdminPermissions } from "@/shared/permissions";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,7 +32,26 @@ export default async function RootLayout({
     if (!user) {
         return (
             <html lang="en" className="dark">
+                <head>
+                    <Script id="gtm-head" strategy="afterInteractive">
+                        {`
+                            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                            })(window,document,'script','dataLayer','GTM-5M8W4DBD');
+                        `}
+                    </Script>
+                </head>
                 <body className={`${inter.className} bg-slate-950 text-slate-200 antialiased`}>
+                    <noscript>
+                        <iframe
+                            src="https://www.googletagmanager.com/ns.html?id=GTM-5M8W4DBD"
+                            height="0"
+                            width="0"
+                            style={{ display: "none", visibility: "hidden" }}
+                        />
+                    </noscript>
                     {children}
                 </body>
             </html>
@@ -54,7 +74,26 @@ export default async function RootLayout({
 
     return (
         <html lang="en" className="dark">
+            <head>
+                <Script id="gtm-head" strategy="afterInteractive">
+                    {`
+                        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                        })(window,document,'script','dataLayer','GTM-5M8W4DBD');
+                    `}
+                </Script>
+            </head>
             <body className={`${inter.className} bg-slate-950 text-slate-200 antialiased`}>
+                <noscript>
+                    <iframe
+                        src="https://www.googletagmanager.com/ns.html?id=GTM-5M8W4DBD"
+                        height="0"
+                        width="0"
+                        style={{ display: "none", visibility: "hidden" }}
+                    />
+                </noscript>
                 <SecurityProvider>
                     <div className="flex h-screen overflow-hidden">
                         <Sidebar
