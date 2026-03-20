@@ -30,20 +30,28 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("Initializing Supabase client for upload...");
+        console.log(`Initializing Supabase client for upload. Key length: ${supabaseKey?.length || 0}`);
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        console.log(`Converting file to Buffer. Name: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        console.log(`Uploading to bucket: ${bucket}, path: ${path}`);
         const { data, error } = await supabase.storage
             .from(bucket)
-            .upload(path, file, {
+            .upload(path, buffer, {
                 cacheControl: "3600",
                 upsert: false,
                 contentType: file.type,
             });
 
         if (error) {
-            console.error("Supabase upload error:", error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            console.error("Supabase storage upload error:", error);
+            return NextResponse.json({ 
+                error: error.message,
+                details: error
+            }, { status: 500 });
         }
 
         const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
