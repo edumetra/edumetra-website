@@ -18,14 +18,19 @@ export async function POST(request: Request) {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-        if (!supabaseUrl || !supabaseKey) {
-            console.error("Upload API Error: Supabase URL or Key is missing from environment variables.");
+        if (!supabaseUrl || !supabaseKey || supabaseKey === "undefined" || supabaseKey === "null") {
+            console.error("Upload API Error: Supabase configuration is missing or invalid.", {
+                urlExists: !!supabaseUrl,
+                keyExists: !!supabaseKey,
+                keyType: typeof supabaseKey
+            });
             return NextResponse.json(
-                { error: "Server configuration error: Supabase URL or Key is missing." },
+                { error: `Server configuration error: Supabase ${!supabaseUrl ? 'URL' : 'Key'} is missing or invalid.` },
                 { status: 500 }
             );
         }
 
+        console.log("Initializing Supabase client for upload...");
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         const { data, error } = await supabase.storage
