@@ -55,13 +55,10 @@ const Header = () => {
                 {/* Main Header Bar */}
                 <div className="flex items-center justify-between gap-4 py-4">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-                        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-lg overflow-hidden group-hover:scale-110 transition-transform">
-                            <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
+                    <Link to="/" className="flex items-center flex-shrink-0 group">
+                        <div className="h-12 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform">
+                            <img src="/logo.jpeg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                         </div>
-                        <span className="text-xl md:text-2xl font-bold hidden sm:block">
-                            <span className="gradient-text">Edumetra</span>
-                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}

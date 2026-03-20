@@ -110,13 +110,10 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
-                        <a href={publicUrl} className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center overflow-hidden">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
+                        <a href={publicUrl} className="flex items-center mb-4">
+                            <div className="h-10 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl">
+                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
                             </div>
-                            <span className="text-xl font-bold">
-                                <span className="text-red-500">Edumetra</span>
-                            </span>
                         </a>
 
                         <p className="text-sm text-slate-400 mb-4 leading-relaxed">

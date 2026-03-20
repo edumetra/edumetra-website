@@ -109,13 +109,10 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
-                        <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm overflow-hidden border border-slate-200">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
+                        <Link to="/" className="flex items-center mb-4">
+                            <div className="h-12 w-auto px-4 bg-white flex items-center justify-center shadow-sm overflow-hidden border border-slate-200 rounded-xl">
+                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                             </div>
-                            <span className="text-xl font-bold">
-                                <span className="text-primary-600">Edumetra</span>
-                            </span>
                         </Link>
 
                         <p className="text-sm text-slate-600 mb-4 leading-relaxed">

@@ -110,14 +110,10 @@ const Navigation = () => {
                     <div className="flex items-center justify-between h-16 gap-4">
 
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-                            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-lg overflow-hidden group-hover:scale-110 transition-transform duration-300">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="w-full h-full object-cover" />
+                        <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
+                            <div className="h-10 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform duration-300">
+                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
                             </div>
-                            <span className="text-lg font-bold hidden sm:block">
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-rose-300">Edu</span>
-                                <span className="text-white">metra</span>
-                            </span>
                             <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/20 uppercase tracking-wider">
                                 Colleges
                             </span>
