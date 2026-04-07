@@ -48,90 +48,87 @@ export function NewsModal({ isOpen, onClose, news }) {
                         </div>
 
                         {/* Scrollable Body */}
-                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-                            <div className="flex flex-wrap items-center gap-4 mb-6">
-                                <div className="flex items-center gap-2 text-sm text-slate-400">
-                                    <Calendar className="w-4 h-4" />
-                                    {new Date(news.published_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                    })}
-                                </div>
-                                {news.tags && news.tags.length > 0 && (
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {news.tags.map(tag => (
-                                            <span key={tag} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold">
-                                                <Tag className="w-3 h-3" />
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div className="relative">
-                                {isLocked && (
-                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md rounded-xl p-6 text-center border border-slate-700/50">
-                                        {isLockedPremium ? (
-                                            <>
-                                                <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mb-4 shadow-lg shadow-amber-500/20">
-                                                    <Lock className="w-8 h-8 text-amber-500" />
-                                                </div>
-                                                <h3 className="text-2xl font-bold text-white mb-2">Subscribers Only</h3>
-                                                <p className="text-slate-300 mb-6 max-w-sm">
-                                                    Subscribe to see the latest updates and exclusive announcements.
-                                                </p>
-                                                <Link
-                                                    to="/pricing"
-                                                    onClick={onClose}
-                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl font-bold transition-all hover:scale-105 shadow-xl shadow-orange-500/20"
-                                                >
-                                                    <Crown className="w-5 h-5" /> Subscribe to Unlock
-                                                </Link>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 mb-4 shadow-lg">
-                                                    <Lock className="w-8 h-8 text-slate-400" />
-                                                </div>
-                                                <h3 className="text-2xl font-bold text-white mb-2">Sign up to Read</h3>
-                                                <p className="text-slate-300 mb-6 max-w-sm">
-                                                    This announcement is available for free to all registered users.
-                                                </p>
-                                                <div className="flex gap-4">
-                                                    <button
-                                                        onClick={() => {
-                                                            onClose();
-                                                            window.dispatchEvent(new CustomEvent('open-auth-modal'));
-                                                        }}
-                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all hover:scale-105 shadow-xl shadow-blue-500/20"
-                                                    >
-                                                        <LogIn className="w-5 h-5" /> Sign up or Log in
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                                
-                                <div className={isLocked ? "opacity-30 pointer-events-none select-none filter blur-sm transition-all" : ""}>
-                                    {news.image_url ? (
-                                        <div className="mb-6 rounded-xl overflow-hidden bg-slate-800/50 border border-slate-700/50">
-                                            <img 
-                                                src={news.image_url} 
-                                                alt={news.title}
-                                                className="w-full h-auto max-h-[400px] object-contain"
-                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                            />
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 custom-scrollbar relative">
+                            {isLocked && (
+                                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-xl p-8 text-center border-t border-slate-800">
+                                    <div className="relative mb-6 shrink-0">
+                                        <div className="absolute inset-0 bg-red-500/20 blur-2xl animate-pulse"></div>
+                                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center border relative z-10 ${isLockedPremium ? 'bg-amber-500/10 border-amber-500/20 shadow-amber-500/10' : 'bg-slate-800 border-slate-700 shadow-xl'}`}>
+                                            <Lock className={`w-10 h-10 ${isLockedPremium ? 'text-amber-500' : 'text-slate-400'}`} />
                                         </div>
-                                    ) : null}
-
-                                    <div 
-                                        className="prose prose-invert max-w-none prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-img:rounded-xl"
-                                        dangerouslySetInnerHTML={{ __html: isLocked ? news.content.substring(0, 300) + '...' : news.content }}
-                                    />
+                                    </div>
+                                    
+                                    {isLockedPremium ? (
+                                        <>
+                                            <h3 className="text-3xl font-black text-white mb-3 tracking-tight">Subscribers Only</h3>
+                                            <p className="text-slate-400 mb-8 max-w-sm text-lg leading-relaxed">
+                                                Join our premium circle to see the latest updates and exclusive announcements.
+                                            </p>
+                                            <Link
+                                                to="/pricing"
+                                                onClick={onClose}
+                                                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-2xl shadow-orange-500/30 uppercase tracking-widest text-xs"
+                                            >
+                                                <Crown className="w-5 h-5" /> Subscribe to Unlock
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3 className="text-3xl font-black text-white mb-3 tracking-tight">Sign up to Read</h3>
+                                            <p className="text-slate-400 mb-8 max-w-sm text-lg leading-relaxed">
+                                                This announcement is available for free to all registered students.
+                                            </p>
+                                            <button
+                                                onClick={() => {
+                                                    onClose();
+                                                    window.dispatchEvent(new CustomEvent('open-auth-modal'));
+                                                }}
+                                                className="inline-flex items-center gap-2 px-8 py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-2xl shadow-red-500/30 uppercase tracking-widest text-xs"
+                                            >
+                                                <LogIn className="w-5 h-5" /> Join for Free
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
+                            )}
+
+                            <div className={isLocked ? "opacity-20 pointer-events-none select-none filter blur-[2px] grayscale transition-all" : ""}>
+                                <div className="flex flex-col gap-3 mb-8">
+                                    <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+                                        <Calendar className="w-4 h-4 text-blue-400/80" />
+                                        {new Date(news.published_at).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </div>
+                                    {news.tags && news.tags.length > 0 && (
+                                        <div className="flex items-center gap-2 flex-wrap text-wrap">
+                                            {news.tags.map(tag => (
+                                                <span key={tag} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[10px] font-black uppercase tracking-widest">
+                                                    <Tag className="w-3 h-3" />
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {news.image_url ? (
+                                    <div className="mb-6 rounded-xl overflow-hidden bg-slate-800/50 border border-slate-700/50">
+                                        <img 
+                                            src={news.image_url} 
+                                            alt={news.title}
+                                            className="w-full h-auto max-h-[400px] object-contain"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                    </div>
+                                ) : null}
+
+                                <div 
+                                    className="prose prose-invert max-w-none break-words overflow-hidden prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-img:rounded-xl"
+                                    dangerouslySetInnerHTML={{ __html: isLocked ? news.content.substring(0, 300) + '...' : news.content }}
+                                />
                             </div>
                         </div>
 

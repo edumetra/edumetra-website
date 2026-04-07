@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -7,8 +8,6 @@ export default function Footer() {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [subscribing, setSubscribing] = useState(false);
-
-    const publicUrl = "http://localhost:5173";
 
     const handleSubscribe = async (e) => {
         e.preventDefault();
@@ -30,42 +29,42 @@ export default function Footer() {
     };
 
     const topCourses = [
-        { name: 'MBBS', path: `${publicUrl}/courses/mbbs` },
-        { name: 'BDS', path: `${publicUrl}/courses/bds` },
-        { name: 'BAMS', path: `${publicUrl}/courses/bams` },
-        { name: 'BHMS', path: `${publicUrl}/courses/bhms` },
-        { name: 'B.Pharma', path: `${publicUrl}/courses/pharma` },
-        { name: 'Nursing', path: `${publicUrl}/courses/nursing` },
-        { name: 'Physiotherapy', path: `${publicUrl}/courses/physio` },
-        { name: 'Ayurveda', path: `${publicUrl}/courses/ayurveda` },
+        { name: 'MBBS', path: '/courses/mbbs' },
+        { name: 'BDS', path: '/courses/bds' },
+        { name: 'BAMS', path: '/courses/bams' },
+        { name: 'BHMS', path: '/courses/bhms' },
+        { name: 'B.Pharma', path: '/courses/pharma' },
+        { name: 'Nursing', path: '/courses/nursing' },
+        { name: 'Physiotherapy', path: '/courses/physio' },
+        { name: 'Ayurveda', path: '/courses/ayurveda' },
     ];
 
     const topUniversities = [
-        { name: 'Medical and Health Sciences', path: `${publicUrl}/universities/medical` },
-        { name: 'Pharmaceutical Sciences', path: `${publicUrl}/universities/pharma` },
-        { name: 'Ayurveda and Alternative Medicine', path: `${publicUrl}/universities/ayurveda` },
-        { name: 'Nursing and Healthcare', path: `${publicUrl}/universities/nursing` },
-        { name: 'Allied Health Sciences', path: `${publicUrl}/universities/allied` },
-        { name: 'Dental Sciences', path: `${publicUrl}/universities/dental` },
+        { name: 'Medical and Health Sciences', path: '/universities/medical' },
+        { name: 'Pharmaceutical Sciences', path: '/universities/pharma' },
+        { name: 'Ayurveda and Alternative Medicine', path: '/universities/ayurveda' },
+        { name: 'Nursing and Healthcare', path: '/universities/nursing' },
+        { name: 'Allied Health Sciences', path: '/universities/allied' },
+        { name: 'Dental Sciences', path: '/universities/dental' },
     ];
 
     const topExams = [
-        { name: 'NEET', path: `${publicUrl}/exams/neet` },
-        { name: 'AIIMS', path: `${publicUrl}/exams/aiims` },
-        { name: 'JIPMER', path: `${publicUrl}/exams/jipmer` },
-        { name: 'NEET PG', path: `${publicUrl}/exams/neet-pg` },
-        { name: 'FMGE', path: `${publicUrl}/exams/fmge` },
-        { name: 'INI CET', path: `${publicUrl}/exams/ini-cet` },
-        { name: 'GPAT', path: `${publicUrl}/exams/gpat` },
+        { name: 'NEET', path: '/exams/neet' },
+        { name: 'AIIMS', path: '/exams/aiims' },
+        { name: 'JIPMER', path: '/exams/jipmer' },
+        { name: 'NEET PG', path: '/exams/neet-pg' },
+        { name: 'FMGE', path: '/exams/fmge' },
+        { name: 'INI CET', path: '/exams/ini-cet' },
+        { name: 'GPAT', path: '/exams/gpat' },
     ];
 
     const otherLinks = [
-        { name: 'About Us', path: `${publicUrl}/about` },
-        { name: 'Contact Us', path: `${publicUrl}/contact` },
-        { name: 'Advertise With Us', path: `${publicUrl}/advertise` },
-        { name: 'Careers', path: `${publicUrl}/careers` },
-        { name: 'Privacy Policy', path: `${publicUrl}/privacy` },
-        { name: 'Terms & Conditions', path: `${publicUrl}/terms` },
+        { name: 'About Us', path: '/about' },
+        { name: 'Contact Us', path: '/contact' },
+        { name: 'Advertise With Us', path: '/advertise' },
+        { name: 'Careers', path: '/careers' },
+        { name: 'Privacy Policy', path: '/privacy' },
+        { name: 'Terms & Conditions', path: '/terms' },
     ];
 
     const socialLinks = [
@@ -125,11 +124,11 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
-                        <a href={publicUrl} className="flex items-center mb-4">
+                        <Link to="/" className="flex items-center mb-4">
                             <div className="h-10 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl">
                                 <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
                             </div>
-                        </a>
+                        </Link>
 
                         <p className="text-sm text-slate-400 mb-4 leading-relaxed">
                             An ISO Certified 9001:2015 Company
@@ -178,12 +177,12 @@ export default function Footer() {
                         <ul className="space-y-2">
                             {topCourses.map((course, index) => (
                                 <li key={index}>
-                                    <a
-                                        href={course.path}
+                                    <Link
+                                        to={course.path}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                     >
                                         {course.name}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
@@ -195,12 +194,12 @@ export default function Footer() {
                         <ul className="space-y-2">
                             {topUniversities.map((university, index) => (
                                 <li key={index}>
-                                    <a
-                                        href={university.path}
+                                    <Link
+                                        to={university.path}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                     >
                                         {university.name}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
@@ -212,12 +211,12 @@ export default function Footer() {
                         <ul className="space-y-2">
                             {topExams.map((exam, index) => (
                                 <li key={index}>
-                                    <a
-                                        href={exam.path}
+                                    <Link
+                                        to={exam.path}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                     >
                                         {exam.name}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
@@ -229,12 +228,12 @@ export default function Footer() {
                         <ul className="space-y-2">
                             {otherLinks.map((link, index) => (
                                 <li key={index}>
-                                    <a
-                                        href={link.path}
+                                    <Link
+                                        to={link.path}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                     >
                                         {link.name}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

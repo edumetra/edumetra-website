@@ -59,7 +59,7 @@ export default function ArticleDetailPage() {
     return (
         <div className="min-h-screen bg-slate-950 pt-20 pb-20">
             <SEOHead
-                title={`${article.title} — Edumetra`}
+                title={article.title}
                 description={article.excerpt || `Read ${article.title} on Edumetra`}
                 url={`/articles/${article.slug}`}
                 image={article.image_url}

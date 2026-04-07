@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Newspaper, Calendar, Lock, Crown, Search, Zap, LogIn, X, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Newspaper, Calendar, Lock, Crown, Search, Zap, LogIn, X, Filter, ArrowUpDown } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { NewsModal } from '../components/news/NewsModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePremium } from '../contexts/PremiumContext';
 import { useSignup } from '../contexts/SignupContext';
+import SEOHead from '../components/SEOHead';
 
 const isLatest = (dateString) => {
     const pub = new Date(dateString);
@@ -26,11 +27,13 @@ const getYear = (dateString) => new Date(dateString).getFullYear();
 export default function NewsUpdatesPage() {
     const { isPremium, loadingTier } = usePremium();
     const { user } = useSignup();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [newsItems, setNewsItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedNews, setSelectedNews] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTag, setSelectedTag] = useState('All');
+    const [sortOrder, setSortOrder] = useState('desc'); // 'desc' | 'asc'
 
     useEffect(() => {
         async function fetchAllNews() {
@@ -42,6 +45,13 @@ export default function NewsUpdatesPage() {
 
             if (!error && data) {
                 setNewsItems(data);
+                
+                // Check for ID in URL to auto-open
+                const newsId = searchParams.get('id');
+                if (newsId) {
+                    const item = data.find(n => n.id === newsId);
+                    if (item) setSelectedNews(item);
+                }
             }
             setLoading(false);
         }
@@ -50,6 +60,16 @@ export default function NewsUpdatesPage() {
             fetchAllNews();
         }
     }, [loadingTier]);
+
+    // Update URL when selected news changes
+    const handleSelectNews = (item) => {
+        setSelectedNews(item);
+        if (item) {
+            setSearchParams({ id: item.id }, { replace: true });
+        } else {
+            setSearchParams({}, { replace: true });
+        }
+    };
 
     const allTags = useMemo(() => {
         const tagsSet = new Set();
@@ -62,7 +82,7 @@ export default function NewsUpdatesPage() {
     }, [newsItems]);
 
     const filteredNews = useMemo(() => {
-        let result = newsItems;
+        let result = [...newsItems];
         if (selectedTag !== 'All') {
             result = result.filter(item => item.tags && item.tags.includes(selectedTag));
         }
@@ -73,8 +93,16 @@ export default function NewsUpdatesPage() {
                 (item.content && item.content.toLowerCase().includes(q))
             );
         }
+
+        // Apply dynamic sorting
+        result.sort((a, b) => {
+            const dateA = new Date(a.published_at);
+            const dateB = new Date(b.published_at);
+            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        });
+
         return result;
-    }, [newsItems, selectedTag, searchQuery]);
+    }, [newsItems, selectedTag, searchQuery, sortOrder]);
 
     // Group by Year
     const groupedByYear = useMemo(() => {
@@ -84,8 +112,10 @@ export default function NewsUpdatesPage() {
             if (!groups[year]) groups[year] = [];
             groups[year].push(item);
         });
-        return Object.entries(groups).sort(([a], [b]) => Number(b) - Number(a));
-    }, [filteredNews]);
+        return Object.entries(groups).sort(([a], [b]) => 
+            sortOrder === 'desc' ? Number(b) - Number(a) : Number(a) - Number(b)
+        );
+    }, [filteredNews, sortOrder]);
 
     // Featured (latest first 3)
     const featuredItems = useMemo(() => filteredNews.slice(0, 3), [filteredNews]);
@@ -98,8 +128,10 @@ export default function NewsUpdatesPage() {
             if (!groups[year]) groups[year] = [];
             groups[year].push(item);
         });
-        return Object.entries(groups).sort(([a], [b]) => Number(b) - Number(a));
-    }, [archiveItems]);
+        return Object.entries(groups).sort(([a], [b]) => 
+            sortOrder === 'desc' ? Number(b) - Number(a) : Number(a) - Number(b)
+        );
+    }, [archiveItems, sortOrder]);
 
     if (loading || loadingTier) {
         return (
@@ -124,7 +156,7 @@ export default function NewsUpdatesPage() {
                 <motion.button
                     whileHover={{ scale: 1.015 }}
                     transition={{ type: 'spring', stiffness: 300 }}
-                    onClick={() => setSelectedNews(item)}
+                    onClick={() => handleSelectNews(item)}
                     className="relative rounded-2xl overflow-hidden text-left w-full group cursor-pointer focus:outline-none"
                     style={{ minHeight: 260 }}
                 >
@@ -183,7 +215,7 @@ export default function NewsUpdatesPage() {
                 initial={{ opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
-                onClick={() => setSelectedNews(item)}
+                onClick={() => handleSelectNews(item)}
                 className="group w-full flex items-start gap-4 p-4 rounded-xl bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800/60 hover:border-slate-700/60 transition-all text-left focus:outline-none"
             >
                 {/* Thumbnail */}
@@ -230,6 +262,12 @@ export default function NewsUpdatesPage() {
 
     return (
         <div className="min-h-screen bg-[#070c1a] pt-28 pb-20 px-4">
+            <SEOHead 
+                title={selectedNews ? selectedNews.title : "News & Updates — Edumetra"}
+                description={selectedNews ? (selectedNews.content?.slice(0, 160) + '...') : "Stay informed about NEET entrance exam alerts, admission deadlines, and college events."}
+                image={selectedNews?.image_url}
+                url={selectedNews ? `/news-updates?id=${selectedNews.id}` : "/news-updates"}
+            />
             {/* Ambient blobs */}
             <div className="fixed top-0 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none -z-0" />
             <div className="fixed bottom-1/4 right-1/4 w-80 h-80 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none -z-0" />
@@ -269,6 +307,16 @@ export default function NewsUpdatesPage() {
                             </button>
                         )}
                     </div>
+
+                    <button
+                        onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                        className="flex items-center justify-center gap-2 px-5 py-3 bg-slate-900/70 border border-slate-700/50 text-slate-300 hover:text-white rounded-xl transition-all hover:border-slate-600 active:scale-95 group"
+                    >
+                        <ArrowUpDown className={`w-4 h-4 transition-transform duration-300 ${sortOrder === 'asc' ? 'rotate-180 text-blue-400' : ''}`} />
+                        <span className="text-sm font-medium whitespace-nowrap">
+                            {sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
+                        </span>
+                    </button>
                 </div>
 
                 {/* ── Tag Chips ── */}
@@ -351,7 +399,7 @@ export default function NewsUpdatesPage() {
 
             <NewsModal
                 isOpen={!!selectedNews}
-                onClose={() => setSelectedNews(null)}
+                onClose={() => handleSelectNews(null)}
                 news={selectedNews}
             />
         </div>

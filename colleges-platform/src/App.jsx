@@ -19,8 +19,10 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import ExamDetailPage from './pages/ExamDetailPage';
 import PricingPage from './pages/PricingPage';
 import NewsUpdatesPage from './pages/NewsUpdatesPage';
+import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { ChatbotProvider, ChatbotWidget } from './components/chatbot';
@@ -62,7 +64,9 @@ function App() {
                 <Route path="neet-prep" element={<AuthGuard><NEETPrepPage /></AuthGuard>} />
                 <Route path="articles" element={<ArticlesPage />} />
                 <Route path="articles/:slug" element={<ArticleDetailPage />} />
+                <Route path="exams/:slug" element={<ExamDetailPage />} />
                 <Route path="news-updates" element={<NewsUpdatesPage />} />
+                <Route path="careers" element={<CareersPage />} />
                 <Route path="pricing" element={<PricingPage />} />
                 {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
                 <Route path="404" element={<NotFoundPage />} />
