@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         const supabase = createClient(cookieStore);
 
         // Upsert: increment view count and update last_seen
-        const { error } = await supabase.rpc("upsert_lead_score", {
+        const { error } = await (supabase as any).rpc("upsert_lead_score", {
             p_identifier: identifier,
             p_user_id: user_id || null,
             p_email: email || null,
