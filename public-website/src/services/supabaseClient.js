@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { cookieStorage } from '../shared/utils/cookieStorage';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -10,7 +11,14 @@ const isConfigured = supabaseUrl && supabaseAnonKey &&
 
 // Create client only if credentials are valid, otherwise use a placeholder
 export const supabase = isConfigured
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            storage: cookieStorage,
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    })
     : {
         auth: {
             getSession: async () => ({ data: { session: null }, error: null }),

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useSignup } from '../contexts/SignupContext';
 import { FeaturedColleges } from '../components/home/FeaturedColleges';
+import { NewsWidget } from '../components/news/NewsWidget';
 
 /* ─── Data ─── */
 const FEATURES = [
@@ -228,55 +229,63 @@ export default function HomePage() {
                 <div className="absolute top-0 left-1/4 w-72 h-72 bg-red-600/20 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute top-10 right-1/4 w-56 h-56 bg-rose-500/15 rounded-full blur-[80px] pointer-events-none" />
 
-                <div className="relative max-w-5xl mx-auto text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold mb-8">
-                        <GraduationCap className="w-4 h-4" />
-                        India's Most Comprehensive College Platform
+                <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                    <div className="lg:col-span-2 text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold mb-8">
+                            <GraduationCap className="w-4 h-4" />
+                            India's Most Comprehensive College Platform
+                        </div>
+
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
+                            Find Your{' '}
+                            <span className="bg-gradient-to-r from-red-400 via-rose-400 to-red-300 bg-clip-text text-transparent">
+                                Perfect College,
+                            </span>
+                            <br className="hidden xl:block" />
+                            {' '}Smarter
+                        </h1>
+
+                        <p className="text-xl text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+                            Search 10,000+ colleges. Read verified reviews. Compare placements.
+                            Make the most important decision of your life with confidence.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                            <Link
+                                to="/colleges"
+                                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white px-8 py-4 rounded-xl font-bold text-base transition-all hover:scale-105 shadow-xl shadow-red-900/30"
+                            >
+                                <Search className="w-5 h-5" />
+                                Explore Colleges
+                                <ArrowRight className="w-5 h-5" />
+                            </Link>
+                            <button
+                                onClick={openSignUp}
+                                className="inline-flex items-center justify-center gap-2 bg-white/8 hover:bg-white/12 text-white border border-white/12 px-8 py-4 rounded-xl font-bold text-base transition-all hover:scale-105"
+                            >
+                                Get Started Free
+                            </button>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="flex flex-wrap justify-center lg:justify-start gap-8 lg:gap-12 mt-16 pt-8 border-t border-white/6 lg:border-t-0 lg:pt-0">
+                            {[
+                                { value: '10,000+', label: 'Colleges Listed' },
+                                { value: '50,000+', label: 'Student Reviews' },
+                                { value: '500+', label: 'Cities Covered' },
+                                { value: '98%', label: 'Success Rate' },
+                            ].map(s => (
+                                <div key={s.label} className="text-center lg:text-left">
+                                    <div className="text-2xl md:text-3xl font-black text-white">{s.value}</div>
+                                    <div className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-
-                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
-                        Find Your{' '}
-                        <span className="bg-gradient-to-r from-red-400 via-rose-400 to-red-300 bg-clip-text text-transparent">
-                            Perfect College
-                        </span>
-                        , Smarter
-                    </h1>
-
-                    <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                        Search 10,000+ colleges. Read verified reviews. Compare placements.
-                        Make the most important decision of your life with confidence.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            to="/colleges"
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white px-8 py-4 rounded-xl font-bold text-base transition-all hover:scale-105 shadow-xl shadow-red-900/30"
-                        >
-                            <Search className="w-5 h-5" />
-                            Explore Colleges
-                            <ArrowRight className="w-5 h-5" />
-                        </Link>
-                        <button
-                            onClick={openSignUp}
-                            className="inline-flex items-center gap-2 bg-white/8 hover:bg-white/12 text-white border border-white/12 px-8 py-4 rounded-xl font-bold text-base transition-all hover:scale-105"
-                        >
-                            Get Started Free
-                        </button>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex flex-wrap justify-center gap-8 mt-16 pt-8 border-t border-white/6">
-                        {[
-                            { value: '10,000+', label: 'Colleges Listed' },
-                            { value: '50,000+', label: 'Student Reviews' },
-                            { value: '500+', label: 'Cities Covered' },
-                            { value: '98%', label: 'Success Rate' },
-                        ].map(s => (
-                            <div key={s.label} className="text-center">
-                                <div className="text-2xl md:text-3xl font-black text-white">{s.value}</div>
-                                <div className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</div>
-                            </div>
-                        ))}
+                    
+                    {/* Right Column: News Widget */}
+                    <div className="lg:col-span-1 h-full w-full max-w-md mx-auto lg:max-w-none flex flex-col justify-center">
+                        <NewsWidget />
                     </div>
                 </div>
             </section>

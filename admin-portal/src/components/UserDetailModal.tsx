@@ -14,7 +14,7 @@ type UserProfile = {
     id: string;
     email: string;
     full_name: string | null;
-    phone: string | null;
+    phone_number: string | null;
     account_type: AccountType;
     is_banned: boolean;
     banned_at: string | null;
@@ -144,7 +144,7 @@ export default function UserDetailModal({ user, onClose, onBanChange, onTierChan
                     <div className="grid grid-cols-2 gap-4">
                         {[
                             { icon: Mail, label: "Email", value: user.email },
-                            { icon: Phone, label: "Phone", value: user.phone || "—" },
+                            { icon: Phone, label: "Phone", value: user.phone_number || "—" },
                             { icon: Calendar, label: "Joined", value: fmt(user.created_at) },
                             { icon: Clock, label: "Last Login", value: fmtTime(user.last_sign_in_at) },
                         ].map((f) => (

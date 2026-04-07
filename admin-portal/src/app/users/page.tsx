@@ -13,7 +13,7 @@ type UserProfile = {
     id: string;
     email: string;
     full_name: string;
-    phone: string;
+    phone_number: string;
     account_type: AccountType;
     is_banned: boolean;
     banned_at: string | null;
@@ -37,7 +37,7 @@ function exportCSV(users: UserProfile[]) {
     const rows = users.map((u) => [
         u.full_name || "",
         u.email || "",
-        u.phone || "",
+        u.phone_number || "",
         u.account_type,
         u.is_banned ? "Banned" : "Active",
         u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("en-GB") : "",
@@ -123,7 +123,7 @@ export default function UsersPage() {
     const filtered = useMemo(() => {
         return users.filter((u) => {
             const q = search.toLowerCase();
-            const matchSearch = !q || (u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.phone?.includes(q));
+            const matchSearch = !q || (u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.phone_number?.includes(q));
             const matchAccount = accountFilter === "all" || u.account_type === accountFilter;
             const matchBan =
                 banFilter === "all" ? true :
@@ -264,7 +264,7 @@ export default function UsersPage() {
                                                 </div>
                                             </td>
                                             {/* Phone */}
-                                            <td className="px-5 py-4 text-sm text-slate-400">{u.phone || <span className="text-slate-600">—</span>}</td>
+                                            <td className="px-5 py-4 text-sm text-slate-400">{u.phone_number || <span className="text-slate-600">—</span>}</td>
                                             {/* Account Type */}
                                             <td className="px-5 py-4">
                                                 <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-semibold ${cfg.color} ${cfg.bg} ${cfg.border} mb-1`}>

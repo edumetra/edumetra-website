@@ -4,14 +4,14 @@ import { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, MapPin, Users, IndianRupee, Calendar, Award,
-    BookOpen, CheckCircle, TrendingUp, Building2, GraduationCap,
+    BookOpen, CheckCircle, Building2, GraduationCap,
     Star, ExternalLink, ChevronRight
 } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 import { useCollegeDetails } from '../hooks/useCollegeDetails';
-import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import CollegeDetailSkeleton from '../components/college-detail/CollegeDetailSkeleton';
 import { StatCard, PlacementHighlight } from '../components/college-detail/StatsComponents';
 import { PlacementChart } from '../components/college-detail/PlacementChart';
 import { ReviewForm, ReviewList } from '../components/ReviewComponents';
@@ -21,8 +21,14 @@ import { FAQSection } from '../components/college-detail/FAQSection';
 import { ReviewInsights } from '../components/college-detail/ReviewInsights';
 import { SimilarColleges } from '../components/college-detail/SimilarColleges';
 import { LockedSection } from '../components/college-detail/LockedSection';
+import HeroCarousel from '../components/college-detail/HeroCarousel';
 import { usePremium } from '../contexts/PremiumContext';
+import { useSignup } from '../contexts/SignupContext';
+import { useGuestLimit } from '../hooks/useGuestLimit';
+import GuestLimitModal from '../components/ui/GuestLimitModal';
 import SEOHead from '../components/SEOHead';
+import { categorizePrediction } from '../components/predictor/predictorEngine';
+import { useEffect } from 'react';
 
 export default function CollegeDetailPage() {
     const { slug } = useParams();
@@ -31,9 +37,25 @@ export default function CollegeDetailPage() {
     // Custom Hooks
     const { college, loading, error } = useCollegeDetails(slug);
     const { isSectionVisible, visibilityTier } = usePremium();
+    const { user } = useSignup();
+    const { hasExceededLimit } = useGuestLimit(user, slug);
 
     const [activeTab, setActiveTab] = useState('overview');
     const [refreshReviews, setRefreshReviews] = useState(false);
+    const [myChances, setMyChances] = useState(null);
+
+    useEffect(() => {
+        const lastPrediction = sessionStorage.getItem('last_prediction');
+        if (lastPrediction && college) {
+            try {
+                const { examId, score } = JSON.parse(lastPrediction);
+                const prediction = categorizePrediction(college, examId, score);
+                if (prediction.label !== 'Open') {
+                    setMyChances(prediction);
+                }
+            } catch (e) { console.error(e); }
+        }
+    }, [college]);
 
     // Parallax Scroll Hooks
     const targetRef = useRef(null);
@@ -46,11 +68,7 @@ export default function CollegeDetailPage() {
     const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center pt-20">
-                <LoadingState message="Loading college details..." />
-            </div>
-        );
+        return <CollegeDetailSkeleton />;
     }
 
     if (error || !college) {
@@ -104,93 +122,135 @@ export default function CollegeDetailPage() {
                 url={`/colleges/${college.slug}`}
                 jsonLd={jsonLd}
             />
-            {/* Parallax Hero */}
-            <div ref={targetRef} className="relative h-[70vh] min-h-[500px] overflow-hidden">
-                <motion.div
-                    style={{ y: heroY, opacity: heroOpacity }}
-                    className="absolute inset-0"
-                >
-                    <img
-                        src={college.image}
-                        alt={college.name}
-                        className="w-full h-full object-cover"
-                    />
-                </motion.div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/20" />
+            {/* ── Hero: Split Layout ────────────────────────────────────────── */}
+            <div ref={targetRef} className="relative bg-slate-950 border-b border-slate-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid lg:grid-cols-2 gap-0 min-h-[420px] md:min-h-[480px]">
 
-                <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-32">
-                    <Link
-                        to="/colleges"
-                        className="absolute top-8 left-4 sm:left-8 inline-flex items-center gap-2 text-white/80 hover:text-white bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 transition-colors text-sm hover:bg-black/40"
-                    >
-                        <ArrowLeft className="w-4 h-4" /> Back
-                    </Link>
+                        {/* ── Left: Info ── */}
+                        <div className="flex flex-col justify-center py-20 pr-0 lg:pr-12">
+                            {/* Back */}
+                            <Link
+                                to="/colleges"
+                                className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium mb-8 transition-colors group w-fit"
+                            >
+                                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                                Back to Colleges
+                            </Link>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        {/* Badges */}
-                        <div className="flex flex-wrap items-center gap-3 mb-6">
-                            <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-lg uppercase tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.5)]">
-                                {college.type}
-                            </span>
-                            {college.rank && (
-                                <span className="px-3 py-1 bg-white/10 backdrop-blur-xl text-white border border-white/20 text-xs font-bold rounded-lg flex items-center gap-1 shadow-lg">
-                                    <Award className="w-3 h-3" /> Rank #{college.rank}
+                            {/* Badges */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="flex flex-wrap items-center gap-2 mb-5"
+                            >
+                                <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-lg uppercase tracking-wider">
+                                    {college.type}
                                 </span>
-                            )}
-                            {college.rating > 0 && (
-                                <span className="px-3 py-1 bg-amber-500/20 backdrop-blur-xl text-amber-300 border border-amber-500/30 text-xs font-bold rounded-lg flex items-center gap-1 shadow-lg">
-                                    <Star className="w-3 h-3 fill-current" /> {college.rating}
-                                </span>
-                            )}
-                        </div>
-
-                        <h1 className="text-4xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight drop-shadow-2xl">
-                            {college.name}
-                        </h1>
-
-                        <div className="flex flex-wrap items-center gap-6 text-slate-200 text-sm md:text-base font-medium">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-red-500/20 rounded-full backdrop-blur-sm">
-                                    <MapPin className="w-4 h-4 text-red-400" />
-                                </div>
-                                {college.location}
-                            </div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-slate-600 hidden sm:block" />
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-red-500/20 rounded-full backdrop-blur-sm">
-                                    <Building2 className="w-4 h-4 text-red-400" />
-                                </div>
-                                Est. {college.founded}
-                            </div>
-                            {college.website_url && (
-                                <>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-600 hidden sm:block" />
-                                    <a
-                                        href={college.website_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+                                {college.rank && (
+                                    <span className="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold rounded-lg flex items-center gap-1">
+                                        <Award className="w-3 h-3 text-red-400" /> Rank #{college.rank}
+                                    </span>
+                                )}
+                                {college.rating > 0 && (
+                                    <span className="px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/20 text-xs font-bold rounded-lg flex items-center gap-1">
+                                        <Star className="w-3 h-3 fill-current" /> {college.rating}
+                                    </span>
+                                )}
+                                {myChances && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className={`px-3 py-1 border rounded-lg text-xs font-black shadow-lg ${myChances.bg} ${myChances.color} ${myChances.border} flex items-center gap-1.5`}
                                     >
-                                        Visit Website <ExternalLink className="w-4 h-4" />
-                                    </a>
-                                </>
-                            )}
+                                        CHANCE: {myChances.label.toUpperCase()} {myChances.emoji}
+                                    </motion.div>
+                                )}
+                            </motion.div>
+
+                            {/* Name */}
+                            <motion.h1
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.1 }}
+                                className="text-3xl md:text-5xl font-bold text-white mb-5 leading-tight tracking-tight"
+                            >
+                                {college.name}
+                            </motion.h1>
+
+                            {/* Meta row */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                                className="flex flex-wrap items-center gap-4 text-slate-400 text-sm font-medium"
+                            >
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin className="w-4 h-4 text-red-400" />
+                                    {college.location}
+                                </div>
+                                <div className="w-1 h-1 rounded-full bg-slate-700 hidden sm:block" />
+                                <div className="flex items-center gap-1.5">
+                                    <Building2 className="w-4 h-4 text-red-400" />
+                                    Est. {college.founded}
+                                </div>
+                                {college.website_url && (
+                                    <>
+                                        <div className="w-1 h-1 rounded-full bg-slate-700 hidden sm:block" />
+                                        <a
+                                            href={college.website_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors"
+                                        >
+                                            Visit Website <ExternalLink className="w-3.5 h-3.5" />
+                                        </a>
+                                    </>
+                                )}
+                            </motion.div>
                         </div>
-                    </motion.div>
+
+                        {/* ── Right: Image Carousel ── */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.15 }}
+                            className="relative hidden lg:flex items-center py-8"
+                        >
+                            <div className="relative w-full h-[340px] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5">
+                                <HeroCarousel
+                                    images={[
+                                        college.image,
+                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : [])
+                                    ].filter(Boolean)}
+                                    alt={college.name}
+                                />
+                            </div>
+                        </motion.div>
+
+                        {/* Mobile: image below title (hidden on lg) */}
+                        <div className="lg:hidden pb-6">
+                            <div className="relative w-full h-[220px] rounded-2xl overflow-hidden shadow-xl ring-1 ring-white/5">
+                                <HeroCarousel
+                                    images={[
+                                        college.image,
+                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : [])
+                                    ].filter(Boolean)}
+                                    alt={college.name}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Quick Stats Grid (Floating Overlap) */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {/* Quick Stats Grid */}
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
                     <StatCard icon={IndianRupee} label="Annual Fees" value={college.tuition} delay={0.1} />
-                    <StatCard icon={TrendingUp} label="Avg Package" value={college.avg_package || "N/A"} delay={0.2} />
-                    <StatCard icon={Calendar} label="Exams Accepted" value={college.exams || "Merit Based"} delay={0.3} />
-                    <StatCard icon={GraduationCap} label="Total Courses" value={`${college.programs.length}+ Courses`} delay={0.4} />
+                    <StatCard icon={Calendar} label="Exams Accepted" value={college.exams || "Merit Based"} delay={0.2} />
+                    <StatCard icon={GraduationCap} label="Total Courses" value={`${college.programs.length}+ Courses`} delay={0.3} />
                 </div>
 
                 <div className="grid lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
@@ -412,6 +472,8 @@ export default function CollegeDetailPage() {
                     </div>
                 </div>
             </div>
+            
+            <GuestLimitModal isOpen={hasExceededLimit} />
         </div>
     );
 }

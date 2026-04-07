@@ -51,34 +51,69 @@ export function ReviewInsights({ collegeId }) {
     const [error, setError] = useState('');
     const [showUpgrade, setShowUpgrade] = useState(false);
 
-    // Read premium tier via hook — PremiumContext is always mounted above
-    const { can, isSectionVisible } = usePremium();
-    const canUseAI = can('aiInsights'); // false for free, true for premium/pro
-
-    // If the entire reviews section is locked for this user on this college, don't even render the insights box
-    // To do this properly, we need the college details, but ReviewInsights only gets collegeId.
-    // Instead of doing a heavy fetch here, we will rely on CollegeDetailPage to not render ReviewInsights if the section is locked.
-    // However, since we wrapped it in LockedSection in CollegeDetailPage, the component still mounts under the blur!
-    // So we just let it mount. The user can't click it anyway because of pointer-events-none.
+    const { isPremium, isPro, limits, aiUsage, refreshUsage, isSectionVisible } = usePremium();
+    const canUseAI = isPremium || isPro;
 
     const handleGenerate = async () => {
         if (!canUseAI) { setShowUpgrade(true); return; }
-        if (!GEMINI_API_KEY) { setState('no_key'); return; }
+
+        // Start loading early to check cache
         setState('loading');
         try {
-            const { data } = await supabase
+            // 1. Get visible reviews
+            const { data: reviews, count } = await supabase
                 .from('reviews')
-                .select('rating, review_text')
+                .select('rating, review_text', { count: 'exact' })
                 .eq('college_id', collegeId)
                 .eq('moderation_status', 'visible')
                 .limit(50);
 
-            if (!data || data.length < 3) {
+            if (!reviews || reviews.length < 3) {
                 setError('Not enough reviews to generate insights (need at least 3 visible reviews).');
                 setState('error');
                 return;
             }
-            const result = await generateInsights(data);
+
+            // 2. Check cache (Viewing cache is FREE)
+            const { data: cache } = await supabase
+                .from('ai_review_insights_cache')
+                .select('*')
+                .eq('college_id', collegeId)
+                .single();
+
+            if (cache && cache.review_count === count) {
+                setInsights(cache.insights);
+                setState('done');
+                return;
+            }
+
+            // 3. If NOT cached, check USAGE LIMIT before calling AI
+            if (aiUsage >= (limits.aiLimit || 0)) {
+                setError(`Usage Limit Reached: Your current plan allows ${limits.aiLimit} AI generations only.`);
+                setState('error');
+                return;
+            }
+
+            // 4. Generate new insights via Edge Function
+            const { data: result, error: funcError } = await supabase.functions.invoke('generate-review-insights', {
+                body: { reviews }
+            });
+
+            if (funcError) throw new Error(funcError.message || 'Failed to generate insights');
+            
+            // 5. Update cache
+            await supabase
+                .from('ai_review_insights_cache')
+                .upsert({
+                    college_id: collegeId,
+                    insights: result,
+                    review_count: count,
+                    updated_at: new Date().toISOString()
+                });
+
+            // 6. Usage was incremented by the Edge Function
+            refreshUsage();
+
             setInsights(result);
             setState('done');
         } catch (e) {

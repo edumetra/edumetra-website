@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GraduationCap, Menu, X, LogOut, User, ChevronDown, Search, Star } from 'lucide-react';
+import {
+    GraduationCap, Menu, X, LogOut, User, ChevronDown, Search,
+    Home, Trophy, BookOpen, IndianRupee, PenSquare, Wrench, ChevronRight
+} from 'lucide-react';
 import { useSignup } from '../contexts/SignupContext';
 
 const Navigation = () => {
@@ -25,6 +28,9 @@ const Navigation = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    // Close mobile menu on route change
+    useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+
     const getUserInitial = () => {
         if (!user) return 'U';
         return (user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase();
@@ -47,19 +53,28 @@ const Navigation = () => {
     const isActive = (path) => location.pathname === path;
 
     const navItems = [
-        { label: 'Home', to: '/', internal: true },
-        { label: 'Find Colleges', to: '/colleges', internal: true },
-        { label: 'Rankings', to: '/rankings', internal: true },
-        { label: 'Articles', to: '/articles', internal: true },
-        { label: 'Pricing', to: '/pricing', internal: true },
+        { label: 'Home', to: '/', internal: true, icon: Home },
+        { label: 'Find Colleges', to: '/colleges', internal: true, icon: GraduationCap },
+        { label: 'Rankings', to: '/rankings', internal: true, icon: Trophy },
+        { label: 'Articles', to: '/articles', internal: true, icon: BookOpen },
+        { label: 'Pricing', to: '/pricing', internal: true, icon: IndianRupee },
         {
             label: 'Tools',
+            icon: Wrench,
             dropdown: [
                 { label: '🎯 Eligibility Checker', to: '/eligibility', desc: 'Find colleges you can get into' },
-                { label: '📋 College Shortlist', to: '/shortlist', desc: 'Personalised recommendations' },
+                { label: '🧠 NEET AI Advisor', to: '/neet-prep', desc: 'Personalised NEET study plan' },
             ]
         },
-        { label: 'Write a Review', to: '/review', internal: true },
+        { label: 'Write a Review', to: '/review', internal: true, icon: PenSquare },
+    ];
+
+    // Bottom tab bar — 4 most-used pages
+    const bottomTabs = [
+        { label: 'Home', to: '/', icon: Home },
+        { label: 'Colleges', to: '/colleges', icon: GraduationCap },
+        { label: 'Rankings', to: '/rankings', icon: Trophy },
+        { label: isSignedUp ? 'Profile' : 'Sign In', to: isSignedUp ? '/profile' : null, icon: User, action: isSignedUp ? null : openSignIn },
     ];
 
     return (
@@ -164,7 +179,6 @@ const Navigation = () => {
 
                         {/* Right side */}
                         <div className="flex items-center gap-2">
-                            {/* Search */}
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="p-2 text-slate-400 hover:text-white hover:bg-white/8 rounded-lg transition-all duration-200"
@@ -174,7 +188,12 @@ const Navigation = () => {
                             </button>
 
                             {isSignedUp ? (
-                                <div className="relative" ref={userMenuRef}>
+                                <div
+                                    className="relative"
+                                    ref={userMenuRef}
+                                    onMouseEnter={() => setUserMenuOpen(true)}
+                                    onMouseLeave={() => setUserMenuOpen(false)}
+                                >
                                     <button
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                                         className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-white/8 transition-all duration-200 group"
@@ -207,7 +226,7 @@ const Navigation = () => {
                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/6 hover:text-white transition-colors"
                                                 >
                                                     <User className="w-4 h-4 text-slate-400" />
-                                                    Profile
+                                                    My Profile
                                                 </Link>
                                                 <button
                                                     onClick={() => { logout(); setUserMenuOpen(false); }}
@@ -237,7 +256,7 @@ const Navigation = () => {
                                 </>
                             )}
 
-                            {/* Mobile toggle */}
+                            {/* Mobile hamburger */}
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-white/8 rounded-lg transition-all duration-200"
@@ -248,7 +267,7 @@ const Navigation = () => {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
+                {/* Mobile Menu Drawer */}
                 <AnimatePresence>
                     {mobileMenuOpen && (
                         <motion.div
@@ -258,31 +277,37 @@ const Navigation = () => {
                             transition={{ duration: 0.25 }}
                             className="lg:hidden border-t border-white/6 overflow-hidden bg-[#070c1a]"
                         >
-                            <div className="px-4 py-4 space-y-1">
-                                {navItems.map(({ label, to, dropdown }) => {
+                            <div className="px-4 py-4 space-y-0.5">
+                                {navItems.map(({ label, to, icon: Icon, dropdown }) => {
                                     if (dropdown) {
                                         return (
                                             <div key={label}>
-                                                <p className="px-4 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider">{label}</p>
+                                                <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-600 uppercase tracking-widest">{label}</p>
                                                 {dropdown.map(item => (
                                                     <Link key={item.to} to={item.to} onClick={() => setMobileMenuOpen(false)}
-                                                        className="block px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all">
+                                                        className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all">
                                                         {item.label}
                                                     </Link>
                                                 ))}
                                             </div>
                                         );
                                     }
+                                    const active = isActive(to);
                                     return (
                                         <Link key={label} to={to} onClick={() => setMobileMenuOpen(false)}
-                                            className="block px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all">
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${active
+                                                ? 'bg-red-600/10 text-red-400 border border-red-500/20'
+                                                : 'text-slate-400 hover:text-white hover:bg-white/6'
+                                            }`}>
+                                            {Icon && <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-red-400' : 'text-slate-500'}`} />}
                                             {label}
+                                            {active && <ChevronRight className="w-4 h-4 ml-auto text-red-500" />}
                                         </Link>
                                     );
                                 })}
 
-                                {!isSignedUp && (
-                                    <div className="flex flex-col gap-2 pt-3 border-t border-white/6 mt-3">
+                                {!isSignedUp ? (
+                                    <div className="flex flex-col gap-2 pt-4 border-t border-white/6 mt-2">
                                         <button
                                             onClick={() => { openSignIn(); setMobileMenuOpen(false); }}
                                             className="w-full py-3 text-center text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 rounded-xl transition-all"
@@ -293,7 +318,18 @@ const Navigation = () => {
                                             onClick={() => { openSignUp(); setMobileMenuOpen(false); }}
                                             className="w-full py-3 text-center text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-rose-600 rounded-xl transition-all"
                                         >
-                                            Sign Up
+                                            Sign Up Free
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="pt-4 border-t border-white/6 mt-2 space-y-0.5">
+                                        <Link to="/profile" onClick={() => setMobileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/6 transition-all">
+                                            <User className="w-4 h-4 text-slate-500" /> My Profile
+                                        </Link>
+                                        <button onClick={() => { logout(); setMobileMenuOpen(false); }}
+                                            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all text-left">
+                                            <LogOut className="w-4 h-4" /> Sign Out
                                         </button>
                                     </div>
                                 )}
@@ -302,6 +338,31 @@ const Navigation = () => {
                     )}
                 </AnimatePresence>
             </header>
+
+            {/* ── Persistent Bottom Tab Bar (mobile only) ── */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070c1a]/95 backdrop-blur-xl border-t border-white/8">
+                <div className="flex items-stretch h-16">
+                    {bottomTabs.map(({ label, to, icon: Icon, action }) => {
+                        const active = to && isActive(to);
+                        const Wrapper = to ? Link : 'button';
+                        return (
+                            <Wrapper
+                                key={label}
+                                to={to || undefined}
+                                onClick={action || undefined}
+                                className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors relative ${active ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                {active && <motion.div layoutId="bottomTabIndicator" className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-red-500 rounded-full" />}
+                                <Icon className="w-5 h-5" />
+                                {label}
+                            </Wrapper>
+                        );
+                    })}
+                </div>
+            </nav>
+
+            {/* Spacer so content doesn't hide behind the tab bar */}
+            <div className="lg:hidden h-16" />
         </>
     );
 };

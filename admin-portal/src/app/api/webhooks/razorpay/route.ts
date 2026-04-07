@@ -73,7 +73,8 @@ export async function POST(req: NextRequest) {
                     account_type: newTier,
                     premium_until: expiryDate.toISOString(),
                     razorpay_customer_id: paymentEntity.customer_id || null,
-                    razorpay_subscription_id: event.event === 'subscription.charged' ? paymentEntity.id : null
+                    razorpay_subscription_id: event.event === 'subscription.charged' ? paymentEntity.id : null,
+                    subscription_status: event.event === 'subscription.charged' ? 'active' : null
                 })
                 .match({ id: userId })
                 .select()
@@ -100,6 +101,44 @@ export async function POST(req: NextRequest) {
             });
 
             return NextResponse.json({ success: true, message: `Upgraded user ${userId}` }, { status: 200 });
+        } else if (event.event === 'subscription.cancelled' || event.event === 'subscription.halted') {
+            const subscriptionEntity = event.payload.subscription.entity;
+            const subId = subscriptionEntity.id;
+            const status = event.event === 'subscription.cancelled' ? 'cancelled' : 'halted';
+
+            console.log(`[Razorpay Webhook] Subscription ${subId} changed to ${status}`);
+
+            const { data: profile, error: updateError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({
+                    account_type: 'free',
+                    subscription_status: status
+                })
+                .match({ razorpay_subscription_id: subId })
+                .select()
+                .single();
+
+            if (updateError && updateError.code !== 'PGRST116') {
+                console.error(`[Razorpay Webhook] Supabase Downgrade Failed:`, updateError);
+            }
+
+            if (profile) {
+                // Log downgrade to Audit Logs
+                await supabaseAdmin.from('audit_logs').insert({
+                    admin_email: 'SYSTEM',
+                    action_type: 'UPDATE',
+                    entity_type: 'user_profile',
+                    entity_id: profile.id,
+                    details: {
+                        event: event.event,
+                        tier: 'free',
+                        payment_id: subId,
+                        profile_snapshot: profile
+                    }
+                });
+            }
+
+            return NextResponse.json({ success: true, message: `Downgraded subscription ${subId}` }, { status: 200 });
         }
 
         // Acknowledge other events

@@ -10,7 +10,10 @@ export type PermissionKey =
     | "premium_locks"
     | "articles"
     | "cutoffs"
-    | "rankings";
+    | "rankings"
+    | "counselling"
+    | "news"
+    | "newsletter";
 
 export type AdminPermissions = Partial<Record<PermissionKey, boolean>>;
 
@@ -25,6 +28,9 @@ export const ALL_PERMISSIONS: { key: PermissionKey; label: string; description: 
     { key: "users", label: "Users", description: "View and ban users" },
     { key: "analytics", label: "Analytics", description: "View platform analytics" },
     { key: "careers", label: "Career Applications", description: "Manage job applications" },
+    { key: "counselling", label: "Counselling Requests", description: "Manage and download counselling requests" },
+    { key: "news", label: "News & Updates", description: "Create, edit, and publish news and announcements" },
+    { key: "newsletter", label: "Newsletter Subscribers", description: "View and export newsletter subscriptions" },
     { key: "audit_logs", label: "Audit Logs", description: "View admin audit trail (read-only)" },
 ];
 
@@ -51,4 +57,6 @@ export const DEFAULT_MINI_ADMIN_PERMISSIONS: AdminPermissions = {
     articles: false,
     cutoffs: false,
     rankings: false,
+    counselling: false,
+    newsletter: false,
 };

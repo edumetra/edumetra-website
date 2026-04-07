@@ -5,6 +5,9 @@ import { AuthProvider } from './features/auth/AuthProvider';
 import PromoBanner from './shared/ui/PromoBanner';
 import Header from './shared/components/layout/Header';
 import Footer from './shared/components/layout/Footer';
+import CounsellingModal from './shared/ui/CounsellingModal';
+import SiteNotice from './shared/ui/SiteNotice';
+import { CounsellingProvider } from './features/counselling/CounsellingContext';
 import HomePage from './pages/HomePage';
 import FeaturesPage from './pages/FeaturesPage';
 import PricingPage from './pages/PricingPage';
@@ -43,34 +46,38 @@ function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <div className="min-h-screen flex flex-col scrollbar-custom">
-            <PromoBanner />
-            <Header />
-            <div className="flex-1">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/advertise" element={<AdvertisePage />} />
-                <Route path="/review" element={<WriteReviewPage />} />
-                <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
-                <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
-                <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
-                <Route path="/find-colleges" element={<FindCollegesPage />} />
-                <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
-                <Route path="/courses/:courseId" element={<CoursePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+        <CounsellingProvider>
+          <Router>
+            <ScrollToTop />
+            <div className="min-h-screen flex flex-col scrollbar-custom">
+              <PromoBanner />
+              <Header />
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/advertise" element={<AdvertisePage />} />
+                  <Route path="/review" element={<WriteReviewPage />} />
+                  <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
+                  <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
+                  <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
+                  <Route path="/find-colleges" element={<FindCollegesPage />} />
+                  <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
+                  <Route path="/courses/:courseId" element={<CoursePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </div>
+              <Footer />
+              <CounsellingModal />
+              <SiteNotice />
             </div>
-            <Footer />
-          </div>
-        </Router>
+          </Router>
+        </CounsellingProvider>
       </AuthProvider>
     </HelmetProvider>
   );

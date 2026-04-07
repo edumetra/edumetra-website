@@ -109,7 +109,6 @@ export function useColleges() {
                 fees_numeric: c.fees_numeric,
                 rating: c.rating || 0,
                 fees: c.fees,
-                avgPackage: c.avg_package,
                 exams: c.exams,
                 courses: c.courses || [],
                 image: c.image || 'https://via.placeholder.com/800x600?text=No+Image'

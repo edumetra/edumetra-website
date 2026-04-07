@@ -174,11 +174,32 @@ export default function CollegeListPage() {
                                     )}
                                 </>
                             ) : !loading ? (
-                                <div className="text-center py-20 bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
-                                    <p className="text-slate-500 text-lg">No colleges found matching your criteria.</p>
-                                    <button onClick={() => handleFilterChange('reset')} className="mt-4 text-red-500 hover:text-red-400 font-medium hover:underline">
-                                        Clear all filters
-                                    </button>
+                                <div className="flex flex-col items-center justify-center py-20 px-6 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800 text-center">
+                                    <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-5 text-2xl">
+                                        🔍
+                                    </div>
+                                    <h3 className="text-white font-bold text-xl mb-2">No colleges found</h3>
+                                    <p className="text-slate-400 text-sm max-w-sm mb-6">
+                                        {searchQuery
+                                            ? <>No results for <span className="text-white font-semibold">"{searchQuery}"</span>. Try a different name, city, or stream.</>
+                                            : 'Your current filters have no matches. Try broadening your search.'}
+                                    </p>
+                                    <div className="flex flex-wrap items-center justify-center gap-3">
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => setSearchQuery('')}
+                                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-sm font-semibold rounded-xl transition-colors"
+                                            >
+                                                Clear Search
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleFilterChange('reset')}
+                                            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-red-900/30"
+                                        >
+                                            Reset All Filters
+                                        </button>
+                                    </div>
                                 </div>
                             ) : null}
                         </div>

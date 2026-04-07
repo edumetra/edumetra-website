@@ -5,9 +5,13 @@ import { useCompare } from '../contexts/CompareContext';
 import { Star, GitCompareArrows, MapPin, Trophy, Wallet, TrendingUp, Award, X, Plus } from 'lucide-react';
 
 const FIELDS = [
+    { key: 'rank', label: 'NIRF Ranking', best: 'min_numeric', numeric_key: 'rank', format: v => v ? `#${v}` : '—' },
     { key: 'rating', label: 'Rating ⭐', best: 'max', format: v => v ? `${v} / 5` : '—' },
     { key: 'fees', label: 'Total Fees', best: 'min_numeric', numeric_key: 'fees_numeric', format: v => v || '—' },
-    { key: 'avg_package', label: 'Avg Package', best: 'max', format: v => v || '—' },
+    { key: 'cutoffs', label: 'Expected Cutoffs', best: 'none', format: v => {
+        if (!v || !Array.isArray(v) || v.length === 0) return '—';
+        return v.map(c => `${c.exam || c.name || 'Exam'}: ${c.cutoff || c.score || c.rank || 'N/A'}`).join(', ');
+    } },
     { key: 'naac_grade', label: 'NAAC Grade', best: 'none', format: v => v || '—' },
     { key: 'stream', label: 'Stream', best: 'none', format: v => v || '—' },
     { key: 'type', label: 'Type', best: 'none', format: v => v || '—' },
@@ -47,7 +51,7 @@ export default function ComparePage() {
         const ids = compareList.map(c => c.id);
         const { data } = await supabase
             .from('colleges')
-            .select('id, name, location_city, location_state, type, stream, naac_grade, rating, review_count, avg_package, fees, fees_numeric, exams, established_year, image, rank')
+            .select('id, name, location_city, location_state, type, stream, naac_grade, rating, review_count, fees, fees_numeric, exams, established_year, image, rank, cutoffs')
             .in('id', ids);
         // Preserve compare order
         const ordered = ids.map(id => data?.find(d => d.id === id)).filter(Boolean).map(c => ({
@@ -94,7 +98,7 @@ export default function ComparePage() {
                         <GitCompareArrows className="w-16 h-16 text-slate-700 mx-auto mb-6 relative z-10" />
                         <h2 className="text-3xl font-black text-white mb-4 relative z-10">Select Colleges to Compare</h2>
                         <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto relative z-10">
-                            Add up to {compareList.length >= 2 ? "the maximum allowed" : 4} colleges side-by-side to compare fees, placements, ratings, and campus facilities.
+                            Add up to 3 colleges side-by-side to compare fees, placements, ratings, and campus facilities.
                         </p>
                         <Link to="/colleges" className="inline-flex items-center gap-2 px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:scale-105 relative z-10">
                             Browse All Colleges

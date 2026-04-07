@@ -23,7 +23,7 @@ export default function RankingsPage() {
         setLoading(true);
         let query = supabase
             .from('colleges')
-            .select('id, slug, name, location_city, location_state, type, stream, naac_grade, rating, review_count, avg_package, image, rank')
+            .select('id, slug, name, location_city, location_state, type, stream, naac_grade, rating, review_count, image, rank')
             .eq('visibility', 'public')
             .limit(50);
 
@@ -151,12 +151,6 @@ export default function RankingsPage() {
                                         </div>
                                         <div className="text-slate-600 text-xs">{college.review_count || 0} reviews</div>
                                     </div>
-                                    {college.avg_package && (
-                                        <div className="hidden sm:block">
-                                            <div className="text-green-400 font-bold text-sm">{college.avg_package}</div>
-                                            <div className="text-slate-600 text-xs">Avg pkg</div>
-                                        </div>
-                                    )}
                                 </div>
                             </button>
                         ))}

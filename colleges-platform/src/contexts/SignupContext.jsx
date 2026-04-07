@@ -98,6 +98,11 @@ export function SignupProvider({ children }) {
         await supabase.auth.signOut();
     };
 
+    const openAuth = (mode = 'signup') => {
+        setModalMode(mode);
+        setShowModal(true);
+    };
+
     const value = {
         user,
         profile,
@@ -108,6 +113,7 @@ export function SignupProvider({ children }) {
         modalMode,
         openSignIn,
         openSignUp,
+        openAuth,
         trackCollegeClick,
         isSignedUp: !!user,
         logout,

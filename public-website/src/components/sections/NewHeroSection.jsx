@@ -16,11 +16,13 @@ import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
 import ScrollingNewsTicker from '../../shared/ui/ScrollingNewsTicker';
 import ParticleBackground from '../../shared/ui/ParticleBackground';
+import { useCounselling } from '../../features/counselling/CounsellingContext';
 
 const NewHeroSection = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [location] = useState("India");
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
+    const { openModal } = useCounselling();
 
     // Vibrant medical-themed background gradients
     const backgrounds = [
@@ -74,8 +76,7 @@ const NewHeroSection = () => {
 
     const handleCounseling = () => {
         analytics.trackCTAClick('Get Counselling', 'Hero Section', 'counseling-cta');
-        // TODO: Navigate to counseling booking page
-        window.location.href = '/contact';
+        openModal();
     };
 
     const trustStats = [

@@ -6,15 +6,16 @@ const PremiumContext = createContext(null);
 
 // Feature limits per tier
 const LIMITS = {
-    free: { compare: 2, saved: 5, aiInsights: false },
-    premium: { compare: 5, saved: 50, aiInsights: true },
-    pro: { compare: 10, saved: Infinity, aiInsights: true },
+    free: { compare: 2, saved: 5, aiInsights: false, aiLimit: 0 },
+    premium: { compare: 5, saved: 50, aiInsights: true, aiLimit: 1 },
+    pro: { compare: 10, saved: Infinity, aiInsights: true, aiLimit: 3 },
 };
 
 export function PremiumProvider({ children }) {
     const { user } = useSignup();
     const [tier, setTier] = useState('free');
     const [visibilityTier, setVisibilityTier] = useState('free');
+    const [aiUsage, setAiUsage] = useState(0);
     const [loadingTier, setLoadingTier] = useState(false);
 
     useEffect(() => {
@@ -30,17 +31,29 @@ export function PremiumProvider({ children }) {
         setLoadingTier(true);
         const { data } = await supabase
             .from('user_profiles')
-            .select('subscription_tier')
+            .select('subscription_tier, ai_usage_count')
             .eq('id', user.id)
             .single();
+        
         const apiTier = data?.subscription_tier;
         setTier(apiTier || 'free');
+        setAiUsage(data?.ai_usage_count || 0);
 
         // The database manages the Exact 'apiTier' out of the 4 tiers now.
         // We just map it directly.
         setVisibilityTier(apiTier || 'free');
 
         setLoadingTier(false);
+    };
+
+    const refreshUsage = async () => {
+        if (!user) return;
+        const { data } = await supabase
+            .from('user_profiles')
+            .select('ai_usage_count')
+            .eq('id', user.id)
+            .single();
+        if (data) setAiUsage(data.ai_usage_count || 0);
     };
 
     const limits = LIMITS[tier] || LIMITS.free;
@@ -72,7 +85,7 @@ export function PremiumProvider({ children }) {
     };
 
     return (
-        <PremiumContext.Provider value={{ tier, visibilityTier, isPremium, isPro, limits, can, loadingTier, isSectionVisible }}>
+        <PremiumContext.Provider value={{ tier, visibilityTier, isPremium, isPro, limits, can, loadingTier, isSectionVisible, aiUsage, refreshUsage }}>
             {children}
         </PremiumContext.Provider>
     );

@@ -1,18 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
-import { User, Mail, LogOut, ArrowLeft, Star, BookmarkX, Pencil, Trash2, Bookmark, ChevronRight, Save } from 'lucide-react';
+import { 
+    User, Mail, LogOut, ArrowLeft, Star, 
+    BookmarkX, Pencil, Trash2, Bookmark, 
+    ChevronRight, Save, Brain, Target, Sparkles 
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Calculator } from 'lucide-react';
+import { TrendingUp, Calculator, Trophy, Lock, Search } from 'lucide-react';
+import { usePremium } from '../contexts/PremiumContext';
+import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
 
-const TABS = ['Account', 'My Reviews', 'Saved Colleges'];
+const EXAMS = [
+    { id: 'jee_main', label: 'JEE Main', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
+    { id: 'jee_advanced', label: 'JEE Advanced', field: 'Rank', min: 1, max: 250000, unit: 'rank' },
+    { id: 'neet', label: 'NEET', field: 'Score (0–720)', min: 0, max: 720, unit: 'marks' },
+    { id: 'cat', label: 'CAT', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
+    { id: 'clat', label: 'CLAT', field: 'Score (0–150)', min: 0, max: 150, unit: 'marks' },
+    { id: 'cuet', label: 'CUET', field: 'Score (0–800)', min: 0, max: 800, unit: 'marks' },
+];
+
+const TABS = ['Dashboard', 'Account Settings', 'My Reviews', 'Saved Colleges', 'AI Strategies'];
 
 export default function ProfilePage() {
-    const { user, logout } = useSignup();
+    const { user, isSignedUp, logout } = useSignup();
+    const { isPremium, isPro } = usePremium();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('Account');
+    const [activeTab, setActiveTab] = useState('Dashboard');
+    const [usage, setUsage] = useState(getUsage());
+    const [exam, setExam] = useState(EXAMS[0]);
     const [reviews, setReviews] = useState([]);
     const [savedColleges, setSavedColleges] = useState([]);
+    const [neetPlans, setNeetPlans] = useState([]);
     const [profileData, setProfileData] = useState({
         full_name: '',
         phone_number: '',
@@ -30,7 +49,9 @@ export default function ProfilePage() {
         entrance_exams: [],
         preferred_courses: [],
         preferred_locations: [],
-        budget_range: ''
+        budget_range: '',
+        account_type: 'free',
+        subscription_status: null
     });
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
@@ -47,11 +68,14 @@ export default function ProfilePage() {
     const [calculating, setCalculating] = useState(false);
     const [predictions, setPredictions] = useState({});
 
+    const role = isPro ? 'pro' : isPremium ? 'premium' : 'free';
+    const isGated = !isPremium && !isPro;
+
     useEffect(() => {
         if (!user) return;
-        if (activeTab === 'Account') fetchProfile();
+        if (activeTab === 'Account Settings' || activeTab === 'Dashboard') fetchProfile();
         if (activeTab === 'My Reviews') fetchReviews();
-        if (activeTab === 'Saved Colleges') fetchSaved();
+        if (activeTab === 'Saved Colleges' || activeTab === 'Dashboard') fetchSaved();
     }, [activeTab, user]);
 
     const fetchProfile = async () => {
@@ -79,7 +103,9 @@ export default function ProfilePage() {
                 entrance_exams: Array.isArray(data.entrance_exams) ? data.entrance_exams : (data.entrance_exams ? JSON.parse(data.entrance_exams) : []),
                 preferred_courses: Array.isArray(data.preferred_courses) ? data.preferred_courses : (data.preferred_courses ? JSON.parse(data.preferred_courses) : []),
                 preferred_locations: Array.isArray(data.preferred_locations) ? data.preferred_locations : (data.preferred_locations ? JSON.parse(data.preferred_locations) : []),
-                budget_range: data.budget_range || ''
+                budget_range: data.budget_range || '',
+                account_type: data.account_type || 'free',
+                subscription_status: data.subscription_status || null
             });
         } else if (!data && user.user_metadata?.full_name) {
             setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
@@ -165,36 +191,26 @@ export default function ProfilePage() {
     };
 
     const handleCalculateAll = () => {
-        if (!mockScore.trim()) return;
+        if (!mockScore.trim() || !canUserPredict(role)) return;
         setCalculating(true);
         setTimeout(() => {
-            const numScore = parseFloat(mockScore);
             const newPredictions = {};
 
             savedColleges.forEach(saved => {
-                let chanceText = 'Low';
-                let color = 'text-red-400';
-
-                // Introduce some variance based on the college rating to make the mock logic feel dynamic
-                const variance = saved.colleges.rating ? (saved.colleges.rating * 2) : 5;
-                const effectiveScore = numScore - (10 - variance);
-
-                if (effectiveScore > 90) {
-                    chanceText = 'Excellent';
-                    color = 'text-emerald-400';
-                } else if (effectiveScore > 75) {
-                    chanceText = 'Good';
-                    color = 'text-amber-400';
-                } else if (effectiveScore > 60) {
-                    chanceText = 'Fair';
-                    color = 'text-yellow-400';
+                const c = saved.colleges;
+                const prediction = categorizePrediction(c, exam.id, parseFloat(mockScore));
+                if (prediction.label !== 'Open') {
+                    newPredictions[c.id] = prediction;
                 }
-
-                newPredictions[saved.college_id] = { chance: chanceText, color };
             });
 
             setPredictions(newPredictions);
+            recordUsage();
+            setUsage(getUsage());
             setCalculating(false);
+            
+            // Save to session for Detail Page badge
+            sessionStorage.setItem('last_prediction', JSON.stringify({ examId: exam.id, score: mockScore }));
         }, 1200);
     };
 
@@ -243,8 +259,159 @@ export default function ProfilePage() {
                     ))}
                 </div>
 
-                {/* Account Tab */}
-                {activeTab === 'Account' && (
+                {/* Dashboard Tab */}
+                {activeTab === 'Dashboard' && (
+                    <div className="space-y-6">
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden flex items-center justify-between">
+                            <div className="relative z-10">
+                                <h2 className="text-xl font-black text-white mb-1">Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'Student'}!</h2>
+                                <p className="text-slate-400 text-sm">Your college search is {savedColleges.length > 0 ? 'progressing well' : 'just beginning'}.</p>
+                            </div>
+                            <div className="hidden sm:flex relative z-10 items-center justify-center w-14 h-14 bg-red-600/20 text-red-500 rounded-full border border-red-500/20">
+                                <span className="text-2xl font-bold">{savedColleges.length}</span>
+                            </div>
+                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-red-600/10 blur-3xl rounded-full pointer-events-none" />
+                        </div>
+
+                        {savedColleges.length > 0 && !loadingSaved && (
+                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                                                <Trophy className="w-5 h-5 text-amber-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-bold text-white">Admission Chances</h3>
+                                                <p className="text-slate-500 text-xs">Based on your shortlisted colleges</p>
+                                            </div>
+                                        </div>
+                                        {isPremium && !isPro && (
+                                            <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-lg border border-slate-700">
+                                                Used <span className="text-white font-bold">{usage.count}/5</span> today
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {isGated ? (
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl">
+                                            <div className="flex items-center gap-3">
+                                                <Lock className="w-5 h-5 text-amber-500/50" />
+                                                <p className="text-slate-400 text-sm">Upgrade to Premium to unlock Safe/Moderate/Risky indicators.</p>
+                                            </div>
+                                            <Link to="/pricing" className="text-amber-500 text-sm font-bold hover:text-amber-400 transition-colors">Upgrade Now →</Link>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="grid sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">Select Exam</label>
+                                                    <select 
+                                                        value={exam.id} 
+                                                        onChange={(e) => setExam(EXAMS.find(ex => ex.id === e.target.value))}
+                                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500/40 text-sm appearance-none cursor-pointer"
+                                                    >
+                                                        {EXAMS.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">Enter {exam.field}</label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            value={mockScore}
+                                                            onChange={(e) => setMockScore(e.target.value)}
+                                                            placeholder={exam.unit}
+                                                            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500/40 text-sm"
+                                                        />
+                                                        <button
+                                                            onClick={handleCalculateAll}
+                                                            disabled={calculating || !mockScore.trim() || (isPremium && !isPro && usage.count >= 5)}
+                                                            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-slate-950 px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 whitespace-nowrap text-sm"
+                                                        >
+                                                            {calculating ? (
+                                                                <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                                                            ) : (
+                                                                <><Search className="w-4 h-4" /> Predict</>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <div className="flex items-center justify-between mb-4 mt-2">
+                                <h3 className="text-lg font-bold text-white">Shortlisted Colleges</h3>
+                                {savedColleges.length > 3 && (
+                                    <button onClick={() => setActiveTab('Saved Colleges')} className="text-sm text-red-400 hover:text-red-300 font-medium">View All</button>
+                                )}
+                            </div>
+                            
+                            <div className="space-y-3">
+                                {loadingSaved ? (
+                                    [...Array(2)].map((_, i) => <div key={i} className="h-20 bg-slate-900 rounded-2xl animate-pulse" />)
+                                ) : savedColleges.length === 0 ? (
+                                    <div className="text-center py-10 border border-dashed border-slate-800 rounded-2xl text-slate-500">
+                                        <Bookmark className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                        <p>You haven't actively saved/shortlisted any colleges yet.</p>
+                                        <Link to="/colleges" className="mt-2 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Explore colleges →</Link>
+                                    </div>
+                                ) : savedColleges.slice(0, 3).map(saved => {
+                                    const c = saved.colleges;
+                                    const prediction = predictions[c.id];
+
+                                    return (
+                                        <div key={saved.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
+                                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-800">
+                                                    {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
+                                                        <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c.name?.[0]}</div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c.name}</p>
+                                                    <p className="text-slate-500 text-xs">{c.location_city}, {c.location_state}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 pl-16 sm:pl-0 mt-2 sm:mt-0 border-t sm:border-t-0 border-slate-800 pt-3 sm:pt-0">
+                                                {/* Prediction Badge */}
+                                                {prediction && (
+                                                    <div className={`px-3 py-1 border rounded-lg text-[10px] font-black animate-in fade-in zoom-in-95 ${prediction.bg} ${prediction.color} ${prediction.border}`}>
+                                                        {prediction.label.toUpperCase()}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-1 text-amber-400 text-sm font-bold">
+                                                        <Star className="w-3.5 h-3.5 fill-current" />{c.rating || '—'}
+                                                    </div>
+                                                    <div className="w-px h-6 bg-slate-800 hidden sm:block"></div>
+                                                    <Link to={`/colleges/${c.slug}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="View Details">
+                                                        <ChevronRight className="w-4 h-4" />
+                                                    </Link>
+                                                    <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all" title="Remove Save">
+                                                        <BookmarkX className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Account Settings Tab */}
+                {activeTab === 'Account Settings' && (
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-8 relative overflow-hidden">
 
                         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -541,6 +708,24 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
+                        {/* Subscription Management Section */}
+                        {profileData.account_type !== 'free' && (
+                            <div className="pt-6 border-t border-slate-800 space-y-4">
+                                <h4 className="text-sm font-bold text-white mb-2">Subscription & Billing</h4>
+                                <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-200">{profileData.account_type.toUpperCase()} Plan</p>
+                                        <p className="text-xs text-slate-500">
+                                            Status: <span className={profileData.subscription_status === 'active' ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
+                                                {profileData.subscription_status?.toUpperCase() || 'UNKNOWN'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    {/* Auto-renew active, no manual cancellation allowed per business rule */}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="pt-6 border-t border-slate-800 space-y-4">
                             <h4 className="text-sm font-bold text-white mb-2">Account Security</h4>
                             <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 rounded-xl">
@@ -630,102 +815,93 @@ export default function ProfilePage() {
                     </div>
                 )}
 
-                {/* Saved Colleges Tab */}
-                {activeTab === 'Saved Colleges' && (
+                {/* AI Strategies Tab */}
+                {activeTab === 'AI Strategies' && (
                     <div className="space-y-6">
-                        {/* Global Admission Predictor */}
-                        {savedColleges.length > 0 && !loadingSaved && (
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
-                                                <TrendingUp className="w-5 h-5 text-red-500" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-white">Global Admission Chances</h3>
-                                        </div>
-                                        <p className="text-slate-400 text-sm">
-                                            Enter your predicted 12th/Entrance score. We'll instantly calculate your priority for all your saved colleges across the board.
-                                        </p>
-                                    </div>
-
-                                    <div className="w-full md:w-auto flex gap-3">
-                                        <input
-                                            type="number"
-                                            value={mockScore}
-                                            onChange={(e) => setMockScore(e.target.value)}
-                                            placeholder="Score %"
-                                            className="w-full md:w-32 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all focus:outline-none"
-                                        />
-                                        <button
-                                            onClick={handleCalculateAll}
-                                            disabled={calculating || !mockScore.trim()}
-                                            className="bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 flex justify-center items-center gap-2 whitespace-nowrap"
-                                        >
-                                            {calculating ? (
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <><Calculator className="w-4 h-4" /> Calculate</>
-                                            )}
-                                        </button>
-                                    </div>
+                        <div className="bg-gradient-to-br from-blue-600/10 to-violet-600/10 border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+                            <div className="relative z-10 flex items-center gap-4">
+                                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                                    <Brain className="w-6 h-6 text-blue-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-white">AI Learning Strategies</h2>
+                                    <p className="text-slate-400 text-sm">Your saved AI-generated preparation plans and guides.</p>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
-                        <div className="space-y-3">
-                            {loadingSaved ? (
-                                [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-900 rounded-2xl animate-pulse" />)
-                            ) : savedColleges.length === 0 ? (
-                                <div className="text-center py-16 text-slate-500">
-                                    <Bookmark className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                                    <p>No saved colleges yet.</p>
-                                    <Link to="/colleges" className="mt-4 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Browse colleges →</Link>
-                                </div>
-                            ) : savedColleges.map(saved => {
-                                const c = saved.colleges;
-                                const prediction = predictions[c.id];
-
-                                return (
-                                    <div key={saved.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
-                                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-800">
-                                                {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
-                                                    <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c.name?.[0]}</div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c.name}</p>
-                                                <p className="text-slate-500 text-xs">{c.location_city}, {c.location_state}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 pl-16 sm:pl-0 mt-2 sm:mt-0 border-t sm:border-t-0 border-slate-800 pt-3 sm:pt-0">
-                                            {/* Prediction Badge */}
-                                            {prediction && (
-                                                <div className={`px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold animate-in fade-in zoom-in-95 ${prediction.color}`}>
-                                                    Chance: {prediction.chance}
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex items-center gap-1 text-amber-400 text-sm font-bold">
-                                                    <Star className="w-3.5 h-3.5 fill-current" />{c.rating || '—'}
-                                                </div>
-                                                <div className="w-px h-6 bg-slate-800 hidden sm:block"></div>
-                                                <Link to={`/colleges/${c.slug}`} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="View Details">
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </Link>
-                                                <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all" title="Remove Save">
-                                                    <BookmarkX className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
+                        <div className="space-y-4">
+                            {loadingAI ? (
+                                [...Array(2)].map((_, i) => <div key={i} className="h-32 bg-slate-900 rounded-2xl animate-pulse" />)
+                            ) : neetPlans.length === 0 ? (
+                                <div className="text-center py-16 bg-slate-900/40 rounded-3xl border border-dashed border-slate-800">
+                                    <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700/50">
+                                        <Sparkles className="w-8 h-8 text-slate-600" />
                                     </div>
-                                );
-                            })}
+                                    <p className="text-slate-400 font-medium">No saved strategies found.</p>
+                                    <p className="text-slate-600 text-sm mt-1 mb-6">Create your first personalized study plan with AI.</p>
+                                    <Link to="/neet-prep" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all inline-flex items-center gap-2">
+                                        Get Your Plan <ChevronRight className="w-4 h-4" />
+                                    </Link>
+                                </div>
+                            ) : neetPlans.map(plan => (
+                                <div key={plan.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all group">
+                                    <div className="p-5 flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center shrink-0 border border-blue-500/20">
+                                                <Target className="w-5 h-5 text-blue-400" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">NEET Preparation Strategy</h3>
+                                                <p className="text-slate-500 text-xs mt-0.5">
+                                                    Generated on {new Date(plan.created_at).toLocaleDateString()} · {plan.form_data?.daysLeft} days left
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setEditingId(editingId === plan.id ? null : plan.id)}
+                                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg border border-slate-700 transition-all flex items-center gap-2"
+                                        >
+                                            {editingId === plan.id ? 'Close' : 'View Details'}
+                                            <ChevronRight className={`w-3.5 h-3.5 transition-transform ${editingId === plan.id ? 'rotate-90' : ''}`} />
+                                        </button>
+                                    </div>
+
+                                    {editingId === plan.id && (
+                                        <div className="px-5 pb-6 pt-2 border-t border-slate-800 bg-slate-900/50 animate-in slide-in-from-top-4 duration-300">
+                                            <div className="grid sm:grid-cols-2 gap-4 mb-6 pt-2">
+                                                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                                                    <span className="text-[10px] text-slate-500 uppercase font-black block mb-1">Target Score</span>
+                                                    <span className="text-lg font-bold text-blue-400">{plan.form_data?.targetScore} / 720</span>
+                                                </div>
+                                                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                                                    <span className="text-[10px] text-slate-500 uppercase font-black block mb-1">Study Hours</span>
+                                                    <span className="text-lg font-bold text-white">{plan.form_data?.studyHours}h per day</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="prose prose-invert prose-sm max-w-none prose-headings:text-blue-400 prose-strong:text-white prose-p:text-slate-300">
+                                                <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800/50 whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-300">
+                                                    {plan.plan_text}
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                onClick={async () => {
+                                                    if(confirm('Are you sure you want to delete this plan?')) {
+                                                        const { error } = await supabase.from('user_neet_plans').delete().eq('id', plan.id);
+                                                        if(!error) setNeetPlans(prev => prev.filter(p => p.id !== plan.id));
+                                                    }
+                                                }}
+                                                className="mt-6 flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-red-400 transition-colors"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" /> Delete Strategy
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}

@@ -46,6 +46,14 @@ export default function SignupModal({ isOpen, onClose }) {
                     options: { data: { full_name: formData.name, phone: formData.phone } },
                 });
                 if (error) throw error;
+                
+                // Trigger Meta Pixel CompleteRegistration event
+                if (typeof window !== 'undefined' && window.fbq) {
+                    window.fbq('track', 'CompleteRegistration', {
+                        content_name: 'User Signup'
+                    });
+                }
+                
                 setSuccessMsg('Account created! Please check your email to verify your address, then sign in.');
 
             } else if (view === 'forgot') {
@@ -248,7 +256,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                         {view === 'signup' && (
                                             <div>
                                                 <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                                                    Phone Number <span className="text-slate-600 normal-case font-normal">(optional)</span>
+                                                    Phone Number
                                                 </label>
                                                 <div className="relative">
                                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
@@ -258,6 +266,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                                         name="phone"
                                                         value={formData.phone}
                                                         onChange={handleChange}
+                                                        required
                                                         className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
                                                         placeholder="+91 98765 43210"
                                                     />

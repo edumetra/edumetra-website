@@ -6,6 +6,7 @@ import { usePremium } from '../../contexts/PremiumContext';
 import { supabase } from '../../lib/supabase';
 import UpgradeModal from '../UpgradeModal';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
     const { addToCompare, removeFromCompare, isInCompare, isFull } = useCompare();
@@ -27,8 +28,10 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
         e.preventDefault();
         if (inCompare) {
             removeFromCompare(college.id);
+            toast.error('Removed from compare');
         } else if (!isFull) {
             addToCompare(college);
+            toast.success('Added to compare');
         }
         // if isFull and not inCompare → CompareContext will fire its own UpgradeModal
     };
@@ -44,8 +47,10 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
         setSaving(true);
         if (isSaved) {
             await supabase.from('saved_colleges').delete().eq('user_id', user.id).eq('college_id', college.id);
+            toast.error('Removed from saved colleges');
         } else {
             await supabase.from('saved_colleges').insert({ user_id: user.id, college_id: college.id });
+            toast.success('College saved to profile!');
         }
         onSaveToggle?.(college.id, !isSaved);
         setSaving(false);

@@ -1,18 +1,32 @@
 import React, { useState } from 'react';
-import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
+import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
+    const [subscribing, setSubscribing] = useState(false);
 
     const publicUrl = "http://localhost:5173";
 
-    const handleSubscribe = (e) => {
+    const handleSubscribe = async (e) => {
         e.preventDefault();
-        console.log('Subscribe:', { email, mobile });
-        // TODO: Implement newsletter subscription
-        setEmail('');
-        setMobile('');
+        if (!email.trim() && !mobile.trim()) return;
+        
+        setSubscribing(true);
+        const { error } = await supabase
+            .from('newsletter_subscriptions')
+            .upsert({ email, phone: mobile }, { onConflict: 'email' });
+
+        if (error) {
+            toast.error(error.message || "Failed to subscribe. Try again.");
+        } else {
+            toast.success("Successfully subscribed to Edumetra's newsletter!");
+            setEmail('');
+            setMobile('');
+        }
+        setSubscribing(false);
     };
 
     const topCourses = [
@@ -96,9 +110,10 @@ export default function Footer() {
                             </div>
                             <button
                                 type="submit"
-                                className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
+                                disabled={subscribing}
+                                className="px-8 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors whitespace-nowrap flex justify-center items-center gap-2"
                             >
-                                Subscribe
+                                {subscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Subscribe'}
                             </button>
                         </form>
                     </div>

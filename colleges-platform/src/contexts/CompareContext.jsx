@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { usePremium } from './PremiumContext';
+import toast from 'react-hot-toast';
 
 const CompareContext = createContext(null);
 
@@ -11,36 +11,25 @@ export function CompareProvider({ children }) {
             return [];
         }
     });
-    // upgradeModal state lives here so any addToCompare call can trigger it
-    const [showUpgrade, setShowUpgrade] = useState(false);
 
     useEffect(() => {
         localStorage.setItem('compareList', JSON.stringify(compareList));
     }, [compareList]);
 
-    // usePremium may not be available if PremiumProvider isn't mounted yet
-    let limits = { compare: 2 };
-    try {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const premium = usePremium();
-        if (premium) limits = premium.limits;
-    } catch {
-        // PremiumContext not ready
-    }
-
-    const maxCompare = limits?.compare ?? 2;
+    // Hardcode to 3 max as per new user requirements
+    const maxCompare = 3;
 
     const addToCompare = (college) => {
-        let triggered = false;
+        let limitHit = false;
         setCompareList(prev => {
             if (prev.find(c => c.id === college.id)) return prev;
             if (prev.length >= maxCompare) {
-                triggered = true;
+                limitHit = true;
                 return prev; // don't add
             }
             return [...prev, college];
         });
-        if (triggered) setShowUpgrade(true);
+        if (limitHit) toast.error('You can only compare up to 3 colleges at a time.');
     };
 
     const removeFromCompare = (id) =>
@@ -53,8 +42,7 @@ export function CompareProvider({ children }) {
     return (
         <CompareContext.Provider value={{
             compareList, addToCompare, removeFromCompare, clearCompare,
-            isInCompare, isFull, maxCompare,
-            showUpgradeModal: showUpgrade, closeUpgradeModal: () => setShowUpgrade(false),
+            isInCompare, isFull, maxCompare
         }}>
             {children}
         </CompareContext.Provider>

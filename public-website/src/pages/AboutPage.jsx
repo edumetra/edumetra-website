@@ -13,8 +13,10 @@ import {
     Shield
 } from 'lucide-react';
 import FAQSection from '../shared/ui/FAQSection';
+import { useCounselling } from '../features/counselling/CounsellingContext';
 
 const AboutPage = () => {
+    const { openModal } = useCounselling();
     const values = [
         {
             icon: Award,
@@ -40,7 +42,7 @@ const AboutPage = () => {
 
     const milestones = [
         { year: '2009', title: 'Founded', description: 'Started with a mission to democratize medical education guidance' },
-        { year: '201 5', title: '5,000 Students', description: 'Crossed 5,000 successful college placements' },
+        { year: '2015', title: '5,000 Students', description: 'Crossed 5,000 successful college placements' },
         { year: '2020', title: 'Digital Transformation', description: 'Launched comprehensive online counseling platform' },
         { year: '2024', title: '10,000+ Students', description: 'Helped over 10,000 students achieve their medical education dreams' },
     ];
@@ -350,12 +352,12 @@ const AboutPage = () => {
                             Join thousands of successful students who trusted us with their future
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a
-                                href="/contact"
+                            <button
+                                onClick={openModal}
                                 className="px-8 py-4 bg-white hover:bg-slate-100 text-primary-600 font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
                             >
                                 Book Free Counselling
-                            </a>
+                            </button>
                             <a
                                 href="/signup"
                                 className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"

@@ -6,9 +6,39 @@ import { analytics } from '../shared/utils/analytics';
 import { generateStructuredData } from '../shared/utils/seo';
 
 import { motion } from 'framer-motion';
+
+// ── Lead Scoring helper ──────────────────────────────────────────────────────
+// Returns a stable anonymous fingerprint stored in localStorage.
+function getGuestFingerprint() {
+    if (typeof window === 'undefined') return null;
+    const key = 'edu_guest_id';
+    let id = localStorage.getItem(key);
+    if (!id) {
+        id = `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem(key, id);
+    }
+    return id;
+}
+
+async function trackPricingView() {
+    try {
+        const identifier = getGuestFingerprint();
+        if (!identifier) return;
+        await fetch('https://admin.edumetra.in/api/track-pricing-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier }),
+        });
+    } catch {
+        // silently ignore — tracking should never break the page
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const PricingPage = () => {
     useEffect(() => {
         analytics.trackPageView('/pricing', 'Pricing');
+        trackPricingView();
     }, []);
 
     const plans = [
@@ -198,7 +228,7 @@ const PricingPage = () => {
                                     </ul>
 
                                     <div className="mt-auto">
-                                        <Button variant={plan.variant} size="lg" className="w-full">
+                                        <Button variant={plan.variant} size="lg" className="w-full" href={`/signup?plan=${plan.name.toLowerCase()}`}>
                                             {plan.cta}
                                         </Button>
                                     </div>

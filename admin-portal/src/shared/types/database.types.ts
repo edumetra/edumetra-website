@@ -277,6 +277,67 @@ export interface Database {
                     created_at?: string
                 }
             }
+            counselling_requests: {
+                Row: {
+                    id: string
+                    name: string
+                    phone: string
+                    email: string
+                    neet_marks: number | null
+                    city: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    name: string
+                    phone: string
+                    email: string
+                    neet_marks?: number | null
+                    city?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    name?: string
+                    phone?: string
+                    email?: string
+                    neet_marks?: number | null
+                    city?: string | null
+                    created_at?: string
+                }
+            }
+            news_updates: {
+                Row: {
+                    id: string
+                    title: string
+                    content: string
+                    image_url: string | null
+                    tags: string[] | null
+                    published_at: string
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    title: string
+                    content: string
+                    image_url?: string | null
+                    tags?: string[] | null
+                    published_at?: string
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    title?: string
+                    content?: string
+                    image_url?: string | null
+                    tags?: string[] | null
+                    published_at?: string
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
         }
         Views: {
             view_public_colleges: {

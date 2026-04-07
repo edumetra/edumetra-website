@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useCompare } from '../contexts/CompareContext';
 import { usePremium } from '../contexts/PremiumContext';
-import { X, GitCompareArrows, Plus, Crown } from 'lucide-react';
-import UpgradeModal from './UpgradeModal';
+import { X, GitCompareArrows, Plus } from 'lucide-react';
 
 export default function CompareBar() {
-    const { compareList, removeFromCompare, clearCompare, maxCompare, showUpgradeModal, closeUpgradeModal } = useCompare();
+    const { compareList, removeFromCompare, clearCompare, maxCompare } = useCompare();
     const navigate = useNavigate();
 
     // Safely read premium info
@@ -16,19 +15,13 @@ export default function CompareBar() {
         if (p) tier = p.tier;
     } catch { /* not ready */ }
 
-    if (compareList.length === 0 && !showUpgradeModal) return null;
+    if (compareList.length === 0) return null;
 
     // Show slots dynamically based on tier
     const slots = Array.from({ length: maxCompare }, (_, i) => i);
 
     return (
         <>
-            <UpgradeModal
-                isOpen={showUpgradeModal}
-                onClose={closeUpgradeModal}
-                featureName="Compare more than 2 colleges"
-            />
-
             {compareList.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-4 px-4 pointer-events-none">
                     <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl shadow-black/60 px-4 py-3 flex items-center gap-3 w-full max-w-2xl">
@@ -49,11 +42,6 @@ export default function CompareBar() {
                                     </div>
                                 );
                             })}
-                            {tier === 'free' && (
-                                <span className="text-xs text-slate-600 flex items-center gap-1">
-                                    <Crown className="w-3 h-3 text-amber-600" /> Up to {maxCompare} (free)
-                                </span>
-                            )}
                         </div>
 
                         {/* Actions */}

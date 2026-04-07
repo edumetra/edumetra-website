@@ -94,10 +94,11 @@ const HeroSection = () => {    // eslint-disable-next-line no-unused-vars
                         <Button
                             variant="primary"
                             size="lg"
-                            onClick={(e) => e.preventDefault()}
-                            className="cursor-not-allowed opacity-75"
+                            as="a"
+                            href="/find-colleges"
+                            onClick={handlePrimaryCTA}
                         >
-                            Coming Soon
+                            Explore Colleges
                         </Button>
                         <Button
                             variant="secondary"

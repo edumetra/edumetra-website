@@ -4,12 +4,17 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { Loader2, MapPin, Star, Share2, Award, Heart, CheckCircle, ArrowLeft, ArrowRight, BookOpen, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../features/auth/AuthProvider';
+import { useGuestLimit } from '../shared/hooks/useGuestLimit';
+import GuestLimitModal from '../shared/ui/GuestLimitModal';
 
 const CollegeDetailPage = () => {
     const { slug } = useParams();
     const [college, setCollege] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { user } = useAuth();
+    const { hasExceededLimit } = useGuestLimit(user, slug);
 
     useEffect(() => {
         const fetchCollegeData = async () => {
@@ -267,6 +272,7 @@ const CollegeDetailPage = () => {
                     </div>
                 </div>
             </main>
+            <GuestLimitModal isOpen={hasExceededLimit} />
         </>
     );
 };

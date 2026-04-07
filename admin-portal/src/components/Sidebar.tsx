@@ -21,6 +21,9 @@ import {
     GraduationCap,
     Plus,
     Lock,
+    Headphones,
+    Mail,
+    Flame,
 } from "lucide-react";
 
 type NavItem = {
@@ -31,12 +34,16 @@ type NavItem = {
 };
 
 const CONTENT_NAV: NavItem[] = [
+    { href: "/hot-leads", label: "🔥 Hot Leads", icon: Flame },
     { href: "/reviews", label: "Reviews", icon: BookOpen, permKey: "reviews" },
     { href: "/cutoffs", label: "Cutoffs Engine", icon: ListOrdered, permKey: "cutoffs" },
     { href: "/rankings", label: "Rankings", icon: BarChart2, permKey: "rankings" },
     { href: "/articles", label: "Articles", icon: FileText, permKey: "articles" },
     { href: "/moderation", label: "Moderation", icon: Shield, permKey: "moderation" },
     { href: "/careers", label: "Career Applications", icon: Briefcase, permKey: "careers" },
+    { href: "/counselling", label: "Counselling Requests", icon: Headphones, permKey: "counselling" },
+    { href: "/news", label: "News & Updates", icon: FileText, permKey: "news" },
+    { href: "/newsletter", label: "Newsletter Subscriptions", icon: Mail, permKey: "newsletter" },
 ];
 
 const COLLEGES_NAV: NavItem = { href: "/colleges", label: "Colleges", icon: GraduationCap, permKey: "colleges" };

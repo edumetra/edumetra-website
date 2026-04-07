@@ -1,8 +1,10 @@
 import React from 'react';
 import { Star, Quote, Award, Sparkles } from 'lucide-react';
+import { useCounselling } from '../../features/counselling/CounsellingContext';
 
 import { motion } from 'framer-motion';
 const SuccessStoriesSection = () => {
+    const { openModal } = useCounselling();
     const testimonials = [
         {
             name: 'Priya Sharma',
@@ -152,12 +154,12 @@ const SuccessStoriesSection = () => {
                         Join thousands of successful students who achieved their dreams with our guidance
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a
-                            href="/contact"
+                        <button
+                            onClick={openModal}
                             className="px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
                         >
                             Book Free Counselling
-                        </a>
+                        </button>
                         <a
                             href="/signup"
                             className="px-8 py-4 bg-white hover:bg-slate-50 text-primary-600 font-bold rounded-xl transition-all shadow-md hover:shadow-lg border-2 border-primary-600"
