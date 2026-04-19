@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Brain, Calendar, Zap, BookOpen, Target, ChevronRight,
     Loader2, Sparkles, AlertCircle, RotateCcw, CheckCircle2,
-    Dna, FlaskConical, Atom, Save
+    Dna, FlaskConical, Atom, Save, Clock
 } from 'lucide-react';
 import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+
+import { usePremium } from '../contexts/PremiumContext';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
@@ -41,33 +43,23 @@ Student profile:
 Subject confidence (1=very weak, 10=expert):
 ${subjectSummary}
 
-Give a crisp, actionable, NEET-specific study plan. Structure your response exactly like this:
-
-## 📊 Your NEET Snapshot
-(2–3 sentences analysing the student's situation honestly)
-
-## 🎯 Priority Focus Areas
-(Bullet list of the top 3–4 things to focus on first, specific to NEET syllabus)
-
-## 📚 Subject-wise Weekly Strategy
-
-### Physics
-(3–4 specific, actionable points for NEET physics given their level)
-
-### Chemistry
-(3–4 specific, actionable points for NEET chemistry given their level)
-
-### Biology
-(3–4 specific, actionable points for NEET biology given their level—remember Biology is 50% of NEET!)
-
-## ⏰ Daily Schedule Blueprint
-(A simple hour-by-hour template for a ${formData.studyHours}-hour study day)
-
-## 🏆 ${formData.daysLeft}-Day Game Plan
-(Specific milestones — what to complete in the first week, second week, and final stretch)
-
-## ⚡ NEET-Specific Hacks
-(3–4 NEET-specific tips: question selection strategy, negative marking, time per question, etc.)
+Respond ONLY with a JSON object in this format (no markdown, no extra text):
+{
+  "analysis": "2-3 sentences analysing the student's situation honestly",
+  "priorityFocus": ["Point 1", "Point 2", "Point 3"],
+  "subjectStrategies": {
+    "physics": ["3-4 clear tips"],
+    "chemistry": ["3-4 clear tips"],
+    "biology": ["3-4 clear tips focusing on NCERT"]
+  },
+  "dailySchedule": [
+    { "time": "e.g. 06:00 - 08:30", "task": "Task description" }
+  ],
+  "milestones": [
+    { "period": "e.g. First 15 Days", "goal": "Goal description" }
+  ],
+  "hacks": ["3-4 NEET-specific game-changing tips"]
+}
 
 Be direct, specific, and motivating. Do not use generic advice.`;
 
@@ -80,8 +72,9 @@ Be direct, specific, and motivating. Do not use generic advice.`;
         body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-            max_tokens: 1500,
+            temperature: 0.6,
+            max_tokens: 2000,
+            response_format: { type: "json_object" }
         }),
     });
 
@@ -91,36 +84,12 @@ Be direct, specific, and motivating. Do not use generic advice.`;
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
-}
-
-// Simple markdown renderer
-function MarkdownSection({ text }) {
-    const lines = text.split('\n');
-    return (
-        <div className="space-y-1">
-            {lines.map((line, i) => {
-                if (line.startsWith('## ')) return (
-                    <h2 key={i} className="text-lg font-black text-white mt-6 mb-2 first:mt-0">{line.replace('## ', '')}</h2>
-                );
-                if (line.startsWith('### ')) return (
-                    <h3 key={i} className="text-base font-bold text-blue-300 mt-4 mb-1.5">{line.replace('### ', '')}</h3>
-                );
-                if (line.startsWith('- ') || line.startsWith('* ')) return (
-                    <div key={i} className="flex items-start gap-2 text-slate-300 text-sm leading-relaxed">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
-                        <span>{line.replace(/^[-*] /, '')}</span>
-                    </div>
-                );
-                if (line.trim() === '') return <div key={i} className="h-1" />;
-                return <p key={i} className="text-slate-300 text-sm leading-relaxed">{line}</p>;
-            })}
-        </div>
-    );
+    return JSON.parse(data.choices[0].message.content);
 }
 
 export default function NEETPrepPage() {
     const { user } = useSignup();
+    const { aiUsage, limits, refreshUsage } = usePremium();
     const [step, setStep] = useState(1); // 1=basics, 2=subjects, 3=topics
     const [formData, setFormData] = useState({
         daysLeft: '',
@@ -160,11 +129,12 @@ export default function NEETPrepPage() {
         setError(null);
         setResult(null);
         try {
-            const planText = await fetchAITips(formData);
-            setResult(planText);
-            refreshUsage(); // Usage was incremented by the Edge Function
+            const plan = await fetchAITips(formData);
+            setResult(plan);
+            refreshUsage();
         } catch (e) {
             setError(e.message);
+            toast.error('AI Strategy generation failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -183,7 +153,7 @@ export default function NEETPrepPage() {
                 .insert([{
                     user_id: user.id,
                     form_data: formData,
-                    plan_text: result
+                    plan_text: JSON.stringify(result)
                 }]);
 
             if (error) throw error;
@@ -195,6 +165,7 @@ export default function NEETPrepPage() {
             setSaving(false);
         }
     };
+
 
     const canProceedStep1 = formData.daysLeft && formData.studyHours && formData.targetScore;
 
@@ -411,56 +382,161 @@ export default function NEETPrepPage() {
                         <motion.div
                             key="result"
                             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                            className="space-y-6"
                         >
                             {/* Result header */}
-                            <div className="flex items-center justify-between mb-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-slate-900/40 border border-slate-800/60 rounded-2xl">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
-                                        <Sparkles className="w-5 h-5 text-white" />
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                                        <Sparkles className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-white">Your Personalised NEET Plan</h2>
-                                        <p className="text-slate-500 text-xs">{formData.daysLeft} days left · {formData.studyHours}h/day · Target: {formData.targetScore}/720</p>
+                                        <h2 className="text-xl font-black text-white">Custom NEET Strategy</h2>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" /> {formData.daysLeft} Days Left
+                                            </span>
+                                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                                <Zap className="w-3 h-3" /> {formData.studyHours}h / Day
+                                            </span>
+                                            <span className="text-emerald-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                                <Target className="w-3 h-3" /> Target: {formData.targetScore}+
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/30 disabled:opacity-50 transition-all active:scale-95"
+                                        className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/30 disabled:opacity-50 transition-all active:scale-95"
                                     >
-                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                         {saving ? 'Saving...' : 'Save Strategy'}
                                     </button>
                                     <button
                                         onClick={() => { setResult(null); setStep(1); setError(null); }}
-                                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700/50 transition-all font-semibold"
+                                        className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700/50 transition-all"
                                     >
-                                        <RotateCcw className="w-4 h-4" /> Redo
+                                        <RotateCcw className="w-3.5 h-3.5" /> Redo
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Subject confidence summary */}
-                            <div className="grid grid-cols-3 gap-3 mb-6">
-                                {SUBJECTS.map(({ id, label, icon: Icon, color }) => (
-                                    <div key={id} className={`bg-slate-900/70 border border-slate-800/60 rounded-xl p-3 text-center`}>
-                                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center mx-auto mb-2`}>
-                                            <Icon className="w-4 h-4 text-white" />
-                                        </div>
-                                        <p className="text-xs text-slate-400 font-medium">{label}</p>
-                                        <p className="text-lg font-black text-white">{formData.confidence[id]}<span className="text-slate-600 text-sm">/10</span></p>
+                            {/* Analysis Card */}
+                            <div className="p-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Brain className="w-20 h-20" />
+                                </div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-yellow-400" /> Expert Analysis
+                                </h3>
+                                <p className="text-slate-300 text-sm leading-relaxed relative z-10 italic">
+                                    "{result.analysis}"
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Priority Card */}
+                                <div className="p-6 bg-slate-900/70 border border-slate-800/60 rounded-2xl">
+                                    <h3 className="text-sm font-black text-rose-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                        <Target className="w-4 h-4" /> Immediate Priorities
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {result.priorityFocus.map((p, i) => (
+                                            <li key={i} className="flex items-start gap-3 p-3 bg-rose-500/5 border border-rose-500/10 rounded-xl">
+                                                <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                    <span className="text-[10px] font-bold text-rose-400">{i + 1}</span>
+                                                </div>
+                                                <span className="text-slate-300 text-sm">{p}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Subject Strategies */}
+                                <div className="p-6 bg-slate-900/70 border border-slate-800/60 rounded-2xl">
+                                    <h3 className="text-sm font-black text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                        <BookOpen className="w-4 h-4" /> Subject Blueprint
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {SUBJECTS.map(({ id, label, icon: Icon, color }) => (
+                                            <div key={id} className="group">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center`}>
+                                                        <Icon className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-white uppercase tracking-widest">{label}</span>
+                                                </div>
+                                                <div className="pl-8 space-y-1.5">
+                                                    {result.subjectStrategies[id]?.map((tip, i) => (
+                                                        <div key={i} className="text-xs text-slate-400 flex items-start gap-2">
+                                                            <div className="w-1 h-1 rounded-full bg-slate-700 mt-1.5 shrink-0" />
+                                                            <span>{tip}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
 
-                            {/* AI content */}
-                            <div className="bg-slate-900/70 border border-slate-800/60 rounded-2xl p-6 md:p-8">
-                                <MarkdownSection text={result} />
+                            {/* Daily Schedule */}
+                            <div className="p-6 bg-slate-900/70 border border-slate-800/60 rounded-2xl">
+                                <h3 className="text-sm font-black text-emerald-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                    <Clock className="w-4 h-4" /> Daily Schedule Blueprint
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {result.dailySchedule.map((item, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-3 bg-slate-950/40 border border-slate-800/40 rounded-xl">
+                                            <div className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] font-mono text-emerald-400 shrink-0">
+                                                {item.time}
+                                            </div>
+                                            <span className="text-xs text-slate-300">{item.task}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
-                            <p className="text-center text-slate-600 text-xs mt-4">
-                                Generated by Llama 3.3 70B via Groq · Results are AI-generated recommendations only
+                            {/* Milestones */}
+                            <div className="p-6 bg-slate-900/70 border border-slate-800/60 rounded-2xl">
+                                <h3 className="text-sm font-black text-orange-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" /> Master Milestones
+                                </h3>
+                                <div className="space-y-4">
+                                    {result.milestones.map((m, i) => (
+                                        <div key={i} className="flex gap-4">
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
+                                                {i < result.milestones.length - 1 && <div className="w-0.5 flex-1 bg-slate-800 my-1" />}
+                                            </div>
+                                            <div className="pb-4">
+                                                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">{m.period}</p>
+                                                <p className="text-sm text-slate-300">{m.goal}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Hacks */}
+                            <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                                <h3 className="text-sm font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Zap className="w-4 h-4" /> NEET Pro Hacks
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {result.hacks.map((h, i) => (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                            <p className="text-slate-300 text-sm italic">{h}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <p className="text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest pt-4">
+                                AI Core: Llama 3.3 70B · Groq Acceleration · Strategy Engine v2.0
                             </p>
                         </motion.div>
                     )}
@@ -469,3 +545,4 @@ export default function NEETPrepPage() {
         </div>
     );
 }
+

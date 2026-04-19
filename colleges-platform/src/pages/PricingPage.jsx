@@ -8,6 +8,9 @@ import toast from 'react-hot-toast';
 const PricingPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [validatingCoupon, setValidatingCoupon] = useState(false);
 
     useEffect(() => {
         // Track page view
@@ -27,6 +30,44 @@ const PricingPage = () => {
             script.onerror = () => resolve(false);
             document.body.appendChild(script);
         });
+    };
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode) return;
+        setValidatingCoupon(true);
+        try {
+            const { data, error } = await supabase
+                .from('coupons')
+                .select('*')
+                .eq('code', couponCode.toUpperCase())
+                .eq('is_active', true)
+                .single();
+
+            if (error || !data) {
+                toast.error('Invalid or inactive coupon code');
+                setAppliedCoupon(null);
+            } else {
+                // Check expiry
+                if (data.expires_at && new Date(data.expires_at) < new Date()) {
+                    toast.error('This coupon has expired');
+                    setAppliedCoupon(null);
+                    return;
+                }
+                // Check usage
+                if (data.max_uses && data.used_count >= data.max_uses) {
+                    toast.error('Coupon usage limit reached');
+                    setAppliedCoupon(null);
+                    return;
+                }
+
+                setAppliedCoupon(data);
+                toast.success(`Coupon "${data.code}" applied! ${data.discount_percentage}% discount.`);
+            }
+        } catch (err) {
+            toast.error('Failed to validate coupon');
+        } finally {
+            setValidatingCoupon(false);
+        }
     };
 
     const handleSubscribe = async (tier) => {
@@ -64,7 +105,11 @@ const PricingPage = () => {
             const subRes = await fetch(`${adminUrl}/api/razorpay/create-subscription`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, planType: tier })
+                body: JSON.stringify({ 
+                    userId: user.id, 
+                    planType: tier,
+                    couponCode: appliedCoupon?.code || null
+                })
             });
 
             const subData = await subRes.json();
@@ -248,10 +293,17 @@ const PricingPage = () => {
                                     </h2>
                                     <div className="flex items-baseline justify-center gap-1 mb-2">
                                         <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                                            {plan.price}
+                                            {appliedCoupon && plan.id !== 'free' 
+                                                ? `₹${Math.floor(parseInt(plan.price.replace('₹', '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
+                                                : plan.price}
                                         </span>
                                         <span className="text-slate-500 font-medium">{plan.period}</span>
                                     </div>
+                                    {appliedCoupon && plan.id !== 'free' && (
+                                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest -mt-1 mb-2">
+                                            {appliedCoupon.discount_percentage}% OFF APPLIED
+                                        </p>
+                                    )}
                                     <p className="text-slate-400 text-sm h-10">{plan.description}</p>
                                 </div>
 
@@ -282,6 +334,51 @@ const PricingPage = () => {
                             </motion.div>
                         ))}
                     </div>
+
+                    {/* Coupon Input */}
+                    <motion.div 
+                        className="max-w-md mx-auto mt-12 bg-slate-900/50 border border-slate-800 p-6 rounded-2xl backdrop-blur-xl"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <div className="flex items-center gap-2 mb-4">
+                            <Tag className="w-5 h-5 text-red-400" />
+                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Have a Coupon?</h3>
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Enter code (e.g. SAVE10)"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500/40 uppercase font-mono"
+                                />
+                            </div>
+                            <button
+                                onClick={handleApplyCoupon}
+                                disabled={validatingCoupon || !couponCode}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+                            >
+                                {validatingCoupon ? '...' : 'Apply'}
+                            </button>
+                        </div>
+                        {appliedCoupon && (
+                            <div className="mt-4 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                                <span className="text-xs font-bold text-emerald-400">
+                                    ✓ Coupon {appliedCoupon.code} applied!
+                                </span>
+                                <button 
+                                    onClick={() => {setAppliedCoupon(null); setCouponCode('');}}
+                                    className="text-xs text-emerald-400/60 hover:text-emerald-400 underline"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        )}
+                    </motion.div>
 
                     <motion.p
                         className="text-center text-slate-500 mt-12 text-sm"

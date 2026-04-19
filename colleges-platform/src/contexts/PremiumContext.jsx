@@ -29,21 +29,27 @@ export function PremiumProvider({ children }) {
 
     const fetchTier = async () => {
         setLoadingTier(true);
-        const { data } = await supabase
-            .from('user_profiles')
-            .select('subscription_tier, ai_usage_count')
-            .eq('id', user.id)
-            .single();
-        
-        const apiTier = data?.subscription_tier;
-        setTier(apiTier || 'free');
-        setAiUsage(data?.ai_usage_count || 0);
+        try {
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('subscription_tier, ai_usage_count')
+                .eq('id', user.id)
+                .single();
+            
+            if (error) throw error;
 
-        // The database manages the Exact 'apiTier' out of the 4 tiers now.
-        // We just map it directly.
-        setVisibilityTier(apiTier || 'free');
-
-        setLoadingTier(false);
+            const apiTier = data?.subscription_tier;
+            setTier(apiTier || 'free');
+            setAiUsage(data?.ai_usage_count || 0);
+            setVisibilityTier(apiTier || 'free');
+        } catch (err) {
+            console.warn('PremiumProvider: Failed to fetch tier (possibly blocked):', err);
+            // Default to free state
+            setTier('free');
+            setVisibilityTier('free');
+        } finally {
+            setLoadingTier(false);
+        }
     };
 
     const refreshUsage = async () => {
