@@ -9,7 +9,9 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator, Trophy, Lock, Search } from 'lucide-react';
 import { usePremium } from '../contexts/PremiumContext';
-import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
+import { canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
+import { toast } from 'react-hot-toast';
+
 
 const EXAMS = [
     { id: 'jee_main', label: 'JEE Main', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
@@ -79,36 +81,48 @@ export default function ProfilePage() {
     }, [activeTab, user]);
 
     const fetchProfile = async () => {
-        const { data, error } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
 
-        if (data) {
-            setProfileData({
-                full_name: data.full_name || user.user_metadata?.full_name || '',
-                phone_number: data.phone_number || '',
-                state: data.state || '',
-                city: data.city || '',
-                stream: data.stream || '',
-                gender: data.gender || '',
-                dob: data.dob || '',
-                tenth_board: data.tenth_board || '',
-                tenth_passing_year: data.tenth_passing_year || '',
-                tenth_percentage: data.tenth_percentage || '',
-                twelfth_board: data.twelfth_board || '',
-                twelfth_passing_year: data.twelfth_passing_year || '',
-                twelfth_percentage: data.twelfth_percentage || '',
-                entrance_exams: Array.isArray(data.entrance_exams) ? data.entrance_exams : (data.entrance_exams ? JSON.parse(data.entrance_exams) : []),
-                preferred_courses: Array.isArray(data.preferred_courses) ? data.preferred_courses : (data.preferred_courses ? JSON.parse(data.preferred_courses) : []),
-                preferred_locations: Array.isArray(data.preferred_locations) ? data.preferred_locations : (data.preferred_locations ? JSON.parse(data.preferred_locations) : []),
-                budget_range: data.budget_range || '',
-                account_type: data.account_type || 'free',
-                subscription_status: data.subscription_status || null
-            });
-        } else if (!data && user.user_metadata?.full_name) {
-            setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
+        try {
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single()
+                .abortSignal(controller.signal);
+
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 is just "no rows found"
+
+            if (data) {
+                setProfileData({
+                    full_name: data.full_name || user.user_metadata?.full_name || '',
+                    phone_number: data.phone_number || '',
+                    state: data.state || '',
+                    city: data.city || '',
+                    stream: data.stream || '',
+                    gender: data.gender || '',
+                    dob: data.dob || '',
+                    tenth_board: data.tenth_board || '',
+                    tenth_passing_year: data.tenth_passing_year || '',
+                    tenth_percentage: data.tenth_percentage || '',
+                    twelfth_board: data.twelfth_board || '',
+                    twelfth_passing_year: data.twelfth_passing_year || '',
+                    twelfth_percentage: data.twelfth_percentage || '',
+                    entrance_exams: Array.isArray(data.entrance_exams) ? data.entrance_exams : (data.entrance_exams ? JSON.parse(data.entrance_exams) : []),
+                    preferred_courses: Array.isArray(data.preferred_courses) ? data.preferred_courses : (data.preferred_courses ? JSON.parse(data.preferred_courses) : []),
+                    preferred_locations: Array.isArray(data.preferred_locations) ? data.preferred_locations : (data.preferred_locations ? JSON.parse(data.preferred_locations) : []),
+                    budget_range: data.budget_range || '',
+                    account_type: data.account_type || 'free',
+                    subscription_status: data.subscription_status || null
+                });
+            } else if (user.user_metadata?.full_name) {
+                setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
+            }
+        } catch (err) {
+            console.error('Error fetching profile:', err);
+        } finally {
+            clearTimeout(timeout);
         }
     };
 
@@ -153,36 +167,57 @@ export default function ProfilePage() {
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
-        // Save to our custom Profiles table
-        await supabase.from('user_profiles').update({
-            full_name: profileData.full_name,
-            phone_number: profileData.phone_number,
-            state: profileData.state,
-            city: profileData.city,
-            stream: profileData.stream,
-            gender: profileData.gender,
-            dob: profileData.dob || null, // handle empty dates for postgres
-            tenth_board: profileData.tenth_board,
-            tenth_passing_year: profileData.tenth_passing_year ? parseInt(profileData.tenth_passing_year) : null,
-            tenth_percentage: profileData.tenth_percentage ? parseFloat(profileData.tenth_percentage) : null,
-            twelfth_board: profileData.twelfth_board,
-            twelfth_passing_year: profileData.twelfth_passing_year ? parseInt(profileData.twelfth_passing_year) : null,
-            twelfth_percentage: profileData.twelfth_percentage ? parseFloat(profileData.twelfth_percentage) : null,
-            entrance_exams: profileData.entrance_exams,
-            preferred_courses: profileData.preferred_courses,
-            preferred_locations: profileData.preferred_locations,
-            budget_range: profileData.budget_range
-        }).eq('id', user.id);
+        const loadingToast = toast.loading('Saving profile changes...');
+        
+        try {
+            const updates = [];
 
-        // Also sync the core Auth user_metadata casually
-        if (profileData.full_name !== user.user_metadata?.full_name) {
-            await supabase.auth.updateUser({
-                data: { full_name: profileData.full_name }
+            // 1. Update Profile table
+            updates.push(supabase.from('user_profiles').update({
+                full_name: profileData.full_name,
+                phone_number: profileData.phone_number,
+                state: profileData.state,
+                city: profileData.city,
+                stream: profileData.stream,
+                gender: profileData.gender,
+                dob: profileData.dob || null,
+                tenth_board: profileData.tenth_board,
+                tenth_passing_year: profileData.tenth_passing_year ? parseInt(profileData.tenth_passing_year) : null,
+                tenth_percentage: profileData.tenth_percentage ? parseFloat(profileData.tenth_percentage) : null,
+                twelfth_board: profileData.twelfth_board,
+                twelfth_passing_year: profileData.twelfth_passing_year ? parseInt(profileData.twelfth_passing_year) : null,
+                twelfth_percentage: profileData.twelfth_percentage ? parseFloat(profileData.twelfth_percentage) : null,
+                entrance_exams: profileData.entrance_exams,
+                preferred_courses: profileData.preferred_courses,
+                preferred_locations: profileData.preferred_locations,
+                budget_range: profileData.budget_range
+            }).eq('id', user.id));
+
+            // 2. Update Auth metadata in parallel if changed
+            if (profileData.full_name !== user.user_metadata?.full_name) {
+                updates.push(supabase.auth.updateUser({
+                    data: { full_name: profileData.full_name }
+                }));
+            }
+
+            const results = await Promise.race([
+                Promise.all(updates),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Update timed out')), 10000))
+            ]);
+
+            // Check for errors in the Supabase responses
+            results.forEach(res => {
+                if (res?.error) throw res.error;
             });
-        }
 
-        setIsEditingProfile(false);
-        setSavingProfile(false);
+            toast.success('Profile updated successfully!', { id: loadingToast });
+            setIsEditingProfile(false);
+        } catch (err) {
+            console.error('Error saving profile:', err);
+            toast.error(err.message || 'Failed to save changes. Please try again.', { id: loadingToast });
+        } finally {
+            setSavingProfile(false);
+        }
     };
 
     const handleLogout = async () => {

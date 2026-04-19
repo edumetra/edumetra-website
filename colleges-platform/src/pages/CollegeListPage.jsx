@@ -7,13 +7,16 @@ import CollegeCard from '../components/college-list/CollegeCard';
 import CollegeCardSkeleton from '../components/college-list/CollegeCardSkeleton';
 import SEOHead from '../components/SEOHead';
 import { useColleges } from '../hooks/useColleges';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, WifiOff, RefreshCw, ShieldCheck } from 'lucide-react';
 
 export default function CollegeListPage() {
     const { user } = useSignup();
     const { colleges, loading, error, hasMore, totalCount, fetchColleges, fetchFilterOptions } = useColleges();
 
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     const [sort, setSort] = useState('rank_asc');
     const [page, setPage] = useState(1);
 
@@ -31,20 +34,39 @@ export default function CollegeListPage() {
     });
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Initial Data Fetch
+    // 1. Debounce Search Query
+    useEffect(() => {
+        if (searchQuery !== debouncedSearchQuery) {
+            setIsSearching(true);
+            const timer = setTimeout(() => {
+                setDebouncedSearchQuery(searchQuery);
+                setIsSearching(false);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [searchQuery, debouncedSearchQuery]);
+
+    // 2. Initial Data Fetch
     useEffect(() => {
         const loadInitialData = async () => {
-            const options = await fetchFilterOptions();
-            if (options) setFilterOptions(options);
+            try {
+                const options = await Promise.race([
+                    fetchFilterOptions(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Filter timeout')), 8000))
+                ]);
+                if (options) setFilterOptions(options);
+            } catch (err) {
+                console.warn('CollegeList: Initial data fetch slow/blocked', err);
+            }
         };
         loadInitialData();
     }, [fetchFilterOptions]);
 
-    // Fetch colleges whenever dependencies change
+    // 3. Fetch colleges whenever dependencies change
     useEffect(() => {
         setPage(1); // Reset to page 1 on new search/filter
-        fetchColleges({ page: 1, query: searchQuery, filters, sort, isLoadMore: false });
-    }, [searchQuery, filters, sort, fetchColleges]);
+        fetchColleges({ page: 1, query: debouncedSearchQuery, filters, sort, isLoadMore: false });
+    }, [debouncedSearchQuery, filters, sort, fetchColleges]);
 
     // Fetch saved colleges for user
     useEffect(() => {
@@ -52,11 +74,17 @@ export default function CollegeListPage() {
     }, [user]);
 
     const fetchSavedIds = async () => {
-        const { data } = await supabase
-            .from('saved_colleges')
-            .select('college_id')
-            .eq('user_id', user.id);
-        setSavedIds((data || []).map(r => r.college_id));
+        try {
+            const { data, error } = await supabase
+                .from('saved_colleges')
+                .select('college_id')
+                .eq('user_id', user.id);
+            
+            if (error) throw error;
+            setSavedIds((data || []).map(r => r.college_id));
+        } catch (err) {
+            console.error('Error fetching saved IDs:', err);
+        }
     };
 
     const handleSaveToggle = (collegeId, isSaved) => {
@@ -74,7 +102,7 @@ export default function CollegeListPage() {
     const handleLoadMore = () => {
         const nextPage = page + 1;
         setPage(nextPage);
-        fetchColleges({ page: nextPage, query: searchQuery, filters, sort, isLoadMore: true });
+        fetchColleges({ page: nextPage, query: debouncedSearchQuery, filters, sort, isLoadMore: true });
     };
 
     // Removing early return for `loading` as we now handle it inside the main render's layout
@@ -116,17 +144,43 @@ export default function CollegeListPage() {
                         <SearchHeader
                             query={searchQuery}
                             onSearchChange={setSearchQuery}
+                            isSearching={isSearching}
                             resultCount={totalCount}
                             onToggleFilters={() => setSidebarOpen(true)}
                             sort={sort}
                             onSortChange={setSort}
                         />
 
-                        {error && (
-                            <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-6">
-                                {error}
-                            </div>
-                        )}
+                        {/* Connectivity Monitor */}
+                        <AnimatePresence>
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="mb-8"
+                                >
+                                    <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-2xl shadow-amber-900/10">
+                                        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                                            <WifiOff className="w-7 h-7 text-amber-500" />
+                                        </div>
+                                        <div className="flex-1 text-center md:text-left">
+                                            <h3 className="text-lg font-bold text-white mb-1">Database Connectivity Blocked</h3>
+                                            <p className="text-slate-400 text-sm leading-relaxed">
+                                                Your browser (Ulaa/Brave) might be blocking the connection to our database to protect your privacy. 
+                                                To load the college data, please click the <span className="text-amber-500 font-bold">Shield</span> or <span className="text-amber-500 font-bold">Lock</span> icon in your address bar and select <span className="text-white font-bold">"Allow"</span> for this site.
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => window.location.reload()}
+                                            className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-slate-950 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-amber-500/20"
+                                        >
+                                            <RefreshCw className="w-4 h-4" /> Try Again
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div className="space-y-5">
                             {loading ? (
@@ -173,7 +227,7 @@ export default function CollegeListPage() {
                                         </div>
                                     )}
                                 </>
-                            ) : !loading ? (
+                            ) : (!loading && !error) ? (
                                 <div className="flex flex-col items-center justify-center py-20 px-6 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800 text-center">
                                     <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-5 text-2xl">
                                         🔍

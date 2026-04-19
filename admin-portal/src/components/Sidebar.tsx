@@ -24,6 +24,7 @@ import {
     Headphones,
     Mail,
     Flame,
+    Ticket,
 } from "lucide-react";
 
 type NavItem = {
@@ -51,6 +52,7 @@ const COLLEGES_NAV: NavItem = { href: "/colleges", label: "Colleges", icon: Grad
 const SUPERADMIN_NAV: NavItem[] = [
     { href: "/users", label: "Users", icon: Users, permKey: "users" },
     { href: "/settings/admins", label: "Manage Admins", icon: UserCog, permKey: "settings" },
+    { href: "/coupons", label: "Coupons", icon: Ticket, permKey: "coupons" },
     { href: "/analytics", label: "Analytics", icon: BarChart2, permKey: "analytics" },
     { href: "/audit-logs", label: "Audit Logs", icon: ScrollText, permKey: "audit_logs" },
 ];

@@ -26,6 +26,7 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
 
     const handleCompare = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (inCompare) {
             removeFromCompare(college.id);
             toast.error('Removed from compare');
@@ -33,11 +34,11 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
             addToCompare(college);
             toast.success('Added to compare');
         }
-        // if isFull and not inCompare → CompareContext will fire its own UpgradeModal
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (!user) return;
         // Gate: free users get 5 saved colleges
         if (!isSaved && savedIds.length >= maxSaved) {
@@ -59,7 +60,10 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
     return (
         <>
             <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} featureName="Save more than 5 colleges" />
-            <div className="group bg-slate-900/40 backdrop-blur-md border border-slate-800/60 rounded-2xl overflow-hidden hover:-translate-y-1 hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 flex flex-col md:flex-row relative">
+            <Link 
+                to={`/colleges/${college.slug}`}
+                className="group bg-slate-900/40 backdrop-blur-md border border-slate-800/60 rounded-2xl overflow-hidden hover:-translate-y-1 hover:border-red-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 flex flex-col md:flex-row relative"
+            >
                 {/* Image */}
                 <div className="relative w-full md:w-64 h-48 md:h-auto flex-shrink-0 overflow-hidden">
                     <img src={college.image} alt={college.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -100,52 +104,44 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                             <MapPin className="w-4 h-4 shrink-0" />{college.location}
                         </div>
 
-                        {/* Stats - Redesigned Grid */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-0 mb-5 border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20 divide-x divide-y lg:divide-y-0 divide-slate-800/60">
-                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors">
-                                <p className="text-xs text-slate-400 mb-1 flex items-center gap-1.5 font-medium"><Wallet className="w-3.5 h-3.5 text-red-400" /> Avg First Year</p>
-                                <p className="text-base font-bold text-white">₹{college.fees_numeric ? (college.fees_numeric).toLocaleString() : 'N/A'}</p>
-                            </div>
-                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors">
-                                <p className="text-xs text-slate-400 mb-1 flex items-center gap-1.5 font-medium"><BookOpen className="w-3.5 h-3.5 text-green-400" /> Top Package</p>
-                                <p className="text-base font-bold text-green-400">{college.avgPackage || 'N/A'}</p>
-                            </div>
-                            <div className="p-3 md:p-4 hover:bg-slate-800/30 transition-colors col-span-2 lg:col-span-1">
-                                <p className="text-xs text-slate-400 mb-1 font-medium">Exams Accepted</p>
-                                <p className="text-sm font-semibold text-slate-200 line-clamp-1">{college.exams || 'Merit Based'}</p>
-                            </div>
+                        {/* Updated Stats - Simplified */}
+                        <div className="mb-5 p-4 bg-slate-900/40 border border-slate-800/60 rounded-xl">
+                            <p className="text-xs text-slate-500 mb-1.5 font-medium uppercase tracking-wider flex items-center gap-2">
+                                <BookOpen className="w-3.5 h-3.5 text-red-500" /> Exams Accepted
+                            </p>
+                            <p className="text-sm font-semibold text-slate-200">{college.exams || 'Merit Based'}</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-auto pt-2">
-                        <button className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-full transition-all shadow-[0_0_15px_rgba(220,38,38,0.15)] hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] active:scale-95">
-                            Apply Now
-                        </button>
-                        <Link to={`/colleges/${college.slug}`} className="px-5 py-3 bg-transparent hover:bg-slate-800/80 text-white text-sm font-semibold rounded-full transition-all border border-slate-700 flex items-center gap-2 group/btn active:scale-95">
-                            Details <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                        </Link>
-                        {/* Compare */}
-                        <button
-                            onClick={handleCompare}
-                            title={inCompare ? 'Remove from compare' : isFull ? `Compare list full (max ${maxCompare})` : 'Add to compare'}
-                            className={`p-3 rounded-full border transition-all active:scale-95 ${inCompare ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20' : isFull ? 'border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
-                        >
-                            <GitCompareArrows className="w-4 h-4" />
-                        </button>
-                        {/* Save */}
-                        {user && (
+                    <div className="flex items-center justify-between mt-auto pt-2">
+                        <div className="px-5 py-3 bg-red-600/10 text-red-400 group-hover:bg-red-600 group-hover:text-white text-sm font-bold rounded-full transition-all border border-red-500/20 flex items-center gap-2 active:scale-95">
+                            View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                        
+                        <div className="flex items-center gap-2.5">
+                            {/* Compare */}
                             <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                title={isSaved ? 'Remove from saved' : 'Save college'}
-                                className={`p-3 rounded-full border transition-all active:scale-95 ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
+                                onClick={handleCompare}
+                                title={inCompare ? 'Remove from compare' : 'Add to compare'}
+                                className={`p-2.5 rounded-full border transition-all active:scale-95 ${inCompare ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
                             >
-                                {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                                <GitCompareArrows className="w-4 h-4" />
                             </button>
-                        )}
+                            {/* Save */}
+                            {user && (
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    title={isSaved ? 'Remove from saved' : 'Save college'}
+                                    className={`p-2.5 rounded-full border transition-all active:scale-95 ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
+                                >
+                                    {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Link>
         </>
     );
 }

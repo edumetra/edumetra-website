@@ -1,11 +1,17 @@
 import { Search, SlidersHorizontal } from 'lucide-react';
 
-export default function SearchHeader({ query, onSearchChange, resultCount, onToggleFilters, sort, onSortChange }) {
+export default function SearchHeader({ query, onSearchChange, isSearching, resultCount, onToggleFilters, sort, onSortChange }) {
     return (
         <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 rounded-full px-5 py-3 mb-8 sticky top-24 z-30 shadow-2xl shadow-black/50 transition-all hover:bg-slate-900/80">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="relative w-full md:max-w-2xl group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-red-400 transition-colors" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                        {isSearching ? (
+                            <div className="w-5 h-5 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                        ) : (
+                            <Search className="text-slate-400 w-5 h-5 group-focus-within:text-red-400 transition-colors" />
+                        )}
+                    </div>
                     <input
                         type="text"
                         placeholder="Search colleges, courses, or exams..."
@@ -13,6 +19,11 @@ export default function SearchHeader({ query, onSearchChange, resultCount, onTog
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="w-full bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 rounded-full pl-12 pr-4 py-3 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all shadow-inner"
                     />
+                    {isSearching && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-red-500/50 uppercase tracking-widest animate-pulse pointer-events-none">
+                            Searching...
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4 w-full md:w-auto">

@@ -59,29 +59,47 @@ export function CommandPalette() {
         const fetchResults = async () => {
             setLoading(true);
 
-            // 1. Filter local static pages
-            const filteredPages = GLOBAL_PAGES.filter(p => 
-                p.name.toLowerCase().includes(query.toLowerCase()) || 
-                p.path.toLowerCase().includes(query.toLowerCase())
-            );
+            // Safety timeout to reset loading state if request is blocked
+            const safetyTimeout = setTimeout(() => {
+                setLoading(false);
+            }, 5000);
 
-            // 2. Fetch colleges from Supabase
-            const { data } = await supabase
-                .from('colleges')
-                .select('id, slug, name, location_city, location_state, type')
-                .ilike('name', `%${query}%`)
-                .eq('visibility', 'public')
-                .limit(5);
+            try {
+                // 1. Filter local static pages
+                const filteredPages = GLOBAL_PAGES.filter(p => 
+                    p.name.toLowerCase().includes(query.toLowerCase()) || 
+                    p.path.toLowerCase().includes(query.toLowerCase())
+                );
 
-            // 3. Combine them
-            const combined = [
-                ...filteredPages.map(p => ({ ...p, isPage: true })),
-                ...(data || []).map(c => ({ ...c, isPage: false }))
-            ];
+                // 2. Fetch colleges from Supabase
+                const { data, error } = await supabase
+                    .from('colleges')
+                    .select('id, slug, name, location_city, location_state, type')
+                    .ilike('name', `%${query}%`)
+                    .eq('visibility', 'public')
+                    .limit(5);
 
-            setResults(combined);
-            setSelectedIndex(0);
-            setLoading(false);
+                if (error) throw error;
+
+                // 3. Combine them
+                const combined = [
+                    ...filteredPages.map(p => ({ ...p, isPage: true })),
+                    ...(data || []).map(c => ({ ...c, isPage: false }))
+                ];
+
+                setResults(combined);
+                setSelectedIndex(0);
+            } catch (err) {
+                console.warn('CommandPalette: Search failed (possibly blocked):', err);
+                // Still show local results even if API fails
+                const filteredPages = GLOBAL_PAGES.filter(p => 
+                    p.name.toLowerCase().includes(query.toLowerCase())
+                ).map(p => ({ ...p, isPage: true }));
+                setResults(filteredPages);
+            } finally {
+                clearTimeout(safetyTimeout);
+                setLoading(false);
+            }
         };
 
         const timeoutId = setTimeout(fetchResults, 200); // debounce

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, MessageSquare, Search, ArrowLeft, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -25,15 +25,38 @@ export default function WriteReviewPage() {
     const searchColleges = async (q) => {
         if (!q.trim()) { setSearchResults([]); return; }
         setSearching(true);
-        const { data } = await supabase
-            .from('colleges')
-            .select('id, name, location_city, location_state, image')
-            .ilike('name', `%${q}%`)
-            .eq('visibility', 'public')
-            .limit(6);
-        setSearchResults(data || []);
-        setSearching(false);
+        
+        // Safety timeout to reset searching state if request hangs or is blocked
+        const timeout = setTimeout(() => {
+            setSearching(false);
+        }, 5000);
+
+        try {
+            const { data, error: err } = await supabase
+                .from('colleges')
+                .select('id, name, location_city, location_state, image')
+                .ilike('name', `%${q}%`)
+                .eq('visibility', 'public')
+                .limit(6);
+            
+            if (err) throw err;
+            setSearchResults(data || []);
+        } catch (err) {
+            console.error('Search error (possibly blocked):', err);
+            setSearchResults([]);
+        } finally {
+            clearTimeout(timeout);
+            setSearching(false);
+        }
     };
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (collegeSearch) searchColleges(collegeSearch);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [collegeSearch]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -130,7 +153,7 @@ export default function WriteReviewPage() {
                             autoFocus
                             type="text"
                             value={collegeSearch}
-                            onChange={e => { setCollegeSearch(e.target.value); searchColleges(e.target.value); }}
+                            onChange={e => setCollegeSearch(e.target.value)}
                             placeholder="Search college by name..."
                             className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 transition-all"
                         />

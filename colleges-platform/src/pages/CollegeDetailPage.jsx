@@ -86,15 +86,25 @@ export default function CollegeDetailPage() {
 
 
     const stats = college.placementStats || {};
-    const reservationPercentages = typeof college.reservation_percentages === "string" ? JSON.parse(college.reservation_percentages) : college.reservation_percentages;
-    const categoryFees = typeof college.category_fees === "string" ? JSON.parse(college.category_fees) : college.category_fees;
+    // SEO Construction
+    const currentYear = new Date().getFullYear();
+    const cityState = [college.city, college.state].filter(Boolean).join(', ');
+    const seoTitle = `${college.name}, ${college.city || college.location} - ${currentYear} Admission, Fees, Ranking & Reviews`;
+    
+    // Description packing: Aim for ~155 chars with high-value data
+    const feeInfo = college.fees ? `Fees: ${college.fees}` : (college.tuition ? `Fees: ${college.tuition}` : '');
+    const examsInfo = college.exams ? ` | Exams: ${college.exams}` : '';
+    const ratingInfo = college.rating ? ` | Rating: ${college.rating}/5` : '';
+    const seoDescription = `Explore ${college.name} in ${cityState}. ${feeInfo}${examsInfo}${ratingInfo}. Read student reviews, verify placements stats & compare courses for the ${currentYear} session.`;
 
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'EducationalOrganization',
         name: college.name,
-        description: college.description || `${college.name} is located in ${college.location}. Type: ${college.type}.`,
-        url: `https://colleges.edumetra.in/colleges/${college.slug}`,
+        alternateName: college.slug.replace(/-/g, ' ').toUpperCase(),
+        description: college.description || `Comprehensive details for ${college.name} in ${college.location}. Fees, ranking, courses, and student reviews.`,
+        url: `${import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://colleges.edumetraglobal.com'}/colleges/${college.slug}`,
+        logo: college.image,
         image: college.image,
         address: {
             '@type': 'PostalAddress',
@@ -111,13 +121,17 @@ export default function CollegeDetailPage() {
                 ratingCount: college.review_count || 1,
             }
         } : {}),
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://colleges.edumetraglobal.com'}/colleges/${college.slug}`,
+        }
     };
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-red-500/30">
             <SEOHead
-                title={college.name}
-                description={`${college.name} in ${college.location} — Fees: ${college.fees || 'N/A'}, Rating: ${college.rating || 'N/A'}/5. Read student reviews and compare with other colleges.`}
+                title={seoTitle}
+                description={seoDescription}
                 image={college.image}
                 url={`/colleges/${college.slug}`}
                 jsonLd={jsonLd}

@@ -19,6 +19,11 @@ export function useColleges() {
         sort = 'rank_asc',
         isLoadMore = false
     }) => {
+        // Safety timeout to reset loading state if request hangs
+        const safetyTimeout = setTimeout(() => {
+            setLoading(false);
+        }, 10000);
+
         try {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort();
@@ -127,30 +132,33 @@ export function useColleges() {
         } catch (err) {
             // Supabase sometimes shapes AbortErrors slightly differently
             const isAbortError = err.name === 'AbortError' || err.message?.includes('Fetch is aborted') || err.message?.includes('aborted');
-            if (!isAbortError) {
+            if (isAbortError || err.message === 'Filter timeout') {
+                setError('DATABASE_CONNECTION_BLOCKED');
+            } else {
                 console.error('Error fetching colleges:', err.message || err);
                 setError(err.message || 'Failed to fetch colleges');
             }
         } finally {
+            clearTimeout(safetyTimeout);
             setLoading(false);
         }
     }, []);
 
-    // Also add a function to fetch distinct filter options directly from the existing colleges
+    // Optimized Fetch: Get distinct options for filters
     const fetchFilterOptions = useCallback(async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout for filters
+
         try {
-            // Using a simple rpc function or fetching unique values if possible, otherwise we fetch minimal select
-            // Note: In Supabase, getting distinct values requires either an RPC function or fetching a wide set. 
-            // For now, let's fetch basic distinct columns using a wide query (or just return empty array if it gets too large)
-
-            // Note: Since getting truly dynamic unique values across 10,000s of rows in Supabase without RPC is hard, 
-            // we will fetch basic grouping. 
-            // Better approach for Supabase: create an RPC or we hardcode common ones for now but pull distinct cities/states.
-
+            // Note: Scanning 10,000+ rows in-browser is slow. 
+            // We'll fetch a limited set of recent/active colleges to get a representative 
+            // list of filters if a full RPC doesn't exist.
             const { data, error } = await supabase
                 .from('colleges')
                 .select('location_state, location_city, type, stream, naac_grade')
-                .eq('visibility', 'public');
+                .eq('visibility', 'public')
+                .limit(2000) // Limit to 2000 for faster client-side processing
+                .abortSignal(controller.signal);
 
             if (error) throw error;
 
@@ -165,8 +173,14 @@ export function useColleges() {
             return options;
 
         } catch (err) {
-            console.error('Error fetching filter options:', err);
+            if (err.name === 'AbortError') {
+                console.warn('Filter options fetch timed out, using defaults.');
+            } else {
+                console.error('Error fetching filter options:', err);
+            }
             return null;
+        } finally {
+            clearTimeout(timeout);
         }
     }, []);
 
