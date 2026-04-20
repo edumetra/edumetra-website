@@ -699,6 +699,339 @@ export interface Database {
                 }
                 Relationships: []
             }
+            engagement_campaigns: {
+                Row: {
+                    id: string
+                    slug: string
+                    name: string
+                    objective: string
+                    kpi_name: string
+                    segment_rule: Json
+                    is_active: boolean
+                    schedule_version: number
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    slug: string
+                    name: string
+                    objective: string
+                    kpi_name?: string
+                    segment_rule?: Json
+                    is_active?: boolean
+                    schedule_version?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    slug?: string
+                    name?: string
+                    objective?: string
+                    kpi_name?: string
+                    segment_rule?: Json
+                    is_active?: boolean
+                    schedule_version?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+                Relationships: []
+            }
+            engagement_steps: {
+                Row: {
+                    id: string
+                    campaign_id: string
+                    step_order: number
+                    day_offset: number
+                    channel: Database["public"]["Enums"]["engagement_channel"]
+                    fallback_channel: Database["public"]["Enums"]["engagement_channel"] | null
+                    template_key: string
+                    delay_minutes: number
+                    max_attempts: number
+                    is_active: boolean
+                    metadata: Json
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    campaign_id: string
+                    step_order: number
+                    day_offset: number
+                    channel: Database["public"]["Enums"]["engagement_channel"]
+                    fallback_channel?: Database["public"]["Enums"]["engagement_channel"] | null
+                    template_key: string
+                    delay_minutes?: number
+                    max_attempts?: number
+                    is_active?: boolean
+                    metadata?: Json
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    campaign_id?: string
+                    step_order?: number
+                    day_offset?: number
+                    channel?: Database["public"]["Enums"]["engagement_channel"]
+                    fallback_channel?: Database["public"]["Enums"]["engagement_channel"] | null
+                    template_key?: string
+                    delay_minutes?: number
+                    max_attempts?: number
+                    is_active?: boolean
+                    metadata?: Json
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            user_channel_preferences: {
+                Row: {
+                    user_id: string
+                    email_opt_in: boolean
+                    sms_opt_in: boolean
+                    whatsapp_opt_in: boolean
+                    timezone: string
+                    locale: string
+                    quiet_hours_start: number
+                    quiet_hours_end: number
+                    max_touches_per_day: number
+                    unsubscribed_at: string | null
+                    updated_at: string
+                }
+                Insert: {
+                    user_id: string
+                    email_opt_in?: boolean
+                    sms_opt_in?: boolean
+                    whatsapp_opt_in?: boolean
+                    timezone?: string
+                    locale?: string
+                    quiet_hours_start?: number
+                    quiet_hours_end?: number
+                    max_touches_per_day?: number
+                    unsubscribed_at?: string | null
+                    updated_at?: string
+                }
+                Update: {
+                    user_id?: string
+                    email_opt_in?: boolean
+                    sms_opt_in?: boolean
+                    whatsapp_opt_in?: boolean
+                    timezone?: string
+                    locale?: string
+                    quiet_hours_start?: number
+                    quiet_hours_end?: number
+                    max_touches_per_day?: number
+                    unsubscribed_at?: string | null
+                    updated_at?: string
+                }
+                Relationships: []
+            }
+            engagement_enrollments: {
+                Row: {
+                    id: string
+                    user_id: string
+                    campaign_id: string
+                    status: Database["public"]["Enums"]["engagement_enrollment_status"]
+                    current_step_order: number
+                    enrolled_at: string
+                    next_run_at: string
+                    completed_at: string | null
+                    exited_at: string | null
+                    exit_reason: string | null
+                    holdout_group: boolean
+                    variant: string
+                    metadata: Json
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    campaign_id: string
+                    status?: Database["public"]["Enums"]["engagement_enrollment_status"]
+                    current_step_order?: number
+                    enrolled_at?: string
+                    next_run_at?: string
+                    completed_at?: string | null
+                    exited_at?: string | null
+                    exit_reason?: string | null
+                    holdout_group?: boolean
+                    variant?: string
+                    metadata?: Json
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    campaign_id?: string
+                    status?: Database["public"]["Enums"]["engagement_enrollment_status"]
+                    current_step_order?: number
+                    enrolled_at?: string
+                    next_run_at?: string
+                    completed_at?: string | null
+                    exited_at?: string | null
+                    exit_reason?: string | null
+                    holdout_group?: boolean
+                    variant?: string
+                    metadata?: Json
+                    created_at?: string
+                    updated_at?: string
+                }
+                Relationships: []
+            }
+            engagement_messages: {
+                Row: {
+                    id: string
+                    enrollment_id: string
+                    step_id: string
+                    user_id: string
+                    channel: Database["public"]["Enums"]["engagement_channel"]
+                    provider: string
+                    status: Database["public"]["Enums"]["engagement_message_status"]
+                    template_key: string
+                    idempotency_key: string
+                    provider_message_id: string | null
+                    attempt_no: number
+                    payload: Json
+                    error_code: string | null
+                    error_message: string | null
+                    scheduled_at: string
+                    sent_at: string | null
+                    delivered_at: string | null
+                    read_at: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    enrollment_id: string
+                    step_id: string
+                    user_id: string
+                    channel: Database["public"]["Enums"]["engagement_channel"]
+                    provider: string
+                    status?: Database["public"]["Enums"]["engagement_message_status"]
+                    template_key: string
+                    idempotency_key: string
+                    provider_message_id?: string | null
+                    attempt_no?: number
+                    payload?: Json
+                    error_code?: string | null
+                    error_message?: string | null
+                    scheduled_at?: string
+                    sent_at?: string | null
+                    delivered_at?: string | null
+                    read_at?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    enrollment_id?: string
+                    step_id?: string
+                    user_id?: string
+                    channel?: Database["public"]["Enums"]["engagement_channel"]
+                    provider?: string
+                    status?: Database["public"]["Enums"]["engagement_message_status"]
+                    template_key?: string
+                    idempotency_key?: string
+                    provider_message_id?: string | null
+                    attempt_no?: number
+                    payload?: Json
+                    error_code?: string | null
+                    error_message?: string | null
+                    scheduled_at?: string
+                    sent_at?: string | null
+                    delivered_at?: string | null
+                    read_at?: string | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            provider_delivery_events: {
+                Row: {
+                    id: string
+                    message_id: string | null
+                    provider: string
+                    provider_message_id: string | null
+                    event_type: string
+                    event_time: string
+                    raw_payload: Json
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    message_id?: string | null
+                    provider: string
+                    provider_message_id?: string | null
+                    event_type: string
+                    event_time?: string
+                    raw_payload?: Json
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    message_id?: string | null
+                    provider?: string
+                    provider_message_id?: string | null
+                    event_type?: string
+                    event_time?: string
+                    raw_payload?: Json
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            engagement_conversions: {
+                Row: {
+                    id: string
+                    enrollment_id: string
+                    user_id: string
+                    conversion_event: string
+                    revenue: number | null
+                    converted_at: string
+                    metadata: Json
+                }
+                Insert: {
+                    id?: string
+                    enrollment_id: string
+                    user_id: string
+                    conversion_event: string
+                    revenue?: number | null
+                    converted_at?: string
+                    metadata?: Json
+                }
+                Update: {
+                    id?: string
+                    enrollment_id?: string
+                    user_id?: string
+                    conversion_event?: string
+                    revenue?: number | null
+                    converted_at?: string
+                    metadata?: Json
+                }
+                Relationships: []
+            }
+            engagement_event_log: {
+                Row: {
+                    id: string
+                    user_id: string | null
+                    event_name: string
+                    event_time: string
+                    metadata: Json
+                }
+                Insert: {
+                    id?: string
+                    user_id?: string | null
+                    event_name: string
+                    event_time?: string
+                    metadata?: Json
+                }
+                Update: {
+                    id?: string
+                    user_id?: string | null
+                    event_name?: string
+                    event_time?: string
+                    metadata?: Json
+                }
+                Relationships: []
+            }
         }
         Views: {
             view_public_colleges: {
@@ -717,10 +1050,19 @@ export interface Database {
             }
         }
         Functions: {
-            [_ in never]: never
+            resolve_user_channel: {
+                Args: {
+                    p_user_id: string
+                    p_primary_channel: Database["public"]["Enums"]["engagement_channel"]
+                    p_fallback_channel?: Database["public"]["Enums"]["engagement_channel"] | null
+                }
+                Returns: Database["public"]["Enums"]["engagement_channel"] | null
+            }
         }
         Enums: {
-            [_ in never]: never
+            engagement_channel: "email" | "sms" | "rcs" | "whatsapp"
+            engagement_enrollment_status: "active" | "paused" | "completed" | "exited"
+            engagement_message_status: "pending" | "queued" | "sent" | "delivered" | "read" | "failed" | "cancelled"
         }
         CompositeTypes: {
             [_ in never]: never

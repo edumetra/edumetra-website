@@ -7,6 +7,14 @@ import { Users, Star, MessageSquare, GraduationCap, TrendingUp, Clock, Trophy, B
 type DailyStat = { date: string; count: number };
 type TopCollege = { name: string; review_count: number; rating: number };
 type TimeRange = "7d" | "30d" | "90d";
+type EngagementSummary = {
+    enrolled: number;
+    attempted: number;
+    delivered: number;
+    read: number;
+    converted: number;
+    failed: number;
+};
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Users; label: string; value: number | string; color: string }) {
     return (
@@ -49,6 +57,14 @@ export default function AnalyticsPage() {
     const [reviewDailyStats, setReviewDailyStats] = useState<DailyStat[]>([]);
     const [userDailyStats, setUserDailyStats] = useState<DailyStat[]>([]);
     const [ratingDist, setRatingDist] = useState<{ rating: number; count: number }[]>([]);
+    const [engagementSummary, setEngagementSummary] = useState<EngagementSummary>({
+        enrolled: 0,
+        attempted: 0,
+        delivered: 0,
+        read: 0,
+        converted: 0,
+        failed: 0,
+    });
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
@@ -105,6 +121,19 @@ export default function AnalyticsPage() {
         setReviewDailyStats(buildDailySeries((reviewDatesRes.data ?? []).map((r: { created_at: string }) => r.created_at), days));
         setUserDailyStats(buildDailySeries((userDatesRes.data ?? []).map((r: { created_at: string }) => r.created_at), days));
         setRatingDist(dist);
+
+        try {
+            const engagementRes = await fetch("/api/engagement/analytics");
+            if (engagementRes.ok) {
+                const engagementData = await engagementRes.json();
+                if (engagementData.summary) {
+                    setEngagementSummary(engagementData.summary);
+                }
+            }
+        } catch {
+            // Best-effort: don't block core analytics UI.
+        }
+
         setLoading(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeRange]);
@@ -150,6 +179,18 @@ export default function AnalyticsPage() {
                 <StatCard icon={Clock} label="Pending" value={loading ? "—" : stats.pendingReviews} color="bg-red-500/10 text-red-400" />
                 <StatCard icon={GraduationCap} label="Colleges" value={loading ? "—" : stats.totalColleges} color="bg-emerald-500/10 text-emerald-400" />
                 <StatCard icon={Star} label="Avg Rating" value={loading ? "—" : stats.avgRating} color="bg-purple-500/10 text-purple-400" />
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8">
+                <h2 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Engagement Funnel</h2>
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                    <StatCard icon={Users} label="Enrolled" value={loading ? "—" : engagementSummary.enrolled} color="bg-indigo-500/10 text-indigo-400" />
+                    <StatCard icon={MessageSquare} label="Attempted" value={loading ? "—" : engagementSummary.attempted} color="bg-sky-500/10 text-sky-400" />
+                    <StatCard icon={TrendingUp} label="Delivered" value={loading ? "—" : engagementSummary.delivered} color="bg-emerald-500/10 text-emerald-400" />
+                    <StatCard icon={BarChart2} label="Read" value={loading ? "—" : engagementSummary.read} color="bg-amber-500/10 text-amber-400" />
+                    <StatCard icon={Trophy} label="Converted" value={loading ? "—" : engagementSummary.converted} color="bg-purple-500/10 text-purple-400" />
+                    <StatCard icon={Clock} label="Failed" value={loading ? "—" : engagementSummary.failed} color="bg-rose-500/10 text-rose-400" />
+                </div>
             </div>
 
             {/* Charts row */}
