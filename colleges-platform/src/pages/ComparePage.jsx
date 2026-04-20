@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useCompare } from '../contexts/CompareContext';
@@ -22,21 +22,13 @@ const FIELDS = [
 ];
 
 export default function ComparePage() {
-    const { compareList, removeFromCompare, clearCompare } = useCompare();
+    const { compareList, addToCompare, removeFromCompare, clearCompare } = useCompare();
     const [colleges, setColleges] = useState([]);
     const [popularColleges, setPopularColleges] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (compareList.length > 0) {
-            fetchDetails();
-        } else {
-            fetchPopular();
-        }
-    }, [compareList]);
-
-    const fetchPopular = async () => {
+    const fetchPopular = useCallback(async () => {
         const { data } = await supabase
             .from('colleges')
             .select('id, name, type, rating, image, rank')
@@ -44,9 +36,9 @@ export default function ComparePage() {
             .order('rank', { ascending: true, nullsFirst: false })
             .limit(4);
         setPopularColleges(data || []);
-    };
+    }, []);
 
-    const fetchDetails = async () => {
+    const fetchDetails = useCallback(async () => {
         setLoading(true);
         const ids = compareList.map(c => c.id);
         const { data } = await supabase
@@ -60,7 +52,15 @@ export default function ComparePage() {
         }));
         setColleges(ordered);
         setLoading(false);
-    };
+    }, [compareList]);
+
+    useEffect(() => {
+        if (compareList.length > 0) {
+            fetchDetails();
+        } else {
+            fetchPopular();
+        }
+    }, [compareList, fetchDetails, fetchPopular]);
 
     const getBestIndex = (field) => {
         if (field.best === 'none') return -1;

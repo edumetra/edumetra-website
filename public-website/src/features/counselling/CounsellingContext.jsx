@@ -6,6 +6,7 @@ const CounsellingContext = createContext({
     closeModal: () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCounselling = () => {
     const context = useContext(CounsellingContext);
     if (!context) {

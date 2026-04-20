@@ -11,6 +11,7 @@ export const useGuestLimit = (user, currentCollegeSlug) => {
     useEffect(() => {
         // If user is logged in or we don't have a valid slug yet, don't check limits
         if (user || !currentCollegeSlug) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setHasExceededLimit(false);
             return;
         }

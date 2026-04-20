@@ -5,7 +5,7 @@ import StatsCounter from '../../shared/ui/StatsCounter';
 import { analytics } from '../../shared/utils/analytics';
 
 import { motion } from 'framer-motion';
-const HeroSection = () => {    // eslint-disable-next-line no-unused-vars
+const HeroSection = () => {
     const handlePrimaryCTA = () => {
         analytics.trackCTAClick('Get Started Free', 'Hero Section', 'primary');
         analytics.trackSignupIntent('hero_primary_cta');

@@ -7,7 +7,7 @@ interface LogPayload {
     actionType: ActionType;
     entityType: string;
     entityId?: string | null;
-    details?: Record<string, any> | null;
+    details?: Record<string, unknown> | null;
 }
 
 /**
@@ -50,7 +50,8 @@ export async function logAdminAction(payload: LogPayload) {
             action_type: payload.actionType,
             entity_type: payload.entityType,
             entity_id: payload.entityId || null,
-            details: payload.details || null
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: (payload.details as any) ?? null
         });
 
         if (error) {
@@ -59,7 +60,7 @@ export async function logAdminAction(payload: LogPayload) {
         }
 
         return true;
-    } catch (err) {
+    } catch (err: unknown) {
         console.error("Unexpected error in logAdminAction:", err);
         return false;
     }

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 import type { AdminPermissions, PermissionKey } from "@/shared/permissions";
 import {
@@ -90,8 +90,6 @@ export function Sidebar({
     permissions?: AdminPermissions;
 }) {
     const pathname = usePathname();
-    const router = useRouter();
-    const supabase = createClient();
     const isDashboard = pathname === "/";
 
     const handleLogout = async () => {
@@ -106,7 +104,7 @@ export function Sidebar({
             <div className="p-5 border-b border-slate-800">
                 <Link href="/" className="flex items-center gap-3 mb-2 group">
                     <div className="h-10 w-auto rounded-lg overflow-hidden bg-white px-2 flex items-center justify-center">
-                        <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
+                        <Image src="/logo.jpeg" alt="Edumetra Logo" width={32} height={32} className="h-8 w-auto object-contain" />
                     </div>
                 </Link>
                 <div className="flex items-center gap-2 mt-1">

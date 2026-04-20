@@ -55,9 +55,9 @@ export default function CollegeForm({ initialData, onSubmit, loading, error, isE
 
     useEffect(() => {
         if (initialData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData(initialData);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

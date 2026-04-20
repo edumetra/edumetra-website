@@ -99,7 +99,7 @@ export default function UsersPage() {
         setActionLoading(id);
         const { error } = await supabase
             .from("user_profiles")
-            .update({ is_banned: ban, banned_at: ban ? new Date().toISOString() : null } as unknown as never)
+            .update({ is_banned: ban, banned_at: ban ? new Date().toISOString() : null })
             .eq("id", id);
         if (!error) {
             const update = { is_banned: ban, banned_at: ban ? new Date().toISOString() : null };
@@ -112,7 +112,7 @@ export default function UsersPage() {
     const handleAccountTypeChange = async (id: string, type: AccountType) => {
         const { error } = await supabase
             .from("user_profiles")
-            .update({ account_type: type } as unknown as never)
+            .update({ account_type: type })
             .eq("id", id);
         if (!error) {
             setUsers((prev) => prev.map((u) => u.id === id ? { ...u, account_type: type } : u));

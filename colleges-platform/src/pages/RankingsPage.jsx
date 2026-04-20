@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
@@ -15,11 +15,7 @@ export default function RankingsPage() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchRankings();
-    }, [activeTab, streamFilter]);
-
-    const fetchRankings = async () => {
+    const fetchRankings = useCallback(async () => {
         setLoading(true);
         let query = supabase
             .from('colleges')
@@ -41,7 +37,12 @@ export default function RankingsPage() {
         const { data } = await query;
         setColleges(data || []);
         setLoading(false);
-    };
+    }, [activeTab, streamFilter]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchRankings();
+    }, [fetchRankings]);
 
     return (
         <div className="min-h-screen bg-black">

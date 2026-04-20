@@ -103,8 +103,7 @@ export default function CollegesPage() {
     useEffect(() => { fetch(); }, [fetch]);
 
     const handleVisibilityChange = async (id: string, vis: Visibility) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from("colleges") as any).update({ visibility: vis, is_published: vis === "public" }).eq("id", id);
+        await supabase.from("colleges").update({ visibility: vis, is_published: vis === "public" }).eq("id", id);
         setColleges((prev) => prev.map((c) => c.id === id ? { ...c, visibility: vis } : c));
     };
 
@@ -123,8 +122,7 @@ export default function CollegesPage() {
         if (selected.size === 0) return;
         setBulkLoading(true);
         const ids = [...selected];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from("colleges") as any).update({ visibility: vis, is_published: vis === "public" }).in("id", ids);
+        await supabase.from("colleges").update({ visibility: vis, is_published: vis === "public" }).in("id", ids);
         setColleges((prev) => prev.map((c) => ids.includes(c.id) ? { ...c, visibility: vis } : c));
         setSelected(new Set());
         setBulkLoading(false);

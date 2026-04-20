@@ -39,7 +39,7 @@ export default function HotLeadsPage() {
             .order("pricing_views", { ascending: false })
             .limit(200);
 
-        if (!error && data) setLeads(data as Lead[]);
+        if (!error && data) setLeads(data);
         setLoading(false);
     };
 

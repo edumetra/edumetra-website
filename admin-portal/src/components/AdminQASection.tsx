@@ -25,7 +25,7 @@ export default function AdminQASection({ collegeId }: { collegeId: string }) {
     const fetchQuestions = async () => {
         setLoading(true);
         const { data } = await supabase
-            .from("college_qa" as any)
+            .from("college_qa")
             .select("*")
             .eq("college_id", collegeId)
             .order("created_at", { ascending: false });
@@ -43,8 +43,8 @@ export default function AdminQASection({ collegeId }: { collegeId: string }) {
         if (!answerText.trim() || submitting) return;
         setSubmitting(true);
 
-        const { error } = await (supabase
-            .from("college_qa") as any)
+        const { error } = await supabase
+            .from("college_qa")
             .update({
                 answer: answerText.trim(),
                 answered_by: "Admin",
@@ -66,7 +66,7 @@ export default function AdminQASection({ collegeId }: { collegeId: string }) {
         if (!confirm("Are you sure you want to delete this question?")) return;
 
         const { error } = await supabase
-            .from("college_qa" as any)
+            .from("college_qa")
             .delete()
             .eq("id", id);
 

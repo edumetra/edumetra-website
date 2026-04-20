@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
 import { 
@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator, Trophy, Lock, Search } from 'lucide-react';
 import { usePremium } from '../contexts/PremiumContext';
-import { canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
+import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
 import { toast } from 'react-hot-toast';
 
 
@@ -25,7 +25,7 @@ const EXAMS = [
 const TABS = ['Dashboard', 'Account Settings', 'My Reviews', 'Saved Colleges', 'AI Strategies'];
 
 export default function ProfilePage() {
-    const { user, isSignedUp, logout } = useSignup();
+    const { user, logout } = useSignup();
     const { isPremium, isPro } = usePremium();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('Dashboard');
@@ -60,6 +60,7 @@ export default function ProfilePage() {
 
     const [loadingReviews, setLoadingReviews] = useState(false);
     const [loadingSaved, setLoadingSaved] = useState(false);
+    const [loadingAI, setLoadingAI] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editText, setEditText] = useState('');
     const [editTitle, setEditTitle] = useState('');
@@ -78,9 +79,10 @@ export default function ProfilePage() {
         if (activeTab === 'Account Settings' || activeTab === 'Dashboard') fetchProfile();
         if (activeTab === 'My Reviews') fetchReviews();
         if (activeTab === 'Saved Colleges' || activeTab === 'Dashboard') fetchSaved();
-    }, [activeTab, user]);
+        if (activeTab === 'AI Strategies') fetchNeetPlans();
+    }, [activeTab, user, fetchProfile, fetchReviews, fetchSaved, fetchNeetPlans]);
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -124,9 +126,9 @@ export default function ProfilePage() {
         } finally {
             clearTimeout(timeout);
         }
-    };
+    }, [user]);
 
-    const fetchReviews = async () => {
+    const fetchReviews = useCallback(async () => {
         setLoadingReviews(true);
         const { data } = await supabase
             .from('reviews')
@@ -135,9 +137,9 @@ export default function ProfilePage() {
             .order('created_at', { ascending: false });
         setReviews(data || []);
         setLoadingReviews(false);
-    };
+    }, [user]);
 
-    const fetchSaved = async () => {
+    const fetchSaved = useCallback(async () => {
         setLoadingSaved(true);
         const { data } = await supabase
             .from('saved_colleges')
@@ -146,7 +148,18 @@ export default function ProfilePage() {
             .order('created_at', { ascending: false });
         setSavedColleges(data || []);
         setLoadingSaved(false);
-    };
+    }, [user]);
+
+    const fetchNeetPlans = useCallback(async () => {
+        setLoadingAI(true);
+        const { data } = await supabase
+            .from('user_neet_plans')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+        setNeetPlans(data || []);
+        setLoadingAI(false);
+    }, [user]);
 
     const handleEditSave = async (reviewId) => {
         await supabase.from('reviews').update({ title: editTitle, review_text: editText, moderation_status: 'pending' }).eq('id', reviewId);

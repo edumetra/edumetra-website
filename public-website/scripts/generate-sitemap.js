@@ -1,3 +1,4 @@
+/* global process */
 import { writeFileSync } from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';

@@ -17,14 +17,14 @@ type AppStatus = "pending" | "under_review" | "accepted" | "rejected";
 
 type CareerApplication = {
     id: string;
-    full_name: string;
-    email: string;
+    full_name: string | null;
+    email: string | null;
     phone: string | null;
     role: string | null;
     position: string | null;
     message: string | null;
     resume_url: string | null;
-    status: AppStatus;
+    status: AppStatus | null;
     created_at: string;
 };
 
@@ -93,9 +93,7 @@ export default function CareersPage() {
         setActionLoading(id);
         const { error: err } = await supabase
             .from("career_applications")
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .update({ status } as unknown as never)
+            .update({ status })
             .eq("id", id);
         if (!err) {
             setApps((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));

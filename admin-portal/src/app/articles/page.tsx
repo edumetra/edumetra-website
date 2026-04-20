@@ -11,10 +11,10 @@ type Article = {
     title: string;
     slug: string;
     content: string;
-    excerpt: string;
-    image_url: string;
+    excerpt: string | null;
+    image_url: string | null;
     published: boolean;
-    author: string;
+    author: string | null;
     created_at: string;
     updated_at: string;
 };
@@ -48,7 +48,7 @@ export default function ArticlesPage() {
             .order("created_at", { ascending: false });
 
         if (fetchErr) setError("Failed to load articles.");
-        else setArticles(data || []);
+        else setArticles(data ?? []);
         setLoading(false);
     };
 
@@ -89,8 +89,8 @@ export default function ArticlesPage() {
         };
 
         if (editingArticle) {
-            const { data, error: updateErr } = await (supabase
-                .from("articles") as any)
+            const { data, error: updateErr } = await supabase
+                .from("articles")
                 .update(payload)
                 .eq("id", editingArticle.id)
                 .select()
@@ -101,8 +101,8 @@ export default function ArticlesPage() {
                 setIsModalOpen(false);
             }
         } else {
-            const { data, error: insertErr } = await (supabase
-                .from("articles") as any)
+            const { data, error: insertErr } = await supabase
+                .from("articles")
                 .insert([payload])
                 .select()
                 .single();
@@ -129,7 +129,7 @@ export default function ArticlesPage() {
 
     const handleTogglePublish = async (id: string, currentStatus: boolean) => {
         setActionLoading(id);
-        const { error } = await (supabase.from("articles") as any).update({ published: !currentStatus }).eq("id", id);
+        const { error } = await supabase.from("articles").update({ published: !currentStatus }).eq("id", id);
         if (!error) {
             setArticles(prev => prev.map(a => a.id === id ? { ...a, published: !currentStatus } : a));
         }

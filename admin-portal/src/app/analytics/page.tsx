@@ -83,14 +83,13 @@ export default function AnalyticsPage() {
         ]);
 
         // Average rating
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allRatings = (ratingRes.data ?? []) as any[];
+        const allRatings = ratingRes.data ?? [];
         const avg = allRatings.length ? (allRatings.reduce((sum, r) => sum + (r.rating ?? 0), 0) / allRatings.length) : 0;
 
         // Rating distribution
         const dist = [1, 2, 3, 4, 5].map((r) => ({
             rating: r,
-            count: allRatings.filter((x) => Math.round(x.rating) === r).length,
+            count: allRatings.filter((x) => Math.round(x.rating ?? 0) === r).length,
         }));
 
         setStats({
@@ -100,7 +99,9 @@ export default function AnalyticsPage() {
             totalUsers: usersRes.count ?? 0,
             avgRating: Math.round(avg * 10) / 10,
         });
-        setTopColleges((topRes.data ?? []) as TopCollege[]);
+
+        // @ts-expect-error - Database types are nullable, UI expects non-nullable
+        setTopColleges(topRes.data ?? []);
         setReviewDailyStats(buildDailySeries((reviewDatesRes.data ?? []).map((r: { created_at: string }) => r.created_at), days));
         setUserDailyStats(buildDailySeries((userDatesRes.data ?? []).map((r: { created_at: string }) => r.created_at), days));
         setRatingDist(dist);

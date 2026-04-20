@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
-import { Search, Trophy, ArrowRight, BookOpen, Star, GraduationCap, Crown, Lock, LayoutGrid, LayoutList } from 'lucide-react';
+import { Search, Trophy, ArrowRight, Star, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSignup } from '../contexts/SignupContext';
 import { usePremium } from '../contexts/PremiumContext';
-import { categorizePrediction, canUserPredict, recordUsage, getUsage, PREDICTION_LEVELS } from '../components/predictor/predictorEngine';
+import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
 
 const EXAMS = [
     { id: 'jee_main', label: 'JEE Main', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
@@ -17,7 +17,7 @@ const EXAMS = [
 ];
 
 export default function RankPredictorPage() {
-    const { isSignedUp } = useSignup();
+    const { } = useSignup();
     const { isPremium, isPro } = usePremium();
     const [exam, setExam] = useState(EXAMS[0]);
     const [score, setScore] = useState('');
@@ -27,10 +27,6 @@ export default function RankPredictorPage() {
 
     const role = isPro ? 'pro' : isPremium ? 'premium' : 'free';
     const isGated = !isPremium && !isPro;
-
-    useEffect(() => {
-        setUsage(getUsage());
-    }, [results]);
 
     const handlePredict = async () => {
         if (!score || !canUserPredict(role)) return;
@@ -49,6 +45,7 @@ export default function RankPredictorPage() {
 
         setResults(mapped);
         recordUsage();
+        setUsage(getUsage()); // Update state after recording usage
         setLoading(false);
         
         // Save to session for Detail Page badge

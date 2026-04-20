@@ -87,9 +87,7 @@ export default function ReviewsPage() {
 
     const handleStatusChange = async (id: string, status: ModerationStatus) => {
         setActionLoading(id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await supabase.from("reviews").update({ moderation_status: status } as unknown as never).eq("id", id);
+        await supabase.from("reviews").update({ moderation_status: status }).eq("id", id);
         setReviews((prev) => prev.map((r) => r.id === id ? { ...r, moderation_status: status } : r));
         setActionLoading(null);
     };

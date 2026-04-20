@@ -54,13 +54,14 @@ export default function BulkUploadModal({
 
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-                    const json = xlsx.utils.sheet_to_json(worksheet) as any[];
+                    const json = xlsx.utils.sheet_to_json(worksheet);
 
                     if (json.length === 0) {
                         throw new Error("The selected sheet is empty.");
                     }
 
-                    const res = await processBulkColleges(json);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const res = await processBulkColleges(json as any);
 
                     if (res.error) {
                         setError(res.error);
@@ -71,8 +72,8 @@ export default function BulkUploadModal({
                             handleClose();
                         }, 3000);
                     }
-                } catch (err: any) {
-                    setError("Failed to parse the file: " + err.message);
+                } catch (err: unknown) {
+                    setError("Failed to parse the file: " + (err instanceof Error ? err.message : String(err)));
                 } finally {
                     setLoading(false);
                 }
@@ -84,8 +85,8 @@ export default function BulkUploadModal({
             };
 
             reader.readAsArrayBuffer(file);
-        } catch (err: any) {
-            setError("An unexpected error occurred.");
+        } catch (err: unknown) {
+            setError("An unexpected error occurred: " + (err instanceof Error ? err.message : String(err)));
             setLoading(false);
         }
     };

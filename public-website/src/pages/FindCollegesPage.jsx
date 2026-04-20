@@ -22,6 +22,7 @@ const FindCollegesPage = () => {
     });
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const [compareList, setCompareList] = useState([]);
 
     // Fetch live colleges from Supabase
     useEffect(() => {
@@ -88,7 +89,7 @@ const FindCollegesPage = () => {
         // Add logic for fees range if needed (requires parsing strings to numbers)
 
         return filtered;
-    }, [searchQuery, selectedFilters]);
+    }, [searchQuery, selectedFilters, initialColleges]);
 
     // Use derived state for colleges instead of manually syncing
     const colleges = filteredColleges;

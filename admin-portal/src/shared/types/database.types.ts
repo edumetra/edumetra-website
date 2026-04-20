@@ -46,6 +46,7 @@ export interface Database {
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
             }
             profiles: {
                 Row: {
@@ -72,6 +73,7 @@ export interface Database {
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
             }
             colleges: {
                 Row: {
@@ -90,6 +92,7 @@ export interface Database {
                     image: string | null
                     is_published: boolean
                     visibility: 'public' | 'draft' | 'hidden'
+                    review_count: number | null
                     created_at: string
                     updated_at: string
                 }
@@ -109,6 +112,7 @@ export interface Database {
                     image?: string | null
                     is_published?: boolean
                     visibility?: 'public' | 'draft' | 'hidden'
+                    review_count?: number | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -128,9 +132,11 @@ export interface Database {
                     image?: string | null
                     is_published?: boolean
                     visibility?: 'public' | 'draft' | 'hidden'
+                    review_count?: number | null
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
             }
             college_details: {
                 Row: {
@@ -160,6 +166,7 @@ export interface Database {
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
             }
             college_qa: {
                 Row: {
@@ -195,6 +202,7 @@ export interface Database {
                     answered_at?: string | null
                     created_at?: string
                 }
+                Relationships: []
             }
             cutoffs: {
                 Row: {
@@ -227,6 +235,7 @@ export interface Database {
                     round?: number | null
                     created_at?: string
                 }
+                Relationships: []
             }
             rankings: {
                 Row: {
@@ -253,6 +262,7 @@ export interface Database {
                     rank?: number | null
                     created_at?: string
                 }
+                Relationships: []
             }
             user_activity_logs: {
                 Row: {
@@ -276,6 +286,7 @@ export interface Database {
                     details?: Json
                     created_at?: string
                 }
+                Relationships: []
             }
             counselling_requests: {
                 Row: {
@@ -305,6 +316,7 @@ export interface Database {
                     city?: string | null
                     created_at?: string
                 }
+                Relationships: []
             }
             news_updates: {
                 Row: {
@@ -313,6 +325,7 @@ export interface Database {
                     content: string
                     image_url: string | null
                     tags: string[] | null
+                    is_subscriber_only: boolean
                     published_at: string
                     created_at: string
                     updated_at: string
@@ -323,6 +336,7 @@ export interface Database {
                     content: string
                     image_url?: string | null
                     tags?: string[] | null
+                    is_subscriber_only?: boolean
                     published_at?: string
                     created_at?: string
                     updated_at?: string
@@ -333,10 +347,357 @@ export interface Database {
                     content?: string
                     image_url?: string | null
                     tags?: string[] | null
+                    is_subscriber_only?: boolean
                     published_at?: string
                     created_at?: string
                     updated_at?: string
                 }
+                Relationships: []
+            }
+            admins: {
+                Row: {
+                    id: string
+                    email: string
+                    role: 'superadmin' | 'mini_admin'
+                    permissions: Json
+                    created_at: string
+                }
+                Insert: {
+                    id: string
+                    email: string
+                    role?: 'superadmin' | 'mini_admin'
+                    permissions?: Json
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    email?: string
+                    role?: 'superadmin' | 'mini_admin'
+                    permissions?: Json
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            audit_logs: {
+                Row: {
+                    id: string
+                    admin_id: string | null
+                    action: string
+                    entity_type: string | null
+                    entity_id: string | null
+                    details: Json
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    admin_id?: string | null
+                    action: string
+                    entity_type?: string | null
+                    entity_id?: string | null
+                    details?: Json
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    admin_id?: string | null
+                    action?: string
+                    entity_type?: string | null
+                    entity_id?: string | null
+                    details?: Json
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            career_applications: {
+                Row: {
+                    id: string
+                    full_name: string | null
+                    email: string | null
+                    phone: string | null
+                    role: string | null
+                    position: string | null
+                    resume_url: string | null
+                    message: string | null
+                    status: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    full_name?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    role?: string | null
+                    position?: string | null
+                    resume_url?: string | null
+                    message?: string | null
+                    status?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    full_name?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    role?: string | null
+                    position?: string | null
+                    resume_url?: string | null
+                    message?: string | null
+                    status?: string | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            college_courses: {
+                Row: {
+                    id: string
+                    college_id: string | null
+                    name: string
+                    duration: string | null
+                    degree_type: string | null
+                    seats: number | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    college_id?: string | null
+                    name: string
+                    duration?: string | null
+                    degree_type?: string | null
+                    seats?: number | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    college_id?: string | null
+                    name?: string
+                    duration?: string | null
+                    degree_type?: string | null
+                    seats?: number | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            course_fees_breakdown: {
+                Row: {
+                    id: string
+                    course_id: string | null
+                    year: number | null
+                    fee_type: string | null
+                    amount: number | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    course_id?: string | null
+                    year?: number | null
+                    fee_type?: string | null
+                    amount?: number | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    course_id?: string | null
+                    year?: number | null
+                    fee_type?: string | null
+                    amount?: number | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            lead_scores: {
+                Row: {
+                    identifier: string
+                    user_id: string | null
+                    email: string | null
+                    pricing_views: number
+                    last_seen: string
+                    created_at: string
+                }
+                Insert: {
+                    identifier: string
+                    user_id?: string | null
+                    email?: string | null
+                    pricing_views?: number
+                    last_seen?: string
+                    created_at?: string
+                }
+                Update: {
+                    identifier?: string
+                    user_id?: string | null
+                    email?: string | null
+                    pricing_views?: number
+                    last_seen?: string
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            newsletter_subscriptions: {
+                Row: {
+                    id: string
+                    email: string
+                    name: string | null
+                    phone: string | null
+                    is_active: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    email: string
+                    name?: string | null
+                    phone?: string | null
+                    is_active?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    email?: string
+                    name?: string | null
+                    phone?: string | null
+                    is_active?: boolean
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            reviews: {
+                Row: {
+                    id: string
+                    college_id: string | null
+                    user_id: string | null
+                    user_name: string | null
+                    rating: number | null
+                    content: string | null
+                    moderation_status: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    college_id?: string | null
+                    user_id?: string | null
+                    user_name?: string | null
+                    rating?: number | null
+                    content?: string | null
+                    moderation_status?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    college_id?: string | null
+                    user_id?: string | null
+                    user_name?: string | null
+                    rating?: number | null
+                    content?: string | null
+                    moderation_status?: string | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            saved_colleges: {
+                Row: {
+                    id: string
+                    user_id: string | null
+                    college_id: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id?: string | null
+                    college_id?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string | null
+                    college_id?: string | null
+                    created_at?: string
+                }
+                Relationships: []
+            }
+            user_profiles: {
+                Row: {
+                    id: string
+                    user_id: string | null
+                    full_name: string | null
+                    email: string | null
+                    phone: string | null
+                    phone_number: string | null
+                    neet_score: number | null
+                    target_state: string | null
+                    account_type: 'free' | 'premium' | 'pro'
+                    is_banned: boolean
+                    banned_at: string | null
+                    last_sign_in_at: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id?: string | null
+                    full_name?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    phone_number?: string | null
+                    neet_score?: number | null
+                    target_state?: string | null
+                    account_type?: 'free' | 'premium' | 'pro'
+                    is_banned?: boolean
+                    banned_at?: string | null
+                    last_sign_in_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string | null
+                    full_name?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    phone_number?: string | null
+                    neet_score?: number | null
+                    target_state?: string | null
+                    account_type?: 'free' | 'premium' | 'pro'
+                    is_banned?: boolean
+                    banned_at?: string | null
+                    last_sign_in_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Relationships: []
+            }
+            coupons: {
+                Row: {
+                    id: string
+                    code: string
+                    discount_percentage: number
+                    razorpay_offer_id: string | null
+                    is_active: boolean
+                    max_uses: number | null
+                    used_count: number
+                    expires_at: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    code: string
+                    discount_percentage: number
+                    razorpay_offer_id?: string | null
+                    is_active?: boolean
+                    max_uses?: number | null
+                    used_count?: number
+                    expires_at?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    code?: string
+                    discount_percentage?: number
+                    razorpay_offer_id?: string | null
+                    is_active?: boolean
+                    max_uses?: number | null
+                    used_count?: number
+                    expires_at?: string | null
+                    created_at?: string
+                }
+                Relationships: []
             }
         }
         Views: {
@@ -352,7 +713,17 @@ export interface Database {
                     website_url: string | null
                     meta_data: Json
                 }
+                Relationships: []
             }
+        }
+        Functions: {
+            [_ in never]: never
+        }
+        Enums: {
+            [_ in never]: never
+        }
+        CompositeTypes: {
+            [_ in never]: never
         }
     }
 }
