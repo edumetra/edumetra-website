@@ -18,12 +18,47 @@ import WebinarRegistration from '../components/sections/webinars/WebinarRegistra
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { WEBINAR_EVENTS } from '../shared/constants/events';
 import { analytics } from '../shared/utils/analytics';
+import { supabase } from '../services/supabaseClient';
 
 const WebinarsAndSeminarsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         analytics.trackPageView('/webinars-seminars', 'Webinars and Seminars');
+        const fetchEvents = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('events')
+                .select('*')
+                .order('date', { ascending: true });
+            
+            if (!error && data) {
+                // Map DB keys to component expected keys
+                const formatted = data.map(evt => ({
+                    id: evt.id,
+                    slug: evt.slug,
+                    title: evt.title,
+                    date: evt.date,
+                    time: evt.time,
+                    category: evt.category,
+                    speaker: evt.speaker,
+                    speakerTitle: evt.speaker_title,
+                    description: evt.description,
+                    longDescription: evt.long_description,
+                    image: evt.image,
+                    featured: evt.featured,
+                    type: evt.type,
+                    agenda: evt.agenda
+                }));
+                setUpcomingEvents(formatted);
+            } else {
+                setUpcomingEvents(WEBINAR_EVENTS); // fallback
+            }
+            setLoading(false);
+        };
+        fetchEvents();
     }, []);
 
     const categories = [
@@ -35,7 +70,7 @@ const WebinarsAndSeminarsPage = () => {
         'Study Tips'
     ];
 
-    const upcomingEvents = WEBINAR_EVENTS;
+    ];
 
     const pastEvents = [
         {
@@ -150,7 +185,11 @@ const WebinarsAndSeminarsPage = () => {
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
                 />
-                <UpcomingWebinars events={filteredUpcoming} />
+                {loading ? (
+                    <div className="py-20 text-center text-slate-400">Loading events...</div>
+                ) : (
+                    <UpcomingWebinars events={filteredUpcoming} />
+                )}
                 <WebinarBenefits benefits={benefits} />
                 <PastWebinars events={pastEvents} />
                 <WebinarRegistration />

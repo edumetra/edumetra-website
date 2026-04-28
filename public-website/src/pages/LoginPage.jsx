@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
@@ -7,6 +7,8 @@ import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 const LoginPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const returnUrl = searchParams.get('returnUrl') || '/dashboard';
     const { signIn, signInWithGoogle, user } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
@@ -19,8 +21,8 @@ const LoginPage = () => {
 
     // Redirect if already logged in
     useEffect(() => {
-        if (user) navigate('/dashboard', { replace: true });
-    }, [user, navigate]);
+        if (user) navigate(returnUrl, { replace: true });
+    }, [user, navigate, returnUrl]);
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -42,7 +44,7 @@ const LoginPage = () => {
         } else {
             setSuccess('Login successful! Redirecting...');
             setTimeout(() => {
-                navigate('/');
+                navigate(returnUrl);
             }, 1500);
         }
     };

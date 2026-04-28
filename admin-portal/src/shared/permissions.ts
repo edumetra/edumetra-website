@@ -14,7 +14,8 @@ export type PermissionKey =
     | "counselling"
     | "news"
     | "newsletter"
-    | "coupons";
+    | "coupons"
+    | "events";
 
 export type AdminPermissions = Partial<Record<PermissionKey, boolean>>;
 
@@ -31,6 +32,7 @@ export const ALL_PERMISSIONS: { key: PermissionKey; label: string; description: 
     { key: "careers", label: "Career Applications", description: "Manage job applications" },
     { key: "counselling", label: "Counselling Requests", description: "Manage and download counselling requests" },
     { key: "news", label: "News & Updates", description: "Create, edit, and publish news and announcements" },
+    { key: "events", label: "Events (Webinars)", description: "Manage webinars and view registrations" },
     { key: "newsletter", label: "Newsletter Subscribers", description: "View and export newsletter subscriptions" },
     { key: "coupons", label: "Coupons", description: "Manage discount codes and Razorpay offers" },
     { key: "audit_logs", label: "Audit Logs", description: "View admin audit trail (read-only)" },
@@ -60,6 +62,7 @@ export const DEFAULT_MINI_ADMIN_PERMISSIONS: AdminPermissions = {
     cutoffs: false,
     rankings: false,
     counselling: false,
+    events: false,
     newsletter: false,
     coupons: false,
 };

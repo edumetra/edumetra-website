@@ -1,9 +1,43 @@
 import React from 'react';
 import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../../features/auth/AuthProvider';
+import { supabase } from '../../../services/supabaseClient';
 
 const UpcomingWebinars = ({ events }) => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [registering, setRegistering] = React.useState(null);
+    const [successMessage, setSuccessMessage] = React.useState('');
+
+    const handleShowInterest = async (eventId) => {
+        if (!user) {
+            // Redirect to login with returnUrl
+            navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+            return;
+        }
+
+        setRegistering(eventId);
+        try {
+            const { error } = await supabase
+                .from('event_registrations')
+                .insert([{ event_id: eventId, user_id: user.id, status: 'registered' }]);
+
+            if (error && error.code !== '23505') { // Ignore unique constraint violation if already registered
+                console.error('Registration failed:', error);
+                alert('Failed to register. Please try again.');
+            } else {
+                setSuccessMessage('Thank you for your registration!');
+                setTimeout(() => setSuccessMessage(''), 5000);
+            }
+        } catch (err) {
+            console.error('Error:', err);
+        } finally {
+            setRegistering(null);
+        }
+    };
     return (
         <section className="section">
             <div className="container-custom">
@@ -16,7 +50,19 @@ const UpcomingWebinars = ({ events }) => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto relative">
+                    <AnimatePresence>
+                        {successMessage && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20, x: '-50%' }}
+                                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                                exit={{ opacity: 0, y: -20, x: '-50%' }}
+                                className="fixed top-24 left-1/2 z-[100] bg-emerald-500/90 backdrop-blur border border-emerald-400 text-white px-6 py-3 rounded-full font-bold shadow-xl flex items-center gap-2"
+                            >
+                                <span>🎉</span> {successMessage}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     {events.map((event, index) => (
                         <motion.div
                             key={index}
@@ -87,13 +133,21 @@ const UpcomingWebinars = ({ events }) => {
                                         </div>
                                     </div>
 
-                                    <Link 
-                                        to={`/webinars-seminars/${event.slug}`}
-                                        className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 group-hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
-                                    >
-                                        View Details & Register
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <Link 
+                                            to={`/webinars-seminars/${event.slug}`}
+                                            className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition-all text-center text-sm"
+                                        >
+                                            View Details
+                                        </Link>
+                                        <button 
+                                            onClick={() => handleShowInterest(event.id)}
+                                            disabled={registering === event.id}
+                                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                                        >
+                                            {registering === event.id ? 'Registering...' : 'Show Interest'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

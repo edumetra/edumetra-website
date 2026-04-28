@@ -25,6 +25,7 @@ import {
     Mail,
     Flame,
     Ticket,
+    Calendar,
 } from "lucide-react";
 
 type NavItem = {
@@ -44,6 +45,7 @@ const CONTENT_NAV: NavItem[] = [
     { href: "/careers", label: "Career Applications", icon: Briefcase, permKey: "careers" },
     { href: "/counselling", label: "Counselling Requests", icon: Headphones, permKey: "counselling" },
     { href: "/news", label: "News & Updates", icon: FileText, permKey: "news" },
+    { href: "/events", label: "Events & Webinars", icon: Calendar, permKey: "events" },
     { href: "/newsletter", label: "Newsletter Subscriptions", icon: Mail, permKey: "newsletter" },
 ];
 
