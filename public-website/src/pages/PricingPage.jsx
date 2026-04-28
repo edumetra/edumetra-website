@@ -4,6 +4,7 @@ import SEO from '../components/SEO';
 import Button from '../shared/ui/Button';
 import { analytics } from '../shared/utils/analytics';
 import { generateStructuredData } from '../shared/utils/seo';
+import { useAuth } from '../features/auth/AuthProvider';
 
 import { motion } from 'framer-motion';
 
@@ -36,6 +37,7 @@ async function trackPricingView() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PricingPage = () => {
+    const { user } = useAuth();
     useEffect(() => {
         analytics.trackPageView('/pricing', 'Pricing');
         trackPricingView();
@@ -237,7 +239,12 @@ const PricingPage = () => {
                                     </ul>
 
                                     <div className="mt-auto">
-                                        <Button variant={plan.variant} size="lg" className="w-full" href={`/signup?plan=${plan.name.toLowerCase()}`}>
+                                        <Button 
+                                            variant={plan.variant} 
+                                            size="lg" 
+                                            className="w-full" 
+                                            href={user ? (import.meta.env.VITE_COLLEGES_PLATFORM_URL ? `${import.meta.env.VITE_COLLEGES_PLATFORM_URL}/pricing` : 'http://localhost:3002/pricing') : `/signup?plan=${plan.name.toLowerCase()}`}
+                                        >
                                             {plan.cta}
                                         </Button>
                                     </div>

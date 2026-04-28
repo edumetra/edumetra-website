@@ -2,9 +2,11 @@ import React from 'react';
 import { Check, Star, Zap } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
+import { useAuth } from '../../features/auth/AuthProvider';
 
 import { motion } from 'framer-motion';
 const PricingSection = () => {
+    const { user } = useAuth();
     const plans = [
         {
             name: 'Free',
@@ -66,6 +68,12 @@ const PricingSection = () => {
     const handlePlanClick = (planName) => {
         analytics.trackPricingView(planName);
         analytics.trackCTAClick(`${planName} Plan`, 'Pricing Section', 'card');
+        const collegesUrl = import.meta.env.VITE_COLLEGES_PLATFORM_URL || 'http://localhost:3002';
+        if (user) {
+            window.location.href = `${collegesUrl}/pricing`;
+        } else {
+            window.location.href = `/signup?plan=${planName.toLowerCase()}`;
+        }
     };
 
     return (

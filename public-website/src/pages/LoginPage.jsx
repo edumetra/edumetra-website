@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
@@ -7,7 +7,7 @@ import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 const LoginPage = () => {
     const navigate = useNavigate();
-    const { signIn, signInWithGoogle } = useAuth();
+    const { signIn, signInWithGoogle, user } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -17,6 +17,10 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // Redirect if already logged in
+    useEffect(() => {
+        if (user) navigate('/dashboard', { replace: true });
+    }, [user, navigate]);
     const handleChange = (e) => {
         setFormData({
             ...formData,
