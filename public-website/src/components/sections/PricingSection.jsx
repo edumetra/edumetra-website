@@ -68,9 +68,10 @@ const PricingSection = () => {
     const handlePlanClick = (planName) => {
         analytics.trackPricingView(planName);
         analytics.trackCTAClick(`${planName} Plan`, 'Pricing Section', 'card');
+        if (planName.toLowerCase() === 'free') return;
         const collegesUrl = import.meta.env.VITE_COLLEGES_PLATFORM_URL || 'http://localhost:3002';
         if (user) {
-            window.location.href = `${collegesUrl}/pricing`;
+            window.location.href = `/checkout?plan=${planName.toLowerCase()}`;
         } else {
             window.location.href = `/signup?plan=${planName.toLowerCase()}`;
         }

@@ -46,9 +46,12 @@ const PricingPage = () => {
     }, []);
 
     const handlePlanCTA = (planName) => {
-        const collegesUrl = import.meta.env.VITE_COLLEGES_PLATFORM_URL || 'http://localhost:3002';
+        if (planName.toLowerCase() === 'free') {
+            navigate('/signup');
+            return;
+        }
         if (user) {
-            window.location.href = `${collegesUrl}/pricing`;
+            navigate(`/checkout?plan=${planName.toLowerCase()}`);
         } else {
             navigate(`/signup?plan=${planName.toLowerCase()}`);
         }
