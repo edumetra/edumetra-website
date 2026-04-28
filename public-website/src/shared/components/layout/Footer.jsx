@@ -47,6 +47,7 @@ const Footer = () => {
     const otherLinks = [
         { name: 'About Us', path: '/about' },
         { name: 'Contact Us', path: '/contact' },
+        { name: 'Webinars & Seminars', path: '/webinars-seminars' },
         { name: 'Advertise With Us', path: '/advertise' },
         { name: 'Careers', path: '/careers' },
         { name: 'Privacy Policy', path: '/privacy' },

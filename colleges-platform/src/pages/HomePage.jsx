@@ -104,7 +104,8 @@ const PLANS = [
     {
         name: 'Premium',
         icon: Star,
-        price: '₹299',
+        originalPrice: '₹10,000',
+        price: '₹3,000',
         period: 'per month',
         description: 'Best for serious applicants comparing multiple colleges.',
         color: 'text-amber-400',
@@ -130,7 +131,8 @@ const PLANS = [
     {
         name: 'Pro',
         icon: Crown,
-        price: '₹799',
+        originalPrice: '₹50,000',
+        price: '₹30,000',
         period: 'per month',
         description: 'For students who want expert guidance and full access.',
         color: 'text-purple-400',
@@ -182,10 +184,15 @@ function PricingCard({ plan, onSignUp }) {
                 </div>
             </div>
 
-            <div className="mb-6">
-                <div className="flex items-end gap-1">
-                    <span className={`text-4xl font-black ${plan.color}`}>{plan.price}</span>
-                    <span className="text-slate-500 text-sm mb-1">/{plan.period}</span>
+            <div className="mb-6 flex flex-col items-start justify-center">
+                {plan.originalPrice && (
+                    <span className="text-lg font-semibold text-slate-500 line-through mb-1">
+                        {plan.originalPrice}
+                    </span>
+                )}
+                <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl lg:text-5xl font-black tracking-tight ${plan.color}`}>{plan.price}</span>
+                    <span className="text-slate-500 font-medium text-sm mb-1 whitespace-nowrap">/{plan.period}</span>
                 </div>
             </div>
 

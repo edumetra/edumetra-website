@@ -132,7 +132,7 @@ const PricingPage = () => {
                     if (typeof window !== 'undefined' && window.fbq) {
                         window.fbq('track', 'Purchase', {
                             currency: 'INR',
-                            value: tier === 'pro' ? 799 : 299,
+                            value: tier === 'pro' ? 30000 : 3000,
                             content_name: `${tier.toUpperCase()} Subscription`
                         });
                     }
@@ -188,7 +188,8 @@ const PricingPage = () => {
         {
             id: 'premium',
             name: 'Premium',
-            price: '₹299',
+            originalPrice: '₹10,000',
+            price: '₹3,000',
             period: 'per month',
             description: 'Best for serious applicants comparing multiple colleges.',
             badge: 'Most Popular',
@@ -209,7 +210,8 @@ const PricingPage = () => {
         {
             id: 'pro',
             name: 'Pro',
-            price: '₹799',
+            originalPrice: '₹50,000',
+            price: '₹30,000',
             period: 'per month',
             description: 'For students who want expert guidance and full access.',
             features: [
@@ -291,13 +293,20 @@ const PricingPage = () => {
                                         {plan.id === 'premium' && <Sparkles className="w-5 h-5 text-red-400" />}
                                         {plan.id === 'pro' && <Zap className="w-5 h-5 text-yellow-400" />}
                                     </h2>
-                                    <div className="flex items-baseline justify-center gap-1 mb-2">
-                                        <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                                            {appliedCoupon && plan.id !== 'free' 
-                                                ? `₹${Math.floor(parseInt(plan.price.replace('₹', '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
-                                                : plan.price}
-                                        </span>
-                                        <span className="text-slate-500 font-medium">{plan.period}</span>
+                                    <div className="flex flex-col items-center justify-center mb-2">
+                                        {plan.originalPrice && (
+                                            <span className="text-xl font-semibold text-slate-500 line-through mb-1">
+                                                {plan.originalPrice}
+                                            </span>
+                                        )}
+                                        <div className="flex items-baseline justify-center gap-1">
+                                            <span className="text-5xl lg:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                                                {appliedCoupon && plan.id !== 'free' 
+                                                    ? `₹${Math.floor(parseInt(plan.price.replace('₹', '').replace(/,/g, '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
+                                                    : plan.price}
+                                            </span>
+                                            <span className="text-slate-500 font-medium whitespace-nowrap">{plan.period}</span>
+                                        </div>
                                     </div>
                                     {appliedCoupon && plan.id !== 'free' && (
                                         <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest -mt-1 mb-2">

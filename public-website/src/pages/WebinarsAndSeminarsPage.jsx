@@ -16,6 +16,7 @@ import WebinarBenefits from '../components/sections/webinars/WebinarBenefits';
 import PastWebinars from '../components/sections/webinars/PastWebinars';
 import WebinarRegistration from '../components/sections/webinars/WebinarRegistration';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
+import { WEBINAR_EVENTS } from '../shared/constants/events';
 import { analytics } from '../shared/utils/analytics';
 
 const WebinarsAndSeminarsPage = () => {
@@ -34,57 +35,7 @@ const WebinarsAndSeminarsPage = () => {
         'Study Tips'
     ];
 
-    const upcomingEvents = [
-        {
-            title: 'NEET 2025 Counseling: Complete Strategy and Timeline',
-            date: '2025-02-15',
-            time: '6:00 PM - 7:30 PM IST',
-            category: 'Counseling Guide',
-            speaker: 'Dr. Rajesh Kumar',
-            speakerTitle: 'Senior Counseling Expert',
-            attendees: 523,
-            description: 'Learn the complete NEET counseling process, important dates, document preparation, and college selection strategy from our expert counselors.',
-            image: '📚',
-            featured: true,
-            type: 'Live Webinar'
-        },
-        {
-            title: 'Top Medical Colleges in India: Admission Strategy 2025',
-            date: '2025-02-18',
-            time: '5:00 PM - 6:30 PM IST',
-            category: 'Career Guidance',
-            speaker: 'Dr. Priya Sharma',
-            speakerTitle: 'Medical Education Consultant',
-            attendees: 412,
-            description: 'Discover insider tips on getting admission to top AIIMS, JIPMER, and state medical colleges. Learn about cutoffs, preparation strategies, and application tips.',
-            image: '🎓',
-            type: 'Live Webinar'
-        },
-        {
-            title: 'MBBS Abroad: Complete Country Comparison Workshop',
-            date: '2025-02-22',
-            time: '4:00 PM - 6:00 PM IST',
-            category: 'MBBS Abroad',
-            speaker: 'Vikram Singh',
-            speakerTitle: 'International Education Advisor',
-            attendees: 389,
-            description: 'Comprehensive workshop comparing Russia, China, Philippines, Kazakhstan, and other popular destinations for MBBS. Includes Q&A session.',
-            image: '🌍',
-            type: 'Workshop'
-        },
-        {
-            title: 'Last Minute NEET Revision: High-Yield Topics',
-            date: '2025-02-25',
-            time: '7:00 PM - 8:30 PM IST',
-            category: 'NEET Preparation',
-            speaker: 'Anjali Patel',
-            speakerTitle: 'NEET Topper & Mentor',
-            attendees: 678,
-            description: 'Focus on high-yield topics and last-minute revision strategies from a NEET topper. Perfect for students in final preparation phase.',
-            image: '📖',
-            type: 'Live Webinar'
-        }
-    ];
+    const upcomingEvents = WEBINAR_EVENTS;
 
     const pastEvents = [
         {

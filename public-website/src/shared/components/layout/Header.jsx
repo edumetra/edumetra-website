@@ -64,7 +64,7 @@ const Header = () => {
                     {/* Desktop Navigation */}
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-6">
-                        {mainNavLinks.slice(0, 5).map((link, index) => (
+                        {mainNavLinks.slice(0, 6).map((link, index) => (
                             link.name === 'Find Colleges' ? (
                                 <button
                                     key={index}

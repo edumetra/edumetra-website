@@ -1,7 +1,8 @@
 import React from 'react';
-import { Calendar, Clock, Users, CheckCircle } from 'lucide-react';
-
+import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
 const UpcomingWebinars = ({ events }) => {
     return (
         <section className="section">
@@ -41,8 +42,8 @@ const UpcomingWebinars = ({ events }) => {
                                 </div>
                             )}
 
-                            <div className="relative flex gap-6">
-                                <div className="flex items-center justify-center bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl p-6 w-28 h-28 flex-shrink-0 border border-red-500/20 group-hover:border-red-500/40 transition-colors">
+                            <div className="relative flex flex-col md:flex-row gap-6">
+                                <div className="flex items-center justify-center bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl p-6 w-full md:w-28 h-28 flex-shrink-0 border border-red-500/20 group-hover:border-red-500/40 transition-colors">
                                     <div className="text-5xl group-hover:scale-110 transition-transform duration-300">{event.image}</div>
                                 </div>
 
@@ -57,12 +58,11 @@ const UpcomingWebinars = ({ events }) => {
                                         {event.description}
                                     </p>
 
-                                    <div className="space-y-2 mb-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                                         <div className="flex items-center gap-2 text-sm text-slate-400">
                                             <Calendar className="w-4 h-4 text-red-400" />
                                             {new Date(event.date).toLocaleDateString('en-US', {
-                                                weekday: 'long',
-                                                month: 'long',
+                                                month: 'short',
                                                 day: 'numeric',
                                                 year: 'numeric'
                                             })}
@@ -78,7 +78,7 @@ const UpcomingWebinars = ({ events }) => {
                                     </div>
 
                                     <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                                             {event.speaker.charAt(0)}
                                         </div>
                                         <div>
@@ -87,10 +87,13 @@ const UpcomingWebinars = ({ events }) => {
                                         </div>
                                     </div>
 
-                                    <button className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
-                                        <CheckCircle className="w-4 h-4" />
-                                        Register for Free
-                                    </button>
+                                    <Link 
+                                        to={`/webinars-seminars/${event.slug}`}
+                                        className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 group-hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+                                    >
+                                        View Details & Register
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
                                 </div>
                             </div>
                         </motion.div>

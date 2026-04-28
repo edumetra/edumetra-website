@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
         // Calculate amount based on plan
         let amountInPaise = 0;
         if (planType === 'pro') {
-            amountInPaise = 799 * 100; // ₹799
+            amountInPaise = 30000 * 100; // ₹30000
         } else if (planType === 'premium') {
-            amountInPaise = 299 * 100; // ₹299
+            amountInPaise = 3000 * 100; // ₹3000
         } else {
             return NextResponse.json({ error: 'Invalid planType' }, { status: 400 });
         }

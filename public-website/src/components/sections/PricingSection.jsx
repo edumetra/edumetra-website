@@ -24,7 +24,8 @@ const PricingSection = () => {
         },
         {
             name: 'Premium',
-            price: '₹299',
+            originalPrice: '₹10,000',
+            price: '₹3,000',
             period: '/month',
             description: 'Best for serious applicants comparing colleges',
             features: [
@@ -42,7 +43,8 @@ const PricingSection = () => {
         },
         {
             name: 'Pro',
-            price: '₹799',
+            originalPrice: '₹50,000',
+            price: '₹30,000',
             period: '/month',
             description: 'For students who want expert guidance',
             features: [
@@ -106,11 +108,18 @@ const PricingSection = () => {
                                 <h3 className="text-2xl font-bold text-white mb-2">
                                     {plan.name}
                                 </h3>
-                                <div className="flex items-baseline justify-center gap-1 mb-2">
-                                    <span className="text-5xl font-bold gradient-text">
-                                        {plan.price}
-                                    </span>
-                                    <span className="text-slate-400">{plan.period}</span>
+                                <div className="flex flex-col items-center justify-center mb-2">
+                                    {plan.originalPrice && (
+                                        <span className="text-xl font-semibold text-slate-500 line-through mb-1">
+                                            {plan.originalPrice}
+                                        </span>
+                                    )}
+                                    <div className="flex items-baseline justify-center gap-1">
+                                        <span className="text-5xl lg:text-6xl font-black tracking-tight gradient-text">
+                                            {plan.price}
+                                        </span>
+                                        <span className="text-slate-400 font-medium whitespace-nowrap">{plan.period}</span>
+                                    </div>
                                 </div>
                                 <p className="text-slate-300">{plan.description}</p>
                             </div>

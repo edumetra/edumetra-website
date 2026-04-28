@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { FileText, Plus, Edit2, Trash2, Calendar, Tag, Image as ImageIcon } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import ArticleImageUpload from "@/components/ArticleImageUpload";
+import ArticleAttachmentUpload from "@/components/ArticleAttachmentUpload";
 
 type NewsItem = {
     id: string;
@@ -376,7 +377,16 @@ export default function NewsPage() {
                                 </div>
 
                                 <div className="flex-1 flex flex-col h-full min-h-[300px]">
-                                    <label className="block text-sm font-medium text-slate-300 mb-1">Article Content *</label>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-sm font-medium text-slate-300">Article Content *</label>
+                                        <ArticleAttachmentUpload 
+                                            onUploadSuccess={(url, filename) => {
+                                                const attachmentHtml = `<p><br/><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline; font-weight: 500;">📎 Download: ${filename}</a><br/></p>`;
+                                                setFormData(prev => ({ ...prev, content: prev.content + attachmentHtml }));
+                                            }} 
+                                            disabled={actionLoading === "saving"} 
+                                        />
+                                    </div>
                                     <div className="flex-1 pb-10">
                                         <RichTextEditor
                                             value={formData.content}

@@ -63,7 +63,8 @@ const PricingPage = () => {
         },
         {
             name: 'Premium',
-            price: '₹299',
+            originalPrice: '₹10,000',
+            price: '₹3,000',
             period: 'per month',
             description: 'Best for serious applicants comparing multiple colleges.',
             badge: 'Most Popular',
@@ -83,7 +84,8 @@ const PricingPage = () => {
         },
         {
             name: 'Pro',
-            price: '₹799',
+            originalPrice: '₹50,000',
+            price: '₹30,000',
             period: 'per month',
             description: 'For students who want expert guidance and full access.',
             features: [
@@ -125,7 +127,7 @@ const PricingPage = () => {
         },
     ];
 
-    const structuredData = generateStructuredData('product', { price: '299' });
+    const structuredData = generateStructuredData('product', { price: '3000' });
 
     return (
         <>
@@ -206,9 +208,16 @@ const PricingPage = () => {
 
                                     <div className="text-center mb-8 flex-grow-0">
                                         <h2 className="text-2xl font-bold text-white mb-2">{plan.name}</h2>
-                                        <div className="flex items-baseline justify-center gap-1 mb-2">
-                                            <span className="text-5xl font-bold gradient-text">{plan.price}</span>
-                                            <span className="text-slate-400">{plan.period}</span>
+                                        <div className="flex flex-col items-center justify-center mb-2">
+                                            {plan.originalPrice && (
+                                                <span className="text-xl font-semibold text-slate-500 line-through mb-1">
+                                                    {plan.originalPrice}
+                                                </span>
+                                            )}
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                <span className="text-5xl lg:text-6xl font-black tracking-tight gradient-text">{plan.price}</span>
+                                                <span className="text-slate-400 font-medium whitespace-nowrap">{plan.period}</span>
+                                            </div>
                                         </div>
                                         <p className="text-slate-300">{plan.description}</p>
                                     </div>

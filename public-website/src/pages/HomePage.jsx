@@ -8,6 +8,7 @@ import SuccessStoriesSection from '../components/sections/SuccessStoriesSection'
 import TestimonialsSection from '../components/sections/TestimonialsSection';
 import CTASection from '../components/sections/CTASection';
 import AboutUsSection from '../components/sections/AboutUsSection';
+import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { generateStructuredData } from '../shared/utils/seo';
 import { analytics } from '../shared/utils/analytics';
 
@@ -33,6 +34,7 @@ const HomePage = () => {
                 <FeaturesGrid />
                 <SuccessStoriesSection />
                 <TestimonialsSection />
+                <WebinarCTA />
                 <CTASection />
             </main>
         </>

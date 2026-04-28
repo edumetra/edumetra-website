@@ -36,6 +36,11 @@ export const generatePageMeta = (page) => {
             description: 'Get help with college data, cutoffs, subscriptions, or general inquiries. Our support team is here to assist medical aspirants.',
             keywords: 'contact edumetra, support, help, customer service, NEET queries',
         },
+        'webinars-seminars': {
+            title: 'Webinars & Seminars - NEET Counseling & Career Guidance | Edumetra',
+            description: 'Join our free live webinars and workshops on NEET preparation, medical college admission strategy, and counseling guidance from experts.',
+            keywords: 'medical education webinars, NEET counseling workshop, medical admission seminar, career guidance, study abroad workshop',
+        },
     };
 
     return metaConfigs[page] || metaConfigs.home;
@@ -78,7 +83,7 @@ export const generateStructuredData = (type, data) => {
                 description: 'Premium medical college admission service with AI-powered predictions and comprehensive NEET cutoff data',
                 offers: {
                     '@type': 'Offer',
-                    price: data?.price || '299',
+                    price: data?.price || '3000',
                     priceCurrency: 'INR',
                     availability: 'https://schema.org/InStock',
                 },

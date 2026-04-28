@@ -8,6 +8,12 @@ const ScrollingNewsTicker = () => {
     const newsItems = [
         {
             icon: Calendar,
+            date: '10 May',
+            title: 'Upcoming Webinar: Mastering NEET 2027 - Expert Strategies',
+            category: 'Webinar'
+        },
+        {
+            icon: Calendar,
             date: '04 February',
             title: 'NEET 2026: NTA Releases Answer Key and Response Sheet',
             category: 'Exam Alert'

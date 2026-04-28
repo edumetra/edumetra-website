@@ -17,6 +17,7 @@ import MBBSAbroadHero from '../components/sections/mbbs-abroad/MBBSAbroadHero';
 import WhyStudyAbroad from '../components/sections/mbbs-abroad/WhyStudyAbroad';
 import AdmissionProcess from '../components/sections/mbbs-abroad/AdmissionProcess';
 import MBBSAbroadCTA from '../components/sections/mbbs-abroad/MBBSAbroadCTA';
+import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
 
 const MBBSAbroadPage = () => {
@@ -141,7 +142,7 @@ const MBBSAbroadPage = () => {
                     title="Frequently Asked Questions About MBBS Abroad"
                     subtitle="Get answers to common questions about studying medicine internationally"
                 />
-
+                <WebinarCTA />
                 <MBBSAbroadCTA />
             </main>
         </>

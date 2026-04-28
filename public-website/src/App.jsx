@@ -23,7 +23,9 @@ import MBBSAbroadPage from './pages/MBBSAbroadPage';
 import NewsAndBlogsPage from './pages/NewsAndBlogsPage';
 import CoursePage from './pages/CoursePage';
 import CollegeDetailPage from './pages/CollegeDetailPage';
+import EventDetailPage from './pages/EventDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
+import DashboardPage from './pages/DashboardPage';
 import { analytics } from './shared/utils/analytics';
 
 // ScrollToTop component to handle route changes
@@ -64,11 +66,13 @@ function App() {
                   <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
                   <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
                   <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
+                  <Route path="/webinars-seminars/:slug" element={<EventDetailPage />} />
                   <Route path="/find-colleges" element={<FindCollegesPage />} />
                   <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
                   <Route path="/courses/:courseId" element={<CoursePage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </div>

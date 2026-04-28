@@ -16,6 +16,7 @@ import {
     Share2
 } from 'lucide-react';
 import SEO from '../components/SEO';
+import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
 
 const NewsAndBlogsPage = () => {
@@ -353,7 +354,7 @@ const NewsAndBlogsPage = () => {
                         </div>
                     </div>
                 </section>
-
+                <WebinarCTA />
                 {/* Newsletter Subscription */}
                 <section className="section bg-slate-900/30">
                     <div className="container-custom">
