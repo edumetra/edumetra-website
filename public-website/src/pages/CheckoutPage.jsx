@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../services/supabaseClient';
 import SEO from '../components/SEO';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const PLANS = {
     premium: {
@@ -68,6 +69,20 @@ const CheckoutPage = () => {
     useEffect(() => {
         if (!user) navigate('/login');
     }, [user, navigate]);
+
+    // Push checkout intent to TeleCRM when user lands on this page
+    useEffect(() => {
+        if (user?.email) {
+            pushLeadToTeleCRM(
+                {
+                    email: user.email,
+                    status: 'Fresh',
+                },
+                ['Checkout Intent', `Plan: ${plan.name}`]
+            );
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
 
     const discountedPrice = appliedCoupon
         ? Math.floor(plan.price * (1 - appliedCoupon.discount_percentage / 100))

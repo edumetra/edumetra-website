@@ -70,8 +70,6 @@ const WebinarsAndSeminarsPage = () => {
         'Study Tips'
     ];
 
-    ];
-
     const pastEvents = [
         {
             title: 'Understanding NEET Cutoff Trends: 2014-2024 Analysis',

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Plus, Edit2, Trash2, Calendar, Users, FileText, Image as ImageIcon } from "lucide-react";
-import ArticleImageUpload from "@/components/ArticleImageUpload";
+import { Plus, Edit2, Trash2, Calendar, Users, Image as ImageIcon } from "lucide-react";
 
 type EventItem = {
     id: string;
@@ -29,11 +28,15 @@ type RegistrationItem = {
     user_id: string;
     status: string;
     created_at: string;
-    user: { email: string, raw_user_meta_data: any };
+    user: { email: string, raw_user_meta_data: Record<string, unknown> };
 };
+
+type RegistrationWithProfile = RegistrationItem & { user_profiles?: { full_name?: string; email?: string } };
 
 export default function EventsPage() {
     const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
     const [events, setEvents] = useState<EventItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -68,13 +71,13 @@ export default function EventsPage() {
     const fetchEvents = async () => {
         setLoading(true);
         setError(null);
-        const { data, error: fetchErr } = await supabase
+        const { data, error: fetchErr } = await db
             .from("events")
             .select("*")
             .order("date", { ascending: false });
 
         if (fetchErr) setError("Failed to load events.");
-        else setEvents(data || []);
+        else setEvents((data as EventItem[]) || []);
         setLoading(false);
     };
 
@@ -88,7 +91,7 @@ export default function EventsPage() {
         // Since admin needs to see user emails, and event_registrations just has user_id, 
         // we might need to fetch user profiles instead if users table is protected, 
         // or we use a view. Let's try joining user_profiles or just getting the data.
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from("event_registrations")
             .select("*, user_profiles(email, full_name)")
             .eq("event_id", event.id);
@@ -98,7 +101,7 @@ export default function EventsPage() {
         } else {
             // we will map the joined data. Note: if user_profiles doesn't have email, we might have to get it another way, 
             // but assuming user_profiles has the data. Let's fall back gracefully.
-            setRegistrations(data as any);
+            setRegistrations(data as unknown as RegistrationItem[]);
         }
         setLoadingRegistrations(false);
     };
@@ -159,8 +162,8 @@ export default function EventsPage() {
         };
 
         if (editingEvent) {
-            const { data, error: updateErr } = await (supabase
-                .from("events") as any)
+            const { data, error: updateErr } = await db
+                .from("events")
                 .update(payload)
                 .eq("id", editingEvent.id)
                 .select()
@@ -168,19 +171,21 @@ export default function EventsPage() {
                 
             if (updateErr) setError(updateErr.message);
             else {
-                setEvents(prev => prev.map(n => n.id === data.id ? data : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                const updatedEvent = data as EventItem;
+                setEvents(prev => prev.map(n => n.id === updatedEvent.id ? updatedEvent : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
             }
         } else {
-            const { data, error: insertErr } = await (supabase
-                .from("events") as any)
+            const { data, error: insertErr } = await db
+                .from("events")
                 .insert([payload])
                 .select()
                 .single();
                 
             if (insertErr) setError(insertErr.message);
             else {
-                setEvents(prev => [data, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                const newEvent = data as EventItem;
+                setEvents(prev => [newEvent, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
             }
         }
@@ -190,7 +195,7 @@ export default function EventsPage() {
     const handleDelete = async (id: string, title: string) => {
         if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
         setActionLoading(id);
-        const { error: delErr } = await supabase.from("events").delete().eq("id", id);
+        const { error: delErr } = await db.from("events").delete().eq("id", id);
         if (!delErr) {
             setEvents(prev => prev.filter(n => n.id !== id));
         } else {
@@ -341,8 +346,8 @@ export default function EventsPage() {
                                         {registrations.map(reg => (
                                             <tr key={reg.id}>
                                                 <td className="px-6 py-4">
-                                                    <div className="text-sm font-semibold text-white">{(reg as any).user_profiles?.full_name || 'Unknown User'}</div>
-                                                    <div className="text-xs text-slate-400">{(reg as any).user_profiles?.email || reg.user_id}</div>
+                                                    <div className="text-sm font-semibold text-white">{(reg as RegistrationWithProfile).user_profiles?.full_name || 'Unknown User'}</div>
+                                                    <div className="text-xs text-slate-400">{(reg as RegistrationWithProfile).user_profiles?.email || reg.user_id}</div>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-slate-300">
                                                     {new Date(reg.created_at).toLocaleString()}

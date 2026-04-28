@@ -1,17 +1,34 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
-
+import { pushLeadToTeleCRM } from '../../../services/telecrm';
 import { motion } from 'framer-motion';
 const WebinarRegistration = () => {
     const [status, setStatus] = React.useState('idle');
+    const [formData, setFormData] = React.useState({ name: '', email: '', phone: '', category: '' });
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('submitting');
-        // Simulate API call
+
+        // Push to TeleCRM (fire-and-forget)
+        pushLeadToTeleCRM(
+            {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                status: 'Fresh',
+            },
+            ['Webinar Interest', formData.category].filter(Boolean)
+        );
+
+        // Simulate confirmation delay
         setTimeout(() => {
             setStatus('success');
-        }, 1500);
+        }, 1000);
     };
 
     if (status === 'success') {
@@ -73,12 +90,18 @@ const WebinarRegistration = () => {
                         <div className="grid md:grid-cols-2 gap-4">
                             <input
                                 type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 placeholder="Full Name"
                                 className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                                 required
                             />
                             <input
                                 type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Email Address"
                                 className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                                 required
@@ -87,16 +110,25 @@ const WebinarRegistration = () => {
                         <div className="grid md:grid-cols-2 gap-4">
                             <input
                                 type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
                                 placeholder="Phone Number"
                                 className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                                 required
                             />
-                            <select className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                required
+                            >
                                 <option value="">Select Category</option>
-                                <option value="neet">NEET Preparation</option>
-                                <option value="counseling">Counseling Guide</option>
-                                <option value="abroad">MBBS Abroad</option>
-                                <option value="career">Career Guidance</option>
+                                <option value="NEET Preparation">NEET Preparation</option>
+                                <option value="Counseling Guide">Counseling Guide</option>
+                                <option value="MBBS Abroad">MBBS Abroad</option>
+                                <option value="Career Guidance">Career Guidance</option>
                             </select>
                         </div>
                         <button

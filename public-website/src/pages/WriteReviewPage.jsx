@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Star, Send, CheckCircle, Upload, Award } from 'lucide-react';
-
+import { pushLeadToTeleCRM } from '../services/telecrm';
 import { motion } from 'framer-motion';
 const WriteReviewPage = () => {
     const [formData, setFormData] = useState({
@@ -39,7 +39,18 @@ const WriteReviewPage = () => {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        console.log('Review submitted:', formData);
+        // Push to TeleCRM (fire-and-forget)
+        pushLeadToTeleCRM(
+            {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                role: formData.role,
+                college: formData.college,
+            },
+            ['Review Submitted']
+        );
+
         setIsSubmitting(false);
         setIsSubmitted(true);
 
@@ -188,7 +199,7 @@ const WriteReviewPage = () => {
                                                         value={formData.phone}
                                                         onChange={handleChange}
                                                         className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                                        placeholder="+91 98765 43210"
+                                                        placeholder="033-45336366"
                                                     />
                                                 </div>
                                                 <div>

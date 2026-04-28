@@ -22,9 +22,12 @@ const MBBSAbroadCTA = () => {
                         <button className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl">
                             Book Free Counseling
                         </button>
-                        <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700">
-                            Call +91 123 456 7890
-                        </button>
+                        <a 
+                            href="tel:03345336366"
+                            className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700 block sm:inline-block"
+                        >
+                            Call 033-45336366
+                        </a>
                     </div>
                 </motion.div>
             </div>

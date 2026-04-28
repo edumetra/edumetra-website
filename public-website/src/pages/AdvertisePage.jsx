@@ -241,7 +241,7 @@ const AdvertisePage = () => {
                                 Get in Touch
                             </a>
                             <a
-                                href="mailto:partnerships@edumetra.com"
+                                href="mailto:hello@edumetraglobal.com"
                                 className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
                             >
                                 Email Us

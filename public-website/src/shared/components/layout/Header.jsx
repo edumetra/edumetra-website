@@ -56,8 +56,8 @@ const Header = () => {
                 <div className="flex items-center justify-between gap-4 py-4">
                     {/* Logo */}
                     <Link to="/" className="flex items-center flex-shrink-0 group">
-                        <div className="h-12 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform">
-                            <img src="/logo.jpeg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
+                        <div className="h-16 w-auto px-6 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform">
+                            <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-12 w-auto object-contain" />
                         </div>
                     </Link>
 

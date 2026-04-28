@@ -13,18 +13,25 @@ import {
     Bell,
     Award,
     Download,
-    Globe
+    Globe,
+    ArrowRight
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { WEBINAR_EVENTS } from '../shared/constants/events';
 import FAQSection from '../shared/ui/FAQSection';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const EventDetailPage = () => {
     const { slug } = useParams();
     const [event, setEvent] = useState(null);
     const [regStatus, setRegStatus] = useState('idle'); // idle, submitting, success
+    const [regForm, setRegForm] = useState({ name: '', email: '', phone: '' });
+
+    const handleRegFormChange = (e) => {
+        setRegForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
     useEffect(() => {
         const foundEvent = WEBINAR_EVENTS.find(e => e.slug === slug);
@@ -37,10 +44,22 @@ const EventDetailPage = () => {
     const handleRegister = (e) => {
         e.preventDefault();
         setRegStatus('submitting');
+
+        // Push to TeleCRM (fire-and-forget)
+        pushLeadToTeleCRM(
+            {
+                name: regForm.name,
+                email: regForm.email,
+                phone: regForm.phone,
+                status: 'Fresh',
+            },
+            ['Event Registration', event?.title].filter(Boolean)
+        );
+
+        analytics.trackEvent('Webinar', 'Registration', event.title);
         setTimeout(() => {
             setRegStatus('success');
-            analytics.trackEvent('Webinar', 'Registration', event.title);
-        }, 1500);
+        }, 1000);
     };
 
     if (!event) {
@@ -184,7 +203,10 @@ const EventDetailPage = () => {
                                                         <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Full Name</label>
                                                         <input 
                                                             required
+                                                            name="name"
                                                             type="text" 
+                                                            value={regForm.name}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="Enter your name" 
                                                             className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                                                         />
@@ -193,7 +215,10 @@ const EventDetailPage = () => {
                                                         <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address</label>
                                                         <input 
                                                             required
+                                                            name="email"
                                                             type="email" 
+                                                            value={regForm.email}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="you@example.com" 
                                                             className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                                                         />
@@ -202,7 +227,10 @@ const EventDetailPage = () => {
                                                         <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Phone Number</label>
                                                         <input 
                                                             required
+                                                            name="phone"
                                                             type="tel" 
+                                                            value={regForm.phone}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="+91 00000 00000" 
                                                             className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                                                         />
@@ -321,7 +349,7 @@ const EventDetailPage = () => {
                                     <div className="mt-12 p-6 rounded-2xl bg-red-500/5 border border-red-500/10">
                                         <h4 className="font-bold text-red-400 mb-2">Need Help?</h4>
                                         <p className="text-xs text-slate-400 leading-relaxed">
-                                            If you're having trouble registering or need more details, contact our support team at counseling@edumetra.in
+                                            If you're having trouble registering or need more details, contact our support team at hello@edumetraglobal.com
                                         </p>
                                     </div>
                                 </div>

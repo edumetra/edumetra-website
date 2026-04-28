@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
-
+import { pushLeadToTeleCRM } from '../services/telecrm';
 import { motion } from 'framer-motion';
 const SignupPage = () => {
     const navigate = useNavigate();
@@ -66,6 +66,15 @@ const SignupPage = () => {
             setError(error);
             setLoading(false);
         } else {
+            // Push to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    name: formData.name,
+                    email: formData.email,
+                    status: 'Fresh',
+                },
+                ['Signup', 'New User']
+            );
             setSuccess('Account created successfully! Please check your email to verify your account.');
             setTimeout(() => {
                 navigate(`/login${returnUrl !== '/dashboard' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`);

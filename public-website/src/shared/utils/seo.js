@@ -41,6 +41,16 @@ export const generatePageMeta = (page) => {
             description: 'Join our free live webinars and workshops on NEET preparation, medical college admission strategy, and counseling guidance from experts.',
             keywords: 'medical education webinars, NEET counseling workshop, medical admission seminar, career guidance, study abroad workshop',
         },
+        privacy: {
+            title: 'Privacy Policy - Data Protection & Privacy | Edumetra',
+            description: 'Learn how Edumetra Global collects, uses, and safeguards your personal information and academic data.',
+            keywords: 'privacy policy, data protection, personal information, edumetra privacy',
+        },
+        terms: {
+            title: 'Terms & Conditions - Service Agreement | Edumetra',
+            description: 'Review the terms of service, user obligations, and legal agreements for using Edumetra Global consulting services.',
+            keywords: 'terms and conditions, service agreement, user obligations, legal terms',
+        },
     };
 
     return metaConfigs[page] || metaConfigs.home;
@@ -67,7 +77,7 @@ export const generateStructuredData = (type, data) => {
                 '@type': 'Organization',
                 name: 'Edumetra',
                 url: seoConfig.siteUrl,
-                logo: `${seoConfig.siteUrl}/logo.png`,
+                logo: `${seoConfig.siteUrl}/logo-final.jpg`,
                 sameAs: [
                     'https://twitter.com/edumetra',
                     'https://facebook.com/edumetra',

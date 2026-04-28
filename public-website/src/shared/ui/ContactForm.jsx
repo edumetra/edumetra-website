@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
-
+import { pushLeadToTeleCRM } from '../../services/telecrm';
 import { motion } from 'framer-motion';
 const ContactForm = () => {
     const [formData, setFormData] = useState({
@@ -69,8 +69,15 @@ const ContactForm = () => {
         try {
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // TODO: Replace with actual API call
-            console.log('Form submitted:', formData);
+            // Push to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    name: formData.name,
+                    email: formData.email,
+                    subject: formData.subject,
+                },
+                ['Contact Inquiry']
+            );
 
             setStatus('success');
             setFormData({

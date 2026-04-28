@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CheckCircle, AlertCircle, Phone, User, Mail, GraduationCap, MapPin } from 'lucide-react';
 import { useCounselling } from '../../features/counselling/CounsellingContext';
 import { supabase } from '../../services/supabaseClient';
+import { pushLeadToTeleCRM } from '../../services/telecrm';
 import Button from './Button';
 
 const CounsellingModal = () => {
@@ -68,6 +69,19 @@ const CounsellingModal = () => {
                 ]);
 
             if (error) throw error;
+
+            // Push to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    name: formData.name,
+                    phone: formData.phone,
+                    email: formData.email,
+                    city: formData.city,
+                    neet_marks: formData.neet_marks,
+                    status: 'Fresh',
+                },
+                ['Counselling Request', 'Free Session']
+            );
 
             // Trigger Meta Pixel Lead event
             if (typeof window !== 'undefined' && window.fbq) {

@@ -29,6 +29,8 @@ import DashboardPage from './pages/DashboardPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CheckoutPage from './pages/CheckoutPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import { analytics } from './shared/utils/analytics';
 
 // ScrollToTop component to handle route changes
@@ -79,6 +81,8 @@ function App() {
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </div>

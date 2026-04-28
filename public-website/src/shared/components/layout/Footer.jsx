@@ -111,8 +111,8 @@ const Footer = () => {
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
                         <Link to="/" className="flex items-center mb-4">
-                            <div className="h-12 w-auto px-4 bg-white flex items-center justify-center shadow-sm overflow-hidden border border-slate-200 rounded-xl">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
+                            <div className="h-14 w-auto px-5 bg-white flex items-center justify-center shadow-sm overflow-hidden border border-slate-200 rounded-xl">
+                                <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                             </div>
                         </Link>
 
@@ -128,12 +128,18 @@ const Footer = () => {
                         <div className="space-y-2 text-sm mb-4">
                             <div className="flex items-start gap-2">
                                 <MapPin className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                                <span className="text-slate-600">New Delhi, India (110001)</span>
+                                <span className="text-slate-600">5WS8C, West Tower, Mani CasaDona, AA-2F, Newtown, Kolkata - 700160</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                                <a href="tel:+919876543210" className="text-primary-600 hover:text-primary-700">
-                                    +91-98765 43210
+                                <a href="tel:03345336366" className="text-primary-600 hover:text-primary-700">
+                                    033-45336366
+                                </a>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                <a href="mailto:hello@edumetraglobal.com" className="text-primary-600 hover:text-primary-700">
+                                    hello@edumetraglobal.com
                                 </a>
                             </div>
                         </div>
