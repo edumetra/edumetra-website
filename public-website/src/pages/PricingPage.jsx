@@ -5,6 +5,7 @@ import Button from '../shared/ui/Button';
 import { analytics } from '../shared/utils/analytics';
 import { generateStructuredData } from '../shared/utils/seo';
 import { useAuth } from '../features/auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 import { motion } from 'framer-motion';
 
@@ -38,10 +39,20 @@ async function trackPricingView() {
 
 const PricingPage = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     useEffect(() => {
         analytics.trackPageView('/pricing', 'Pricing');
         trackPricingView();
     }, []);
+
+    const handlePlanCTA = (planName) => {
+        const collegesUrl = import.meta.env.VITE_COLLEGES_PLATFORM_URL || 'http://localhost:3002';
+        if (user) {
+            window.location.href = `${collegesUrl}/pricing`;
+        } else {
+            navigate(`/signup?plan=${planName.toLowerCase()}`);
+        }
+    };
 
     const plans = [
         {
@@ -239,11 +250,11 @@ const PricingPage = () => {
                                     </ul>
 
                                     <div className="mt-auto">
-                                        <Button 
-                                            variant={plan.variant} 
-                                            size="lg" 
-                                            className="w-full" 
-                                            href={user ? (import.meta.env.VITE_COLLEGES_PLATFORM_URL ? `${import.meta.env.VITE_COLLEGES_PLATFORM_URL}/pricing` : 'http://localhost:3002/pricing') : `/signup?plan=${plan.name.toLowerCase()}`}
+                                        <Button
+                                            variant={plan.variant}
+                                            size="lg"
+                                            className="w-full"
+                                            onClick={() => handlePlanCTA(plan.name)}
                                         >
                                             {plan.cta}
                                         </Button>
