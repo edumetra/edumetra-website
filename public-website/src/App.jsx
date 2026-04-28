@@ -26,6 +26,8 @@ import CollegeDetailPage from './pages/CollegeDetailPage';
 import EventDetailPage from './pages/EventDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import DashboardPage from './pages/DashboardPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import { analytics } from './shared/utils/analytics';
 
 // ScrollToTop component to handle route changes
@@ -72,6 +74,8 @@ function App() {
                   <Route path="/courses/:courseId" element={<CoursePage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

@@ -21,7 +21,8 @@ const DashboardPage = () => {
         city: '',
         gender: '',
         dob: '',
-        stream: ''
+        stream: '',
+        account_type: 'free'
     });
 
     useEffect(() => {
@@ -46,7 +47,8 @@ const DashboardPage = () => {
                         city: data.city || '',
                         gender: data.gender || '',
                         dob: data.dob || '',
-                        stream: data.stream || ''
+                        stream: data.stream || '',
+                        account_type: data.account_type || 'free'
                     });
                 } else if (user.user_metadata?.full_name) {
                     setProfile(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
@@ -122,6 +124,13 @@ const DashboardPage = () => {
                             <h1 className="text-2xl md:text-3xl font-black text-white">{profile.full_name || 'Student Profile'}</h1>
                             <p className="text-slate-400 flex items-center gap-2 mt-1">
                                 <Mail className="w-4 h-4" /> {user?.email}
+                                <span className={`ml-3 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                    profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                    profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+                                    'bg-slate-800 text-slate-300 border border-slate-700'
+                                }`}>
+                                    {profile.account_type.toUpperCase()}
+                                </span>
                             </p>
                         </div>
                     </div>
@@ -187,6 +196,30 @@ const DashboardPage = () => {
                                     ) : (
                                         <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.phone_number || 'Not provided'}</div>
                                     )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Account Plan</label>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 px-4 py-2.5 bg-slate-900 rounded-xl text-slate-300 border border-slate-800 flex items-center cursor-not-allowed opacity-80">
+                                            <span className={`px-2 py-0.5 rounded-md text-xs font-bold mr-2 ${
+                                                profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400' :
+                                                profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400' :
+                                                'bg-slate-800 text-slate-300'
+                                            }`}>
+                                                {profile.account_type.toUpperCase()}
+                                            </span>
+                                            <span className="text-sm">Plan (Non-editable)</span>
+                                        </div>
+                                        {profile.account_type !== 'pro' && (
+                                            <Link 
+                                                to="/pricing" 
+                                                className="shrink-0 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-amber-900/20 whitespace-nowrap flex items-center justify-center"
+                                            >
+                                                Upgrade Now
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
