@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { supabase } from '../../../services/supabaseClient';
+import { pushLeadToTeleCRM } from '../../../services/telecrm';
 
 const UpcomingWebinars = ({ events }) => {
     const { user } = useAuth();
@@ -12,23 +13,32 @@ const UpcomingWebinars = ({ events }) => {
     const [registering, setRegistering] = React.useState(null);
     const [successMessage, setSuccessMessage] = React.useState('');
 
-    const handleShowInterest = async (eventId) => {
+    const handleShowInterest = async (event) => {
         if (!user) {
             // Redirect to login with returnUrl
             navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
             return;
         }
 
-        setRegistering(eventId);
+        setRegistering(event.id);
         try {
             const { error } = await supabase
                 .from('event_registrations')
-                .insert([{ event_id: eventId, user_id: user.id, status: 'registered' }]);
+                .insert([{ event_id: event.id, user_id: user.id, status: 'registered' }]);
 
             if (error && error.code !== '23505') { // Ignore unique constraint violation if already registered
                 console.error('Registration failed:', error);
                 alert('Failed to register. Please try again.');
             } else {
+                // TeleCRM Integration
+                try {
+                    pushLeadToTeleCRM({
+                        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown User',
+                        email: user.email,
+                        status: 'Fresh'
+                    }, ['Webinar Interest', event.title]);
+                } catch(e) {}
+
                 setSuccessMessage('Thank you for your registration!');
                 setTimeout(() => setSuccessMessage(''), 5000);
             }
@@ -141,7 +151,7 @@ const UpcomingWebinars = ({ events }) => {
                                             View Details
                                         </Link>
                                         <button 
-                                            onClick={() => handleShowInterest(event.id)}
+                                            onClick={() => handleShowInterest(event)}
                                             disabled={registering === event.id}
                                             className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
                                         >
