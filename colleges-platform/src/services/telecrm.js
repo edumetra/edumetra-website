@@ -80,19 +80,6 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
     try {
         // Build the clean fields object
         const leadFields = {};
-        const notesArr = [];
-
-        if (fields.name)  leadFields.name  = String(fields.name).trim();
-        if (fields.email) leadFields.email = String(fields.email).trim().toLowerCase();
-
-        const phone = normalisePhone(fields.phone);
-        if (phone) leadFields.phone = phone;
-
-        // Add tags to notes FIRST so it is highly visible
-        if (tags && tags.length > 0) {
-            notesArr.push(`📌 SOURCE: ${tags.join(' | ')}`);
-        }
-
         // Standard fields that are likely native
         const standardFields = new Set(['name', 'email', 'phone', 'city', 'status']);
         
@@ -100,10 +87,8 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             if (val !== undefined && val !== null && val !== '') {
                 if (standardFields.has(key)) {
                     leadFields[key] = val;
-                } else {
-                    // Collect unknown custom fields (like neet_marks) into notes so they aren't dropped
-                    notesArr.push(`${key}: ${val}`);
                 }
+                // Dropping unknown fields from the note to keep the CRM Activity UI extremely clean
             }
         }
 
@@ -124,11 +109,22 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
 
         const body = { fields: leadFields };
         
-        if (notesArr.length > 0) {
+        // Add tags as a beautifully formatted SYSTEM_NOTE
+        if (tags && tags.length > 0) {
+            const isPageVisit = tags.some(t => t.startsWith('Visited:'));
+            let noteText = '';
+            
+            if (isPageVisit) {
+                const path = tags[0].replace('Visited: ', '');
+                noteText = `🌐 PAGE VISIT: ${path}`;
+            } else {
+                noteText = `📌 SOURCE: ${tags.join(' | ')}`;
+            }
+
             body.actions = [
                 {
                     type: "SYSTEM_NOTE",
-                    text: notesArr.join(' | ')
+                    text: noteText
                 }
             ];
         }
