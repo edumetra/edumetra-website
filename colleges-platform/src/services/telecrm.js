@@ -80,6 +80,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
     try {
         // Build the clean fields object
         const leadFields = {};
+        const notesArr = [];
 
         if (fields.name)  leadFields.name  = String(fields.name).trim();
         if (fields.email) leadFields.email = String(fields.email).trim().toLowerCase();
@@ -87,19 +88,23 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         const phone = normalisePhone(fields.phone);
         if (phone) leadFields.phone = phone;
 
-        // Pass through any extra custom fields (e.g. neet_marks, city, status)
-        const reserved = new Set(['name', 'email', 'phone']);
+        // Standard fields that are likely native
+        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status']);
+        
         for (const [key, val] of Object.entries(fields)) {
-            if (!reserved.has(key) && val !== undefined && val !== null && val !== '') {
-                leadFields[key] = val;
+            if (val !== undefined && val !== null && val !== '') {
+                if (standardFields.has(key)) {
+                    leadFields[key] = val;
+                } else {
+                    // Collect unknown custom fields (like neet_marks) into notes so they aren't dropped
+                    notesArr.push(`${key}: ${val}`);
+                }
             }
         }
 
-        // TeleCRM autoupdatelead API often drops array tags if not explicitly configured.
-        // To guarantee visibility, we pass the tags as a standard text field 'Source_Details'.
-        // This ensures it shows up immediately in the Activity History log!
+        // Add tags to notes
         if (tags && tags.length > 0) {
-            leadFields.Source_Details = tags.join(', ');
+            notesArr.push(`Tags: ${tags.join(', ')}`);
         }
 
         // We must have at least the unique identifier (phone or email)
@@ -118,6 +123,15 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         }
 
         const body = { fields: leadFields };
+        
+        if (notesArr.length > 0) {
+            body.actions = [
+                {
+                    type: "SYSTEM_NOTE",
+                    text: notesArr.join(' | ')
+                }
+            ];
+        }
 
         // Fire-and-forget — no await on the caller side needed
         fetch(API_URL, {
