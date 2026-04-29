@@ -11,6 +11,7 @@ import { TrendingUp, Calculator, Trophy, Lock, Search } from 'lucide-react';
 import { usePremium } from '../contexts/PremiumContext';
 import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
 import { toast } from 'react-hot-toast';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 
 const EXAMS = [
@@ -225,6 +226,20 @@ export default function ProfilePage() {
 
             toast.success('Profile updated successfully!', { id: loadingToast });
             setIsEditingProfile(false);
+
+            // Enrich TeleCRM lead with profile data (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    name: profileData.full_name,
+                    email: user.email,
+                    phone: profileData.phone_number,
+                    city: profileData.city,
+                    state: profileData.state,
+                    stream: profileData.stream,
+                    status: 'Fresh',
+                },
+                ['Colleges Profile Updated']
+            );
         } catch (err) {
             console.error('Error saving profile:', err);
             toast.error(err.message || 'Failed to save changes. Please try again.', { id: loadingToast });

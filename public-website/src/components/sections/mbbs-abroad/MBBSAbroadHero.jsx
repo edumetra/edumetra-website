@@ -1,8 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Plane } from 'lucide-react';
-
 import { motion } from 'framer-motion';
+import { useCounselling } from '../../../features/counselling/CounsellingContext';
+
 const MBBSAbroadHero = ({ stats }) => {
+    const { openModal } = useCounselling();
+
     return (
         <section className="section pt-32 bg-gradient-to-b from-slate-900 to-slate-900/50">
             <div className="container-custom">
@@ -23,12 +27,18 @@ const MBBSAbroadHero = ({ stats }) => {
                         Study MBBS abroad at top NMC-approved universities. Get admitted with lower costs, no donations, and international exposure.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl">
+                        <button
+                            onClick={openModal}
+                            className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        >
                             Book Free Counseling
                         </button>
-                        <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700">
+                        <Link
+                            to="/contact"
+                            className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700 inline-block text-center"
+                        >
                             Download Country Guide
-                        </button>
+                        </Link>
                     </div>
                 </motion.div>
 

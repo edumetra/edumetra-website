@@ -4,6 +4,7 @@ import { Check, HelpCircle, Star, Zap, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const PricingPage = () => {
     const navigate = useNavigate();
@@ -82,6 +83,16 @@ const PricingPage = () => {
             }
 
             const user = session.user;
+
+            // Push checkout intent to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    email: user.email,
+                    name: user.user_metadata?.full_name || '',
+                    status: 'Fresh',
+                },
+                ['Colleges Checkout Intent', `Plan: ${tier.charAt(0).toUpperCase() + tier.slice(1)}`]
+            );
 
             // 1.5 Check if already subscribed to this tier or higher
             const { data: profile } = await supabase.from('user_profiles').select('account_type, subscription_status').eq('id', user.id).single();

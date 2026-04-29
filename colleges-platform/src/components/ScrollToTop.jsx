@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { trackTeleCRMPageView } from '../services/telecrm';
 
 export default function ScrollToTop() {
     const { pathname } = useLocation();
@@ -10,6 +11,9 @@ export default function ScrollToTop() {
             left: 0,
             behavior: 'instant'
         });
+        
+        // Track page views in TeleCRM for returning/known users
+        trackTeleCRMPageView(pathname);
     }, [pathname]);
 
     return null;

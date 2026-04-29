@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, GraduationCap, Mail, User, Lock, LogIn, Phone, ArrowLeft, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 // view: 'signup' | 'login' | 'forgot' | 'verify'
 export default function SignupModal({ isOpen, onClose }) {
@@ -37,6 +38,13 @@ export default function SignupModal({ isOpen, onClose }) {
                     password: formData.password,
                 });
                 if (error) throw error;
+
+                // Push login event to TeleCRM (fire-and-forget)
+                pushLeadToTeleCRM(
+                    { email: formData.email, status: 'Fresh' },
+                    ['Colleges Platform Login']
+                );
+
                 closeModal();
                 onClose && onClose();
             } else if (view === 'signup') {
@@ -46,14 +54,25 @@ export default function SignupModal({ isOpen, onClose }) {
                     options: { data: { full_name: formData.name, phone: formData.phone } },
                 });
                 if (error) throw error;
-                
+
+                // Push lead to TeleCRM (fire-and-forget)
+                pushLeadToTeleCRM(
+                    {
+                        name: formData.name,
+                        email: formData.email,
+                        phone: formData.phone,
+                        status: 'Fresh',
+                    },
+                    ['Colleges Platform Signup', 'New User']
+                );
+
                 // Trigger Meta Pixel CompleteRegistration event
                 if (typeof window !== 'undefined' && window.fbq) {
                     window.fbq('track', 'CompleteRegistration', {
                         content_name: 'User Signup'
                     });
                 }
-                
+
                 setSuccessMsg('Account created! Please check your email to verify your address, then sign in.');
 
             } else if (view === 'forgot') {

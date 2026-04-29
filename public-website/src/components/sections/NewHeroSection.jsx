@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion,  AnimatePresence  } from 'framer-motion';
 import {
     Search,
@@ -23,6 +23,7 @@ const NewHeroSection = () => {
     const [location] = useState("India");
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
     const { openModal } = useCounselling();
+    const navigate = useNavigate();
 
     // Vibrant medical-themed background gradients
     const backgrounds = [
@@ -70,8 +71,10 @@ const NewHeroSection = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         analytics.trackCTAClick('Hero Search', 'Hero Section', 'search');
-        console.log('Searching for:', { searchQuery, location });
-        // TODO: Implement search functionality
+        const params = searchQuery.trim()
+            ? `/find-colleges?q=${encodeURIComponent(searchQuery.trim())}`
+            : '/find-colleges';
+        navigate(params);
     };
 
     const handleCounseling = () => {

@@ -1,9 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
-
 import { motion } from 'framer-motion';
+
 const CTASection = () => {
     const handleCTAClick = () => {
         analytics.trackCTAClick('Get Started Now', 'Final CTA Section', 'button');
@@ -45,16 +45,14 @@ const CTASection = () => {
                         </p>
 
                         {/* CTA Button */}
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            icon={ArrowRight}
-                            iconPosition="right"
+                        <Link
+                            to="/signup"
                             onClick={handleCTAClick}
-                            className="mx-auto"
+                            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl mx-auto"
                         >
                             Get Started Now - It's Free
-                        </Button>
+                            <ArrowRight className="w-5 h-5" />
+                        </Link>
 
                         {/* Trust Signal */}
                         <p className="text-slate-400 text-sm mt-6">

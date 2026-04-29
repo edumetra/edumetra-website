@@ -1,7 +1,10 @@
 import React from 'react';
-
 import { motion } from 'framer-motion';
+import { useCounselling } from '../../../features/counselling/CounsellingContext';
+
 const MBBSAbroadCTA = () => {
+    const { openModal } = useCounselling();
+
     return (
         <section className="section">
             <div className="container-custom">
@@ -19,12 +22,15 @@ const MBBSAbroadCTA = () => {
                         Book your free counseling session today!
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl">
+                        <button
+                            onClick={openModal}
+                            className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        >
                             Book Free Counseling
                         </button>
-                        <a 
+                        <a
                             href="tel:03345336366"
-                            className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700 block sm:inline-block"
+                            className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700 block sm:inline-block text-center"
                         >
                             Call 033-45336366
                         </a>

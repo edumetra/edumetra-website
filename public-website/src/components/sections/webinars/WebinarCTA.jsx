@@ -1,6 +1,7 @@
 import React from 'react';
-
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
 const WebinarCTA = () => {
     return (
         <section className="section">
@@ -18,12 +19,18 @@ const WebinarCTA = () => {
                         Join our next webinar and get expert guidance for your medical education journey
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl">
+                        <Link
+                            to="/webinars-seminars"
+                            className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        >
                             View All Events
-                        </button>
-                        <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700">
+                        </Link>
+                        <Link
+                            to="/contact"
+                            className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border-2 border-slate-700"
+                        >
                             Contact Us
-                        </button>
+                        </Link>
                     </div>
                 </motion.div>
             </div>

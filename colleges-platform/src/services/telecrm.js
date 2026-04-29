@@ -44,6 +44,31 @@ function normalisePhone(raw) {
  * @param {string[]} tags  - Optional array of tag strings to label this lead's source.
  * @returns {Promise<void>} - Always resolves; never throws.
  */
+
+let lastTrackedPath = '';
+
+/**
+ * Track a page view for a known user.
+ * Looks for 'telecrm_user' in localStorage. If found, pushes a "Visited: [Page]" tag to TeleCRM.
+ */
+export function trackTeleCRMPageView(path, pageName) {
+    if (lastTrackedPath === path) return;
+    lastTrackedPath = path;
+
+    try {
+        const user = JSON.parse(localStorage.getItem('telecrm_user') || 'null');
+        // Only track if we have a known identifier (email or phone)
+        if (!user || (!user.email && !user.phone)) return;
+
+        pushLeadToTeleCRM(
+            { ...user, status: 'Fresh' }, 
+            [`Visited: ${pageName || path}`]
+        );
+    } catch (e) {
+        // Silently fail if localStorage parsing errors out
+    }
+}
+
 export async function pushLeadToTeleCRM(fields = {}, tags = []) {
     // Silently skip if credentials aren't configured yet
     if (!ENTERPRISE_ID || ENTERPRISE_ID === 'your_enterprise_id_here') return;
@@ -77,6 +102,18 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
 
         // We must have at least the unique identifier (phone or email)
         if (!leadFields.phone && !leadFields.email) return;
+
+        // Save identity locally so we can track subsequent page views automatically
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('telecrm_user') || '{}');
+            const updatedUser = { ...currentUser };
+            if (leadFields.name) updatedUser.name = leadFields.name;
+            if (leadFields.email) updatedUser.email = leadFields.email;
+            if (leadFields.phone) updatedUser.phone = leadFields.phone;
+            localStorage.setItem('telecrm_user', JSON.stringify(updatedUser));
+        } catch (e) {
+            // Ignore storage errors (e.g. incognito mode restrictions)
+        }
 
         const body = { fields: leadFields };
 

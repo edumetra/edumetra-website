@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Star, MessageSquare, Search, ArrowLeft, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 
 
@@ -77,6 +78,18 @@ export default function WriteReviewPage() {
 
         setSubmitting(false);
         if (err) { setError(err.message); return; }
+
+        // Push to TeleCRM (fire-and-forget)
+        pushLeadToTeleCRM(
+            {
+                name: user.user_metadata?.full_name || '',
+                email: user.email,
+                status: 'Fresh',
+                college: selectedCollege.name,
+            },
+            ['Colleges Platform Review', 'Review Submitted']
+        );
+
         setSubmitted(true);
     };
 

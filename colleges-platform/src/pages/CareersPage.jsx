@@ -8,6 +8,7 @@ import {
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import SEOHead from '../components/SEOHead';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const CareersPage = () => {
     const [submitting, setSubmitting] = useState(false);
@@ -38,6 +39,18 @@ const CareersPage = () => {
                 .insert([formData]);
 
             if (error) throw error;
+
+            // Push to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    name: formData.full_name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    status: 'Fresh',
+                    position: formData.position,
+                },
+                ['Career Application', `Role: ${formData.position}`]
+            );
 
             setSubmitted(true);
             toast.success('Application submitted successfully!');

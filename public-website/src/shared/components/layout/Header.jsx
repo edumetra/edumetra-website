@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion,  AnimatePresence  } from 'framer-motion';
-import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../../features/auth/AuthProvider';
+import { useCounselling } from '../../../features/counselling/CounsellingContext';
 
 const Header = () => {
     const { user, signOut } = useAuth();
+    const { openModal } = useCounselling();
     const location = useLocation();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchFocused, setSearchFocused] = useState(false);
+    const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
@@ -33,12 +34,6 @@ const Header = () => {
         { name: 'B.Pharma', path: '/courses/pharma' },
         { name: 'Nursing', path: '/courses/nursing' },
     ];
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        console.log('Searching for:', searchQuery);
-        // TODO: Implement search functionality
-    };
 
     const handleSignOut = async () => {
         await signOut();
@@ -123,31 +118,20 @@ const Header = () => {
                         </div>
                     </nav>
 
-                    {/* Search Bar - Desktop */}
-                    <form
-                        onSubmit={handleSearch}
-                        className={`hidden md:flex flex-1 transition-all duration-300 ${searchFocused || searchQuery ? 'max-w-md' : 'max-w-xs'
-                            }`}
-                    >
-                        <div className="relative w-full group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-red-400 transition-colors" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={() => setSearchFocused(true)}
-                                onBlur={() => setSearchFocused(false)}
-                                placeholder="Search colleges..."
-                                className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 focus:bg-slate-800 transition-all duration-300"
-                            />
-                        </div>
-                    </form>
-
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2">
+                        {/* Book Counselling CTA */}
+                        <button
+                            onClick={openModal}
+                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            Book Counselling
+                        </button>
+
                         <Link
                             to="/review"
-                            className="hidden xl:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
+                            className="hidden 2xl:flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm hover:scale-105 whitespace-nowrap"
                         >
                             <Star className="w-4 h-4" />
                             Write Review
@@ -205,13 +189,13 @@ const Header = () => {
                             <>
                                 <Link
                                     to="/login"
-                                    className="hidden md:block px-4 py-2 text-white hover:text-red-400 font-semibold transition-all duration-300 text-sm whitespace-nowrap"
+                                    className="hidden lg:block px-3 py-2 text-white hover:text-red-400 font-semibold transition-all duration-300 text-sm whitespace-nowrap"
                                 >
                                     Sign In
                                 </Link>
                                 <Link
                                     to="/signup"
-                                    className="hidden md:block px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
+                                    className="hidden lg:block px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
                                 >
                                     Sign Up
                                 </Link>
@@ -232,20 +216,6 @@ const Header = () => {
                         </button>
                     </div>
                 </div>
-
-                {/* Mobile Search */}
-                <form onSubmit={handleSearch} className="md:hidden pb-3">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-red-400 transition-colors" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search colleges..."
-                            className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 focus:bg-slate-800 transition-all duration-300"
-                        />
-                    </div>
-                </form>
 
                 {/* Mobile Menu */}
                 <AnimatePresence>
@@ -293,9 +263,16 @@ const Header = () => {
 
                                 {/* Action Buttons */}
                                 <div className="flex flex-col gap-2 mt-4 px-2">
+                                    <button
+                                        onClick={() => { openModal(); setMobileMenuOpen(false); }}
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg shadow-lg shadow-red-900/30"
+                                    >
+                                        <MessageCircle className="w-4 h-4" />
+                                        Book Free Counselling
+                                    </button>
                                     <Link
                                         to="/review"
-                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg shadow-lg shadow-red-900/30"
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
                                         <Star className="w-4 h-4" />

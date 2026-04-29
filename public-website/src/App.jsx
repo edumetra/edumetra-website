@@ -34,6 +34,7 @@ import TermsPage from './pages/TermsPage';
 import UniversitiesPage from './pages/UniversitiesPage';
 import ExamsPage from './pages/ExamsPage';
 import { analytics } from './shared/utils/analytics';
+import { trackTeleCRMPageView } from './services/telecrm';
 
 // ScrollToTop component to handle route changes
 function ScrollToTop() {
@@ -41,6 +42,8 @@ function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Track page views in TeleCRM for returning/known users
+    trackTeleCRMPageView(pathname);
   }, [pathname]);
 
   return null;
