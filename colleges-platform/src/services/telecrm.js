@@ -95,9 +95,11 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             }
         }
 
-        // Tags are a standard TeleCRM field
-        if (tags.length > 0) {
-            leadFields.tags = tags;
+        // TeleCRM autoupdatelead API often drops array tags if not explicitly configured.
+        // To guarantee visibility, we pass the tags as a standard text field 'Source_Details'.
+        // This ensures it shows up immediately in the Activity History log!
+        if (tags && tags.length > 0) {
+            leadFields.Source_Details = tags.join(', ');
         }
 
         // We must have at least the unique identifier (phone or email)
