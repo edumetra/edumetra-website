@@ -12,7 +12,7 @@ import { Helmet } from 'react-helmet-async';
 const SEO = ({ 
     title, 
     description = 'Stay informed about NEET entrance exam alerts, admission deadlines, college events and so much more — all in one place with Edumetra.',
-    image = 'https://edumetra.com/logo.png', 
+    image = 'https://www.edumetraglobal.com/logo-final.jpg', 
     url = window.location.href,
     type = 'website'
 }) => {

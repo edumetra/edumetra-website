@@ -105,8 +105,8 @@ export function Sidebar({
             {/* Brand */}
             <div className="p-5 border-b border-slate-800">
                 <Link href="/" className="flex items-center gap-3 mb-2 group">
-                    <div className="h-10 w-auto rounded-lg overflow-hidden bg-white px-2 flex items-center justify-center">
-                        <Image src="/logo.jpeg" alt="Edumetra Logo" width={32} height={32} className="h-8 w-auto object-contain" />
+                    <div className="h-12 w-auto rounded-lg overflow-hidden bg-white px-3 flex items-center justify-center">
+                        <Image src="/logo-final.jpg" alt="Edumetra Logo" width={48} height={48} className="h-10 w-auto object-contain" />
                     </div>
                 </Link>
                 <div className="flex items-center gap-2 mt-1">

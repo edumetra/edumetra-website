@@ -4,6 +4,8 @@ import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linke
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
+import { pushLeadToTeleCRM } from '../services/telecrm';
+
 export default function Footer() {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
@@ -14,12 +16,24 @@ export default function Footer() {
         if (!email.trim() && !mobile.trim()) return;
         
         setSubscribing(true);
+        
+        // 1. Sync with TeleCRM
+        await pushLeadToTeleCRM(
+            { 
+                email: email.trim(), 
+                phone: mobile.trim(),
+                status: 'Colleges Portal Newsletter'
+            }, 
+            ['Newsletter', 'CollegesPortal']
+        );
+
+        // 2. Local database backup
         const { error } = await supabase
             .from('newsletter_subscriptions')
             .upsert({ email, phone: mobile }, { onConflict: 'email' });
 
         if (error) {
-            toast.error(error.message || "Failed to subscribe. Try again.");
+            toast.error(error.message || "Failed to subscribe locally. Try again.");
         } else {
             toast.success("Successfully subscribed to Edumetra's newsletter!");
             setEmail('');
@@ -29,33 +43,33 @@ export default function Footer() {
     };
 
     const topCourses = [
-        { name: 'MBBS', path: '/courses/mbbs' },
-        { name: 'BDS', path: '/courses/bds' },
-        { name: 'BAMS', path: '/courses/bams' },
-        { name: 'BHMS', path: '/courses/bhms' },
-        { name: 'B.Pharma', path: '/courses/pharma' },
-        { name: 'Nursing', path: '/courses/nursing' },
-        { name: 'Physiotherapy', path: '/courses/physio' },
-        { name: 'Ayurveda', path: '/courses/ayurveda' },
+        { name: 'MBBS', path: '/colleges' },
+        { name: 'BDS', path: '/colleges' },
+        { name: 'BAMS', path: '/colleges' },
+        { name: 'BHMS', path: '/colleges' },
+        { name: 'B.Pharma', path: '/colleges' },
+        { name: 'Nursing', path: '/colleges' },
+        { name: 'Physiotherapy', path: '/colleges' },
+        { name: 'Ayurveda', path: '/colleges' },
     ];
 
     const topUniversities = [
-        { name: 'Medical and Health Sciences', path: '/universities/medical' },
-        { name: 'Pharmaceutical Sciences', path: '/universities/pharma' },
-        { name: 'Ayurveda and Alternative Medicine', path: '/universities/ayurveda' },
-        { name: 'Nursing and Healthcare', path: '/universities/nursing' },
-        { name: 'Allied Health Sciences', path: '/universities/allied' },
-        { name: 'Dental Sciences', path: '/universities/dental' },
+        { name: 'Medical and Health Sciences', path: '/find-colleges' },
+        { name: 'Pharmaceutical Sciences', path: '/find-colleges' },
+        { name: 'Ayurveda and Alternative Medicine', path: '/find-colleges' },
+        { name: 'Nursing and Healthcare', path: '/find-colleges' },
+        { name: 'Allied Health Sciences', path: '/find-colleges' },
+        { name: 'Dental Sciences', path: '/find-colleges' },
     ];
 
     const topExams = [
-        { name: 'NEET', path: '/exams/neet' },
-        { name: 'AIIMS', path: '/exams/aiims' },
-        { name: 'JIPMER', path: '/exams/jipmer' },
-        { name: 'NEET PG', path: '/exams/neet-pg' },
-        { name: 'FMGE', path: '/exams/fmge' },
-        { name: 'INI CET', path: '/exams/ini-cet' },
-        { name: 'GPAT', path: '/exams/gpat' },
+        { name: 'NEET', path: '/find-colleges' },
+        { name: 'AIIMS', path: '/find-colleges' },
+        { name: 'JIPMER', path: '/find-colleges' },
+        { name: 'NEET PG', path: '/find-colleges' },
+        { name: 'FMGE', path: '/find-colleges' },
+        { name: 'INI CET', path: '/find-colleges' },
+        { name: 'GPAT', path: '/find-colleges' },
     ];
 
     const otherLinks = [
@@ -125,8 +139,8 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
                         <Link to="/" className="flex items-center mb-4">
-                            <div className="h-10 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
+                            <div className="h-12 w-auto px-5 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl">
+                                <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                             </div>
                         </Link>
 
@@ -142,25 +156,31 @@ export default function Footer() {
                         <div className="space-y-2 text-sm mb-4">
                             <div className="flex items-start gap-2">
                                 <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                <span className="text-slate-400">New Delhi, India (110001)</span>
+                                <span className="text-slate-400">5WS8C, West Tower, Mani CasaDona, AA-2F, Newtown, Kolkata - 700160</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-red-500 flex-shrink-0" />
-                                <a href="tel:+919876543210" className="text-red-400 hover:text-red-300">
-                                    +91-98765 43210
+                                <a href="tel:03345336366" className="text-red-400 hover:text-red-300">
+                                    033-45336366
                                 </a>
                             </div>
                         </div>
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {['#Best_Colleges', '#Best_Universities', '#Best_Courses', '#Best_Exams'].map((tag, index) => (
-                                <span
+                            {[
+                                { name: '#Best_Colleges', path: '/find-colleges' },
+                                { name: '#Best_Universities', path: '/find-colleges' },
+                                { name: '#Best_Courses', path: '/' },
+                                { name: '#Best_Exams', path: '/find-colleges' }
+                            ].map((tag, index) => (
+                                <Link
                                     key={index}
-                                    className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20"
+                                    to={tag.path}
+                                    className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20 hover:bg-red-500/20 transition-colors"
                                 >
-                                    {tag}
-                                </span>
+                                    {tag.name}
+                                </Link>
                             ))}
                         </div>
 

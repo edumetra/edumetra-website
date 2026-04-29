@@ -65,35 +65,25 @@ const Header = () => {
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-6">
                         {mainNavLinks.slice(0, 6).map((link, index) => (
-                            link.name === 'Find Colleges' ? (
-                                <button
-                                    key={index}
-                                    onClick={(e) => e.preventDefault()}
-                                    className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-500 cursor-not-allowed`}
-                                >
-                                    Coming Soon
-                                </button>
-                            ) : (
-                                <Link
-                                    key={index}
-                                    to={link.path}
-                                    className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap ${isActivePath(link.path)
-                                        ? 'text-red-400'
-                                        : 'text-slate-300 hover:text-white'
-                                        }`}
-                                >
-                                    {link.name}
-                                    {isActivePath(link.path) && (
-                                        <motion.div
-                                            layoutId="activeIndicator"
-                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-600 to-red-400"
-                                            initial={false}
-                                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                                        />
-                                    )}
-                                    <span className="absolute inset-0 rounded-lg bg-red-500/0 group-hover:bg-red-500/10 transition-colors duration-300" />
-                                </Link>
-                            )
+                            <Link
+                                key={index}
+                                to={link.path}
+                                className={`relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap ${isActivePath(link.path)
+                                    ? 'text-red-400'
+                                    : 'text-slate-300 hover:text-white'
+                                    }`}
+                            >
+                                {link.name}
+                                {isActivePath(link.path) && (
+                                    <motion.div
+                                        layoutId="activeIndicator"
+                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-600 to-red-400"
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                                <span className="absolute inset-0 rounded-lg bg-red-500/0 group-hover:bg-red-500/10 transition-colors duration-300" />
+                            </Link>
                         ))}
 
                         {/* Courses Dropdown */}
@@ -272,27 +262,17 @@ const Header = () => {
                                 <div className="mb-2">
                                     <p className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Main Pages</p>
                                     {mainNavLinks.map((link, index) => (
-                                        link.name === 'Find Colleges' ? (
-                                            <button
-                                                key={index}
-                                                onClick={(e) => e.preventDefault()}
-                                                className="block w-full text-left px-4 py-2.5 rounded-lg text-slate-500 cursor-not-allowed transition-all duration-200"
-                                            >
-                                                Coming Soon
-                                            </button>
-                                        ) : (
-                                            <Link
-                                                key={index}
-                                                to={link.path}
-                                                className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${isActivePath(link.path)
-                                                    ? 'bg-red-600/20 text-red-400 font-semibold'
-                                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                                                    }`}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                {link.name}
-                                            </Link>
-                                        )
+                                        <Link
+                                            key={index}
+                                            to={link.path}
+                                            className={`block px-4 py-2.5 rounded-lg transition-all duration-200 ${isActivePath(link.path)
+                                                ? 'bg-red-600/20 text-red-400 font-semibold'
+                                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                                }`}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            {link.name}
+                                        </Link>
                                     ))}
                                 </div>
 

@@ -91,7 +91,7 @@ const courseData = {
 
 const CoursePage = () => {
     const { courseId } = useParams();
-    const course = courseData[courseId];
+    const course = courseData[courseId?.toLowerCase()];
 
     useEffect(() => {
         if (course) {

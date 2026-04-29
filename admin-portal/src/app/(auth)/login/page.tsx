@@ -67,8 +67,8 @@ export default async function Login({
             <div className="relative w-full max-w-md">
                 {/* Logo / Brand */}
                 <div className="text-center mb-8 flex flex-col items-center">
-                    <div className="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-white shadow-2xl shadow-red-900/40 mb-4 overflow-hidden">
-                        <img src="/logo.jpeg" alt="Edumetra Logo" className="h-12 w-auto object-contain" />
+                    <div className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-white shadow-2xl shadow-red-900/40 mb-4 overflow-hidden">
+                        <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-14 w-auto object-contain" />
                     </div>
                     <p className="text-slate-500 text-sm mt-1 font-medium">Admin Portal — Authorised Access Only</p>
                 </div>

@@ -1,17 +1,38 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { pushLeadToTeleCRM } from '../../../services/telecrm';
 
 const Footer = () => {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubscribe = (e) => {
+    const handleSubscribe = async (e) => {
         e.preventDefault();
-        console.log('Subscribe:', { email, mobile });
-        // TODO: Implement newsletter subscription
-        setEmail('');
-        setMobile('');
+        if (!email || !mobile) return;
+        
+        setIsSubmitting(true);
+        try {
+            await pushLeadToTeleCRM(
+                { 
+                    email: email.trim(), 
+                    phone: mobile.trim(),
+                    status: 'Newsletter Subscriber'
+                }, 
+                ['Newsletter']
+            );
+            setIsSubscribed(true);
+            setEmail('');
+            setMobile('');
+            setTimeout(() => setIsSubscribed(false), 5000);
+        } catch (err) {
+            console.error('Subscription error:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const topCourses = [
@@ -26,22 +47,22 @@ const Footer = () => {
     ];
 
     const topUniversities = [
-        { name: 'Medical and Health Sciences', path: '/universities/medical' },
-        { name: 'Pharmaceutical Sciences', path: '/universities/pharma' },
-        { name: 'Ayurveda and Alternative Medicine', path: '/universities/ayurveda' },
-        { name: 'Nursing and Healthcare', path: '/universities/nursing' },
-        { name: 'Allied Health Sciences', path: '/universities/allied' },
-        { name: 'Dental Sciences', path: '/universities/dental' },
+        { name: 'Medical and Health Sciences', path: '/universities' },
+        { name: 'Pharmaceutical Sciences', path: '/universities' },
+        { name: 'Ayurveda and Alternative Medicine', path: '/universities' },
+        { name: 'Nursing and Healthcare', path: '/universities' },
+        { name: 'Allied Health Sciences', path: '/universities' },
+        { name: 'Dental Sciences', path: '/universities' },
     ];
 
     const topExams = [
-        { name: 'NEET', path: '/exams/neet' },
-        { name: 'AIIMS', path: '/exams/aiims' },
-        { name: 'JIPMER', path: '/exams/jipmer' },
-        { name: 'NEET PG', path: '/exams/neet-pg' },
-        { name: 'FMGE', path: '/exams/fmge' },
-        { name: 'INI CET', path: '/exams/ini-cet' },
-        { name: 'GPAT', path: '/exams/gpat' },
+        { name: 'NEET', path: '/exams' },
+        { name: 'AIIMS', path: '/exams' },
+        { name: 'JIPMER', path: '/exams' },
+        { name: 'NEET PG', path: '/exams' },
+        { name: 'FMGE', path: '/exams' },
+        { name: 'INI CET', path: '/exams' },
+        { name: 'GPAT', path: '/exams' },
     ];
 
     const otherLinks = [
@@ -96,11 +117,21 @@ const Footer = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
+                                disabled={isSubmitting}
+                                className={`px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                Subscribe
+                                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                             </button>
                         </form>
+                        {isSubscribed && (
+                            <motion.p 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-emerald-600 font-medium mt-4"
+                            >
+                                ✓ Thank you! You've been subscribed to our newsletter.
+                            </motion.p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -146,13 +177,19 @@ const Footer = () => {
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {['#Best_Colleges', '#Best_Universities', '#Best_Courses', '#Best_Exams'].map((tag, index) => (
-                                <span
+                            {[
+                                { name: '#Best_Colleges', path: '/find-colleges' },
+                                { name: '#Best_Universities', path: '/find-colleges' },
+                                { name: '#Best_Courses', path: '/' },
+                                { name: '#Best_Exams', path: '/find-colleges' }
+                            ].map((tag, index) => (
+                                <Link
                                     key={index}
-                                    className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200"
+                                    to={tag.path}
+                                    className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 hover:bg-primary-100 transition-colors"
                                 >
-                                    {tag}
-                                </span>
+                                    {tag.name}
+                                </Link>
                             ))}
                         </div>
 

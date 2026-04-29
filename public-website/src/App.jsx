@@ -31,6 +31,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import UniversitiesPage from './pages/UniversitiesPage';
+import ExamsPage from './pages/ExamsPage';
 import { analytics } from './shared/utils/analytics';
 
 // ScrollToTop component to handle route changes
@@ -83,6 +85,8 @@ function App() {
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/universities" element={<UniversitiesPage />} />
+                  <Route path="/exams" element={<ExamsPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </div>

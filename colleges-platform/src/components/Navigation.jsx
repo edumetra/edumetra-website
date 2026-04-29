@@ -126,8 +126,8 @@ const Navigation = () => {
 
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
-                            <div className="h-10 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform duration-300">
-                                <img src="/logo.jpeg" alt="Edumetra Logo" className="h-8 w-auto object-contain" />
+                            <div className="h-12 w-auto px-5 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform duration-300">
+                                <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                             </div>
                             <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/20 uppercase tracking-wider">
                                 Colleges

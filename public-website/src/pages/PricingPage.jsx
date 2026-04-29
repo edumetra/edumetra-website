@@ -331,7 +331,11 @@ const PricingPage = () => {
                             <p className="text-slate-300 text-lg mb-6">
                                 Our support team is here to help. Reach out anytime!
                             </p>
-                            <Button variant="secondary" size="lg">
+                             <Button 
+                                variant="secondary" 
+                                size="lg"
+                                onClick={() => navigate('/contact')}
+                            >
                                 Contact Support
                             </Button>
                         </motion.div>

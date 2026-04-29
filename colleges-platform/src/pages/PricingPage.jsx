@@ -125,7 +125,7 @@ const PricingPage = () => {
                 subscription_id: subData.subscriptionId,
                 name: 'Edumetra',
                 description: `${tier.toUpperCase()} Subscription Verification`,
-                image: 'https://edumetra.com/logo.png',
+                image: 'https://www.edumetraglobal.com/logo-final.jpg',
                 handler: async function (response) {
                     console.log('Payment Successful', response);
                     
@@ -458,6 +458,31 @@ const PricingPage = () => {
                             </motion.div>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Final CTA */}
+            <section className="py-20 bg-slate-900/30 border-t border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        className="text-center max-w-3xl mx-auto bg-slate-900 border border-slate-800 p-12 rounded-3xl"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                            Still Have Questions?
+                        </h2>
+                        <p className="text-slate-400 text-lg mb-8">
+                            Our support team is here to help you find the right plan for your medical career.
+                        </p>
+                        <button 
+                            onClick={() => navigate('/contact')}
+                            className="bg-white text-slate-950 px-8 py-4 rounded-xl font-bold hover:bg-slate-200 transition-all scale-100 hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            Contact Support
+                        </button>
+                    </motion.div>
                 </div>
             </section>
         </div>

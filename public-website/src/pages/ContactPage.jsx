@@ -5,7 +5,10 @@ import ContactForm from '../shared/ui/ContactForm';
 import { analytics } from '../shared/utils/analytics';
 
 import { motion } from 'framer-motion';
+import { useCounselling } from '../features/counselling/CounsellingContext';
+
 const ContactPage = () => {
+    const { openModal } = useCounselling();
     useEffect(() => {
         analytics.trackPageView('/contact', 'Contact');
     }, []);
@@ -70,10 +73,13 @@ const ContactPage = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full mb-6">
+                            <button 
+                                onClick={openModal}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full mb-6 hover:bg-red-200 transition-colors"
+                            >
                                 <MessageCircle className="w-5 h-5" />
                                 <span className="font-semibold text-sm">Book Your Free Counseling Session</span>
-                            </div>
+                            </button>
                             <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
                                 Let's Find Your <span className="gradient-text">Dream College</span>
                             </h1>
