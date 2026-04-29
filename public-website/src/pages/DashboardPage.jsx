@@ -5,6 +5,7 @@ import { User, Mail, Save, Pencil, LogOut, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const DashboardPage = () => {
     const { user, signOut } = useAuth();
@@ -80,9 +81,19 @@ const DashboardPage = () => {
                     dob: profile.dob || null,
                     stream: profile.stream
                 })
-                .eq('id', user.id);
-                
             if (error) throw error;
+            
+            // TeleCRM Integration
+            try {
+                pushLeadToTeleCRM({
+                    name: profile.full_name,
+                    phone: profile.phone_number,
+                    email: user.email,
+                    city: profile.city,
+                    state: profile.state,
+                    status: 'Fresh'
+                }, ['Profile Updated']);
+            } catch (e) {}
             
             setMessage('Profile updated successfully!');
             setIsEditing(false);

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 import { motion } from 'framer-motion';
 const LoginPage = () => {
@@ -43,6 +44,15 @@ const LoginPage = () => {
             setLoading(false);
         } else {
             setSuccess('Login successful! Redirecting...');
+            
+            // TeleCRM Integration
+            try {
+                pushLeadToTeleCRM({ 
+                    email: formData.email, 
+                    status: 'Fresh' 
+                }, ['Website Login']);
+            } catch (e) {}
+
             setTimeout(() => {
                 navigate(returnUrl);
             }, 1500);

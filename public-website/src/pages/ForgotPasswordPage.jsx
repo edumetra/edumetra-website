@@ -4,6 +4,7 @@ import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ForgotPasswordPage = () => {
     const { resetPassword } = useAuth();
@@ -24,6 +25,14 @@ const ForgotPasswordPage = () => {
             setError(error);
         } else {
             setSuccess('Password reset instructions have been sent to your email.');
+            
+            // TeleCRM Integration
+            try {
+                pushLeadToTeleCRM({ 
+                    email: email, 
+                    status: 'Fresh' 
+                }, ['Requested Password Reset']);
+            } catch (e) {}
         }
         setLoading(false);
     };

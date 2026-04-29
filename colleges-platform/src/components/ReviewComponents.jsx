@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, User, ThumbsUp, MessageSquare, Shield, Send, Filter, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 // Star Rating helper
 export function StarRating({ rating, setRating, editable = false, size = 5 }) {
@@ -47,6 +48,16 @@ export function ReviewForm({ collegeId, onReviewSubmitted }) {
                 moderation_status: 'pending',
             });
             if (err) throw err;
+            
+            // TeleCRM Integration
+            try {
+                pushLeadToTeleCRM({
+                    name: user.user_metadata?.full_name || user.email.split('@')[0],
+                    email: user.email,
+                    status: 'Fresh'
+                }, ['College Detail Review Submitted']);
+            } catch (e) {}
+            
             setFormData({ title: '', review_text: '' });
             setRating(0);
             onReviewSubmitted?.();
