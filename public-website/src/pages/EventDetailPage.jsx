@@ -161,10 +161,10 @@ const EventDetailPage = () => {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="relative"
+                                className="relative z-10"
                             >
                                 <div className="absolute -inset-4 bg-gradient-to-r from-red-500/20 to-blue-500/20 blur-3xl opacity-50 pointer-events-none" />
-                                <div className="relative card-premium p-8 rounded-3xl border border-slate-700">
+                                <div className="relative z-20 card-premium p-8 rounded-3xl border border-slate-700 bg-slate-900/80 backdrop-blur-xl">
                                     <AnimatePresence mode="wait">
                                         {regStatus === 'success' ? (
                                             <motion.div 
