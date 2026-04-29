@@ -88,6 +88,11 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         const phone = normalisePhone(fields.phone);
         if (phone) leadFields.phone = phone;
 
+        // Add tags to notes FIRST so it is highly visible
+        if (tags && tags.length > 0) {
+            notesArr.push(`📌 SOURCE: ${tags.join(' | ')}`);
+        }
+
         // Standard fields that are likely native
         const standardFields = new Set(['name', 'email', 'phone', 'city', 'status']);
         
@@ -100,11 +105,6 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                     notesArr.push(`${key}: ${val}`);
                 }
             }
-        }
-
-        // Add tags to notes
-        if (tags && tags.length > 0) {
-            notesArr.push(`Tags: ${tags.join(', ')}`);
         }
 
         // We must have at least the unique identifier (phone or email)
