@@ -116,7 +116,7 @@ export function useColleges() {
                 fees: c.fees,
                 exams: c.exams,
                 courses: c.courses || [],
-                image: c.image || 'https://via.placeholder.com/800x600?text=No+Image'
+                image: c.image || 'https://placehold.co/800x600?text=No+Image'
             }));
 
             setTotalCount(count || 0);

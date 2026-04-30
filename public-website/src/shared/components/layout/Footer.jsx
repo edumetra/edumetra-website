@@ -178,18 +178,19 @@ const Footer = () => {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
                             {[
-                                { name: '#Best_Colleges', path: '/find-colleges' },
-                                { name: '#Best_Universities', path: '/find-colleges' },
+                                { name: '#Best_Colleges', path: 'https://colleges.edumetraglobal.com/colleges' },
+                                { name: '#Best_Universities', path: 'https://colleges.edumetraglobal.com/colleges' },
                                 { name: '#Best_Courses', path: '/' },
-                                { name: '#Best_Exams', path: '/find-colleges' }
+                                { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
                             ].map((tag, index) => (
-                                <Link
+                                <a
                                     key={index}
-                                    to={tag.path}
+                                    href={tag.path}
+                                    onClick={() => pushLeadToTeleCRM({}, ['Footer Tag: ' + tag.name])}
                                     className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 hover:bg-primary-100 transition-colors"
                                 >
                                     {tag.name}
-                                </Link>
+                                </a>
                             ))}
                         </div>
 

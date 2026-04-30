@@ -135,43 +135,88 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
                         )}
                     </div>
 
-                    <div className="space-y-0">
-                        <div className="border-b border-slate-800 py-4">
-                            <p className="font-semibold text-slate-200 mb-2">Stream</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.streams || []} selected={filters.streams || []} onChange={opt => handleOptionChange('streams', opt)} />}
+                    <div className="space-y-1">
+                        {/* State first */}
+                        <div className="py-2">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">State</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="State" options={options.states || []} selected={filters.states || []} onChange={opt => handleOptionChange('states', opt)} />
+                            )}
+                        </div>
+
+                        {/* Ownership (Type) second */}
+                        <div className="py-2 border-t border-slate-800">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">Ownership</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="Ownership" options={options.types || []} selected={filters.types || []} onChange={opt => handleOptionChange('types', opt)} />
+                            )}
+                        </div>
+
+                        {/* Fees Range */}
+                        <div className="border-t border-slate-800">
+                            <RangeFilter
+                                label="Fees Range"
+                                min={filters.feesMin || 0}
+                                max={filters.feesMax || 0}
+                                onMinChange={v => onFilterChange('feesMin', v)}
+                                onMaxChange={v => onFilterChange('feesMax', v)}
+                            />
+                        </div>
+
+                        {/* Stream */}
+                        <div className="py-2 border-t border-slate-800">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">Stream</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="Stream" options={options.streams || []} selected={filters.streams || []} onChange={opt => handleOptionChange('streams', opt)} />
+                            )}
                         </div>
                         
-                        <div className="border-b border-slate-800 py-4">
-                            <p className="font-semibold text-slate-200 mb-2">NAAC Grade</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.naacGrades || []} selected={filters.naacGrades || []} onChange={opt => handleOptionChange('naacGrades', opt)} />}
+                        {/* NAAC Grade */}
+                        <div className="py-2 border-t border-slate-800">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">NAAC Grade</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="NAAC Grade" options={options.naacGrades || []} selected={filters.naacGrades || []} onChange={opt => handleOptionChange('naacGrades', opt)} />
+                            )}
                         </div>
 
-                        <RangeFilter
-                            label="Fees Range"
-                            min={filters.feesMin || 0}
-                            max={filters.feesMax || 0}
-                            onMinChange={v => onFilterChange('feesMin', v)}
-                            onMaxChange={v => onFilterChange('feesMax', v)}
-                        />
-
-                        <div className="border-b border-slate-800 py-4">
-                            <p className="font-semibold text-slate-200 mb-2">State</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.states || []} selected={filters.states || []} onChange={opt => handleOptionChange('states', opt)} />}
+                        {/* City */}
+                        <div className="py-2 border-t border-slate-800">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">City</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="City" options={options.cities || []} selected={filters.locations || []} onChange={opt => handleOptionChange('locations', opt)} />
+                            )}
                         </div>
 
-                        <div className="border-b border-slate-800 py-4">
-                            <p className="font-semibold text-slate-200 mb-2">City</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.cities || []} selected={filters.locations || []} onChange={opt => handleOptionChange('locations', opt)} />}
-                        </div>
-
-                        <div className="border-b border-slate-800 py-4">
-                            <p className="font-semibold text-slate-200 mb-2">Ownership</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.types || []} selected={filters.types || []} onChange={opt => handleOptionChange('types', opt)} />}
-                        </div>
-
-                        <div className="border-b border-slate-800 py-4 last:border-0">
-                            <p className="font-semibold text-slate-200 mb-2">Course</p>
-                            {isLoading ? <LoadingSkeleton /> : <FilterSection options={options.courses || []} selected={filters.courses || []} onChange={opt => handleOptionChange('courses', opt)} />}
+                        {/* Course */}
+                        <div className="py-2 border-t border-slate-800">
+                            {isLoading ? (
+                                <div className="py-4">
+                                    <p className="font-semibold text-slate-200 mb-2">Course</p>
+                                    <LoadingSkeleton />
+                                </div>
+                            ) : (
+                                <FilterSection title="Course" options={options.courses || []} selected={filters.courses || []} onChange={opt => handleOptionChange('courses', opt)} />
+                            )}
                         </div>
                     </div>
                 </div>

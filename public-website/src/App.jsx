@@ -31,6 +31,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import CareersPage from './pages/CareersPage';
 import UniversitiesPage from './pages/UniversitiesPage';
 import ExamsPage from './pages/ExamsPage';
 import { analytics } from './shared/utils/analytics';
@@ -88,6 +89,7 @@ function App() {
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/careers" element={<CareersPage />} />
                   <Route path="/universities" element={<UniversitiesPage />} />
                   <Route path="/exams" element={<ExamsPage />} />
                   <Route path="*" element={<NotFoundPage />} />

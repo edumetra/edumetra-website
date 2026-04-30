@@ -73,12 +73,12 @@ export default function Footer() {
     ];
 
     const otherLinks = [
-        { name: 'About Us', path: '/about' },
-        { name: 'Contact Us', path: '/contact' },
-        { name: 'Advertise With Us', path: '/advertise' },
-        { name: 'Careers', path: '/careers' },
-        { name: 'Privacy Policy', path: '/privacy' },
-        { name: 'Terms & Conditions', path: '/terms' },
+        { name: 'About Us', path: 'https://www.edumetraglobal.com/about' },
+        { name: 'Contact Us', path: 'https://www.edumetraglobal.com/contact' },
+        { name: 'Advertise With Us', path: 'https://www.edumetraglobal.com/advertise' },
+        { name: 'Careers', path: 'https://www.edumetraglobal.com/careers' },
+        { name: 'Privacy Policy', path: 'https://www.edumetraglobal.com/privacy' },
+        { name: 'Terms & Conditions', path: 'https://www.edumetraglobal.com/terms' },
     ];
 
     const socialLinks = [
@@ -169,18 +169,19 @@ export default function Footer() {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
                             {[
-                                { name: '#Best_Colleges', path: '/find-colleges' },
-                                { name: '#Best_Universities', path: '/find-colleges' },
-                                { name: '#Best_Courses', path: '/' },
-                                { name: '#Best_Exams', path: '/find-colleges' }
+                                { name: '#Best_Colleges', path: 'https://colleges.edumetraglobal.com/colleges' },
+                                { name: '#Best_Universities', path: 'https://colleges.edumetraglobal.com/colleges' },
+                                { name: '#Best_Courses', path: 'https://www.edumetraglobal.com/' },
+                                { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
                             ].map((tag, index) => (
-                                <Link
+                                <a
                                     key={index}
-                                    to={tag.path}
+                                    href={tag.path}
+                                    onClick={() => pushLeadToTeleCRM({}, ['Portal Footer Tag: ' + tag.name])}
                                     className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20 hover:bg-red-500/20 transition-colors"
                                 >
                                     {tag.name}
-                                </Link>
+                                </a>
                             ))}
                         </div>
 
@@ -248,12 +249,17 @@ export default function Footer() {
                         <ul className="space-y-2">
                             {otherLinks.map((link, index) => (
                                 <li key={index}>
-                                    <Link
-                                        to={link.path}
+                                    <a
+                                        href={link.path}
+                                        onClick={() => {
+                                            if (link.path.includes('edumetraglobal.com')) {
+                                                pushLeadToTeleCRM({}, ['Portal Footer: Visited Main Site - ' + link.name]);
+                                            }
+                                        }}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                     >
                                         {link.name}
-                                    </Link>
+                                    </a>
                                 </li>
                             ))}
                         </ul>

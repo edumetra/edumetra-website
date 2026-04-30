@@ -9,15 +9,10 @@ const isConfigured = supabaseUrl && supabaseAnonKey &&
     supabaseUrl !== 'YOUR_SUPABASE_URL' &&
     supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY';
 
-// Determine which storage to use:
-const isLocal = typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-// Create client only if credentials are valid, otherwise use a placeholder
 export const supabase = isConfigured
     ? createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
-            storage: isLocal ? undefined : cookieStorage,
+            storage: cookieStorage,
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true

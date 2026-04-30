@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../../services/supabaseClient';
+import { pushLeadToTeleCRM } from '../../services/telecrm';
 
 const AuthContext = createContext({});
 
@@ -30,9 +31,20 @@ export const AuthProvider = ({ children }) => {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
+            const currentUser = session?.user ?? null;
             setSession(session);
-            setUser(session?.user ?? null);
+            setUser(currentUser);
             setLoading(false);
+
+            if (currentUser) {
+                const metadata = currentUser.user_metadata || {};
+                pushLeadToTeleCRM({
+                    name: metadata.full_name || '',
+                    email: currentUser.email,
+                    phone: metadata.phone || '',
+                    status: 'Fresh'
+                }, ['Sync: Public Website']);
+            }
         });
 
         return () => subscription.unsubscribe();

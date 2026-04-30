@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion,  AnimatePresence  } from 'framer-motion';
 import {
     Search,
@@ -10,10 +11,14 @@ import {
     TrendingUp,
     Award,
     MessageCircle,
-    Sparkles
+    Sparkles,
+    BookOpen,
+    Home,
+    ArrowRight
 } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
+import { pushLeadToTeleCRM } from '../../services/telecrm';
 import ScrollingNewsTicker from '../../shared/ui/ScrollingNewsTicker';
 import ParticleBackground from '../../shared/ui/ParticleBackground';
 import { useCounselling } from '../../features/counselling/CounsellingContext';
@@ -71,10 +76,12 @@ const NewHeroSection = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         analytics.trackCTAClick('Hero Search', 'Hero Section', 'search');
-        const params = searchQuery.trim()
-            ? `/find-colleges?q=${encodeURIComponent(searchQuery.trim())}`
-            : '/find-colleges';
-        navigate(params);
+        pushLeadToTeleCRM({}, ['Hero Search: ' + searchQuery]);
+        const portalUrl = 'https://colleges.edumetraglobal.com';
+        const finalUrl = searchQuery.trim()
+            ? `${portalUrl}/colleges?q=${encodeURIComponent(searchQuery.trim())}`
+            : `${portalUrl}/colleges`;
+        window.location.href = finalUrl;
     };
 
     const handleCounseling = () => {
@@ -91,6 +98,9 @@ const NewHeroSection = () => {
 
     return (
         <section className="relative overflow-hidden">
+            <Helmet>
+                <title>Edumetra Global | Medical Admission Experts</title>
+            </Helmet>
             {/* Animated Background Layers */}
             <div className="absolute inset-0">
                 <AnimatePresence mode="wait">
@@ -127,16 +137,10 @@ const NewHeroSection = () => {
             {/* Particles */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                 {[...Array(20)].map((_, i) => {
-                    // disable eslint for the impure render since we just want a simple animation
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     const x1 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, []);
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     const y1 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0, []);
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     const x2 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, []);
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     const y2 = React.useMemo(() => typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0, []);
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     const dur = React.useMemo(() => 20 + Math.random() * 20, []);
 
                     return (
@@ -247,7 +251,7 @@ const NewHeroSection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto"
+                        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto mt-12"
                     >
                         {trustStats.map((stat, index) => {
                             const Icon = stat.icon;

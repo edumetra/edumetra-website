@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     GraduationCap, Menu, X, LogOut, User, ChevronDown, Search,
-    Home, Trophy, BookOpen, IndianRupee, PenSquare, Wrench, ChevronRight
+    Home, Trophy, BookOpen, IndianRupee, PenSquare, Wrench, ChevronRight, ExternalLink
 } from 'lucide-react';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 import { useSignup } from '../contexts/SignupContext';
 
 const Navigation = () => {
@@ -67,6 +68,7 @@ const Navigation = () => {
             ]
         },
         { label: 'Write a Review', to: '/review', internal: true, icon: PenSquare },
+        { label: 'Main Website', to: 'https://www.edumetraglobal.com', internal: false, icon: ExternalLink },
     ];
 
     // Bottom tab bar — 4 most-used pages
@@ -173,7 +175,18 @@ const Navigation = () => {
                                     >
                                         {label}
                                     </Link>
-                                ) : null;
+                                ) : (
+                                    <a
+                                        key={label}
+                                        href={to}
+                                        onClick={() => {
+                                            pushLeadToTeleCRM({}, ['Header: Visited Main Site']);
+                                        }}
+                                        className="px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
+                                    >
+                                        {label}
+                                    </a>
+                                );
                             })}
                         </nav>
 
@@ -278,7 +291,7 @@ const Navigation = () => {
                             className="lg:hidden border-t border-white/6 overflow-hidden bg-[#070c1a]"
                         >
                             <div className="px-4 py-4 space-y-0.5">
-                                {navItems.map(({ label, to, icon: Icon, dropdown }) => {
+                                {navItems.map(({ label, to, icon: Icon, dropdown, internal }) => {
                                     if (dropdown) {
                                         return (
                                             <div key={label}>
@@ -293,7 +306,7 @@ const Navigation = () => {
                                         );
                                     }
                                     const active = isActive(to);
-                                    return (
+                                    return internal ? (
                                         <Link key={label} to={to} onClick={() => setMobileMenuOpen(false)}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${active
                                                 ? 'bg-red-600/10 text-red-400 border border-red-500/20'
@@ -303,6 +316,12 @@ const Navigation = () => {
                                             {label}
                                             {active && <ChevronRight className="w-4 h-4 ml-auto text-red-500" />}
                                         </Link>
+                                    ) : (
+                                        <a key={label} href={to} onClick={() => { setMobileMenuOpen(false); pushLeadToTeleCRM({}, ['Header: Visited Main Site']); }}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/6 transition-all">
+                                            {Icon && <Icon className="w-4 h-4 shrink-0 text-slate-500" />}
+                                            {label}
+                                        </a>
                                     );
                                 })}
 

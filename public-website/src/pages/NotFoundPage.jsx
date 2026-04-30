@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, ArrowRight, Search, BookOpen, GraduationCap, MapPin } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const NotFoundPage = () => {
   const quickLinks = [
-    { label: 'Find Colleges', to: '/find-colleges', icon: Search, desc: 'Search for your dream college' },
+    { label: 'Find Colleges', to: 'https://colleges.edumetraglobal.com', icon: Search, desc: 'Search for your dream college', external: true },
     { label: 'Explore Courses', to: '/', icon: BookOpen, desc: 'Browse our extensive course catalog' },
     { label: 'Go Home', to: '/', icon: Home, desc: 'Back to the Edumetra homepage' },
   ];
@@ -88,24 +89,46 @@ const NotFoundPage = () => {
           className="grid md:grid-cols-3 gap-6"
         >
           {quickLinks.map((link, index) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="group p-6 bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300"
-            >
-              <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 rounded-2xl flex items-center justify-center mb-4 transition-colors">
-                <link.icon className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
-              </div>
-              <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                {link.label}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {link.desc}
-              </p>
-              <div className="mt-4 flex items-center text-blue-600 font-semibold text-sm opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all">
-                Visit <ArrowRight className="ml-2 w-4 h-4" />
-              </div>
-            </Link>
+            link.external ? (
+              <a
+                key={link.to}
+                href={link.to}
+                onClick={() => pushLeadToTeleCRM({}, ['404: Visited Colleges Portal'])}
+                className="group p-6 bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300"
+              >
+                <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 rounded-2xl flex items-center justify-center mb-4 transition-colors">
+                  <link.icon className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                  {link.label}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {link.desc}
+                </p>
+                <div className="mt-4 flex items-center text-blue-600 font-semibold text-sm opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all">
+                  Visit <ArrowRight className="ml-2 w-4 h-4" />
+                </div>
+              </a>
+            ) : (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="group p-6 bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300"
+              >
+                <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 rounded-2xl flex items-center justify-center mb-4 transition-colors">
+                  <link.icon className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                  {link.label}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {link.desc}
+                </p>
+                <div className="mt-4 flex items-center text-blue-600 font-semibold text-sm opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all">
+                  Visit <ArrowRight className="ml-2 w-4 h-4" />
+                </div>
+              </Link>
+            )
           ))}
         </motion.div>
 

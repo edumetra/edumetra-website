@@ -299,9 +299,15 @@ const PrivacyPage = () => {
                 <section className="py-20">
                     <div className="container-custom">
                         <div className="max-w-4xl mx-auto space-y-16">
+                            <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4 mb-8 text-center">
+                                <p className="text-primary-400 font-bold">
+                                    Edumetra Global is running under Virtue Edtech Private Limited
+                                </p>
+                            </div>
+
                             <p className="text-slate-300 text-lg leading-relaxed">
-                                Edumetra Global ("Company", "we", "our", "us") operates the website edumetraglobal.com and provides 
-                                education consulting services for students seeking admission in India and abroad. This Privacy Policy 
+                                Virtue Edtech Private Limited ("Company", "we", "our", "us") operates the website edumetraglobal.com and provides 
+                                education consulting services under the brand name Edumetra Global. This Privacy Policy 
                                 explains how we collect, use, disclose, and safeguard your information.
                             </p>
 
@@ -333,7 +339,7 @@ const PrivacyPage = () => {
                                 viewport={{ once: true }}
                                 className="pt-12 border-t border-slate-800 text-center text-slate-500 text-sm"
                             >
-                                <p>© {new Date().getFullYear()} Edumetra Global. All rights reserved.</p>
+                                <p>© {new Date().getFullYear()} Virtue Edtech Private Limited. All rights reserved.</p>
                             </motion.div>
                         </div>
                     </div>

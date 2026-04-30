@@ -27,6 +27,7 @@ import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { ChatbotProvider, ChatbotWidget } from './components/chatbot';
+import ComingSoonPage from './pages/ComingSoonPage';
 import AuthGuard from './components/auth/AuthGuard';
 import './index.css';
 
@@ -51,9 +52,12 @@ function App() {
             <SiteNotice />
             <ChatbotWidget />
             <Routes>
-              {/* All routes rendered inside Navigation + Footer via Outlet */}
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<HomePage />} />
+              {/* Standalone Coming Soon Page */}
+              <Route path="/" element={<ComingSoonPage />} />
+
+              {/* All other routes rendered inside Navigation + Footer via Outlet */}
+              <Route element={<MainLayout />}>
+                <Route path="home" element={<HomePage />} />
                 <Route path="colleges" element={<CollegeListPage />} />
                 <Route path="colleges/:slug" element={<CollegeDetailPage />} />
                 <Route path="profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />

@@ -57,7 +57,7 @@ export function useCollegeDetails(collegeSlug) {
                     tuition: collegeData.fees || 'N/A',
                     programs: collegeData.courses || [],
                     placementStats,
-                    image: collegeData.image || 'https://via.placeholder.com/1200x400/0f172a/3b82f6?text=Campus+View',
+                    image: collegeData.image || 'https://placehold.co/1200x400/0f172a/3b82f6?text=Campus+View',
                     gallery_images: Array.isArray(collegeData.gallery_images) ? collegeData.gallery_images : [],
                 };
 

@@ -66,7 +66,7 @@ export default function HeroCarousel({ images = [], alt = '' }) {
                     exit="exit"
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ willChange: 'transform, opacity' }}
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/1200x400/0f172a/3b82f6?text=Campus+View'; }}
+                    onError={(e) => { e.target.src = 'https://placehold.co/1200x400/0f172a/3b82f6?text=Campus+View'; }}
                 />
             </AnimatePresence>
 

@@ -84,7 +84,7 @@ export function FeaturedColleges() {
 
                             <div className="h-48 overflow-hidden relative">
                                 <img
-                                    src={c.image || 'https://via.placeholder.com/800x600?text=Campus+View'}
+                                    src={c.image || 'https://placehold.co/800x600?text=Campus+View'}
                                     alt={c.name}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />

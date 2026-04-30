@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const SignupContext = createContext();
 
@@ -53,6 +54,15 @@ export function SignupProvider({ children }) {
             if (isMounted) setUser(currentUser);
             
             if (currentUser) {
+                // Sync with TeleCRM
+                const metadata = currentUser.user_metadata || {};
+                pushLeadToTeleCRM({
+                    name: metadata.full_name || metadata.name || '',
+                    email: currentUser.email,
+                    phone: metadata.phone || '',
+                    status: 'Fresh'
+                }, ['Sync: Colleges Platform']);
+
                 await fetchProfile(currentUser.id);
             } else if (isMounted) {
                 setProfile(null);

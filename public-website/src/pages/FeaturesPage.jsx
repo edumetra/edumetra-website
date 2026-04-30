@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
 
     Target, Zap, Bell, BarChart3, Shield, Clock,
@@ -11,6 +12,7 @@ import Button from '../shared/ui/Button';
 import { analytics } from '../shared/utils/analytics';
 
 const FeaturesPage = () => {
+    const navigate = useNavigate();
     useEffect(() => {
         analytics.trackPageView('/features', 'Features');
     }, []);
@@ -175,10 +177,10 @@ const FeaturesPage = () => {
                                 Start exploring colleges for free or upgrade to Premium for complete predictions and automated guidance.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Button variant="primary" size="lg" onClick={() => window.location.href='/find-colleges'}>
+                                <Button variant="primary" size="lg" onClick={() => navigate('/find-colleges')}>
                                     Start Exploring
                                 </Button>
-                                <Button variant="secondary" size="lg" onClick={() => window.location.href='/pricing'}>
+                                <Button variant="secondary" size="lg" onClick={() => navigate('/pricing')}>
                                     View Pricing
                                 </Button>
                             </div>

@@ -15,14 +15,18 @@ export const getRootDomain = () => {
 
 export const cookieStorage = {
     getItem: (key) => {
-        if (typeof document === 'undefined') return null;
-        const name = encodeURIComponent(key) + "=";
-        const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i].trim();
-            if (c.indexOf(name) === 0) {
-                return decodeURIComponent(c.substring(name.length, c.length));
+        try {
+            if (typeof document === 'undefined') return null;
+            const name = encodeURIComponent(key) + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i].trim();
+                if (c.indexOf(name) === 0) {
+                    return decodeURIComponent(c.substring(name.length, c.length));
+                }
             }
+        } catch (e) {
+            console.warn('Cookie storage getItem blocked:', e);
         }
         return null;
     },
@@ -46,7 +50,11 @@ export const cookieStorage = {
             attributes.push(`domain=.${rootDomain}`);
         }
 
-        document.cookie = attributes.join('; ');
+        try {
+            document.cookie = attributes.join('; ');
+        } catch (e) {
+            console.warn('Cookie storage setItem blocked:', e);
+        }
     },
     removeItem: (key) => {
         if (typeof document === 'undefined') return;
@@ -63,6 +71,10 @@ export const cookieStorage = {
             attributes.push(`domain=.${rootDomain}`);
         }
         
-        document.cookie = attributes.join('; ');
+        try {
+            document.cookie = attributes.join('; ');
+        } catch (e) {
+            console.warn('Cookie storage removeItem blocked:', e);
+        }
     }
 };

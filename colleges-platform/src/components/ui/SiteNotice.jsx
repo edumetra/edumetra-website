@@ -8,7 +8,12 @@ const SiteNotice = () => {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        const consent = localStorage.getItem(CONSENT_KEY);
+        let consent = null;
+        try {
+            consent = localStorage.getItem(CONSENT_KEY);
+        } catch (e) {
+            console.warn('localStorage getItem blocked:', e);
+        }
         if (!consent) {
             // Delay showing the banner slightly for better UX
             const timer = setTimeout(() => setIsVisible(true), 2500);
@@ -17,7 +22,11 @@ const SiteNotice = () => {
     }, []);
 
     const acceptCookies = () => {
-        localStorage.setItem(CONSENT_KEY, 'accepted');
+        try {
+            localStorage.setItem(CONSENT_KEY, 'accepted');
+        } catch (e) {
+            console.warn('localStorage setItem blocked:', e);
+        }
         setIsVisible(false);
     };
 

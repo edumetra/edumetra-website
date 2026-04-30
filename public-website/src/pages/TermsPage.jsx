@@ -20,7 +20,7 @@ const TermsPage = () => {
             title: '2. Nature of Services',
             content: (
                 <div className="space-y-4">
-                    <p className="text-slate-300">Edumetra Global provides:</p>
+                    <p className="text-slate-300">Virtue Edtech Private Limited provides:</p>
                     <ul className="space-y-3">
                         {[
                             'Admission counseling for MBBS and other courses',
@@ -107,7 +107,7 @@ const TermsPage = () => {
             title: '7. Intellectual Property Rights',
             content: (
                 <p className="text-slate-400 leading-relaxed">
-                    All website content (text, logo, design) is owned by Edumetra Global. 
+                    All website content (text, logo, design) is owned by Virtue Edtech Private Limited. 
                     Unauthorized use, reproduction, or distribution is prohibited and may lead to legal action.
                 </p>
             )
@@ -117,7 +117,7 @@ const TermsPage = () => {
             title: '8. Limitation of Liability',
             content: (
                 <div className="space-y-4 text-slate-400">
-                    <p>Edumetra Global shall not be held liable for:</p>
+                    <p>Virtue Edtech Private Limited shall not be held liable for:</p>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                         <li>Admission rejection</li>
                         <li>Visa rejection or delay</li>
@@ -155,7 +155,7 @@ const TermsPage = () => {
             title: '11. Indemnification',
             content: (
                 <p className="text-slate-400 leading-relaxed">
-                    You agree to indemnify and hold Edumetra Global harmless from any claims, damages, or losses arising 
+                    You agree to indemnify and hold Virtue Edtech Private Limited harmless from any claims, damages, or losses arising 
                     from misuse of services or violation of these terms.
                 </p>
             )
@@ -255,8 +255,14 @@ const TermsPage = () => {
                 <section className="py-20">
                     <div className="container-custom">
                         <div className="max-w-4xl mx-auto space-y-16">
+                            <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4 mb-8 text-center">
+                                <p className="text-primary-400 font-bold">
+                                    Edumetra Global is running under Virtue Edtech Private Limited
+                                </p>
+                            </div>
+
                             <p className="text-slate-300 text-lg leading-relaxed text-center">
-                                These Terms & Conditions govern your use of edumetraglobal.com and services provided by Edumetra Global.
+                                These Terms & Conditions govern your use of edumetraglobal.com and services provided by Virtue Edtech Private Limited under the brand name Edumetra Global.
                             </p>
 
                             <div className="space-y-12">
@@ -287,7 +293,7 @@ const TermsPage = () => {
                                 viewport={{ once: true }}
                                 className="pt-12 border-t border-slate-800 text-center text-slate-500 text-sm"
                             >
-                                <p>© {new Date().getFullYear()} Edumetra Global. All rights reserved.</p>
+                                <p>© {new Date().getFullYear()} Virtue Edtech Private Limited. All rights reserved.</p>
                             </motion.div>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ import { analytics } from '../shared/utils/analytics';
 import { generateStructuredData } from '../shared/utils/seo';
 import { useAuth } from '../features/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 import { motion } from 'framer-motion';
 
@@ -14,10 +15,16 @@ import { motion } from 'framer-motion';
 function getGuestFingerprint() {
     if (typeof window === 'undefined') return null;
     const key = 'edu_guest_id';
-    let id = localStorage.getItem(key);
-    if (!id) {
+    let id = null;
+    try {
+        id = localStorage.getItem(key);
+        if (!id) {
+            id = `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            localStorage.setItem(key, id);
+        }
+    } catch (e) {
+        console.warn('localStorage access blocked in PricingPage:', e);
         id = `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        localStorage.setItem(key, id);
     }
     return id;
 }
@@ -331,10 +338,13 @@ const PricingPage = () => {
                             <p className="text-slate-300 text-lg mb-6">
                                 Our support team is here to help. Reach out anytime!
                             </p>
-                             <Button 
+                              <Button 
                                 variant="secondary" 
                                 size="lg"
-                                onClick={() => navigate('/contact')}
+                                onClick={() => {
+                                    pushLeadToTeleCRM({}, ['Pricing: Contact Support Clicked']);
+                                    navigate('/contact');
+                                }}
                             >
                                 Contact Support
                             </Button>
