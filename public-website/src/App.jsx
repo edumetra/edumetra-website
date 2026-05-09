@@ -5,6 +5,7 @@ import { AuthProvider } from './features/auth/AuthProvider';
 import PromoBanner from './shared/ui/PromoBanner';
 import Header from './shared/components/layout/Header';
 import Footer from './shared/components/layout/Footer';
+import StickyMobileCTA from './shared/components/layout/StickyMobileCTA';
 import CounsellingModal from './shared/ui/CounsellingModal';
 import SiteNotice from './shared/ui/SiteNotice';
 import { CounsellingProvider } from './features/counselling/CounsellingContext';
@@ -29,6 +30,7 @@ import DashboardPage from './pages/DashboardPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CheckoutPage from './pages/CheckoutPage';
+import InvoicePage from './pages/InvoicePage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import CareersPage from './pages/CareersPage';
@@ -87,6 +89,7 @@ function App() {
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/invoice" element={<InvoicePage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/careers" element={<CareersPage />} />
@@ -96,6 +99,7 @@ function App() {
                 </Routes>
               </div>
               <Footer />
+              <StickyMobileCTA />
               <CounsellingModal />
               <SiteNotice />
             </div>

@@ -60,6 +60,7 @@ export async function createAdminAccount(formData: FormData) {
         });
 
         if (createError) {
+            console.error("Supabase Auth Error:", createError);
             if (createError.message.includes("already exist")) {
                 const { data: users, error: listError } = await adminClient.auth.admin.listUsers();
                 if (listError) return { error: "Could not list users: " + listError.message };
@@ -67,7 +68,7 @@ export async function createAdminAccount(formData: FormData) {
                 if (!existingUser) return { error: "User already exists but could not find by email" };
                 userId = existingUser.id;
             } else {
-                return { error: createError.message };
+                return { error: "Auth Error: " + createError.message };
             }
         } else if (newUser) {
             userId = newUser.id;
@@ -81,10 +82,12 @@ export async function createAdminAccount(formData: FormData) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .insert({ id: userId, email, role, permissions } as any);
 
-        if (insertError?.code === "23505") {
-            return { error: "This user is already an admin" };
-        } else if (insertError) {
-            return { error: "Error adding admin to table: " + insertError.message };
+        if (insertError) {
+            console.error("Database Insert Error (admins):", insertError);
+            if (insertError.code === "23505") {
+                return { error: "This user is already an admin" };
+            }
+            return { error: "Database error adding admin: " + insertError.message };
         }
 
         logAdminAction({

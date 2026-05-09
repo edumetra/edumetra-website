@@ -14,13 +14,13 @@ const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
+    const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
 
     const mainNavLinks = [
         { name: 'Home', path: '/' },
         { name: 'Find Colleges', path: 'https://colleges.edumetraglobal.com', external: true },
         { name: 'Features', path: '/features' },
         { name: 'Pricing', path: '/pricing' },
-        { name: 'MBBS Abroad', path: '/mbbs-abroad' },
         { name: 'Webinars', path: '/webinars-seminars' },
         { name: 'News & Blogs', path: '/news-blogs' },
         { name: 'About', path: '/about' },
@@ -47,20 +47,20 @@ const Header = () => {
 
     return (
         <header className="sticky top-0 z-50 bg-slate-900/98 backdrop-blur-xl border-b border-slate-800/50 shadow-lg shadow-black/20">
-            <div className="container-custom">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Header Bar */}
                 <div className="flex items-center justify-between gap-4 py-4">
                     {/* Logo */}
                     <Link to="/" className="flex items-center flex-shrink-0 group">
-                        <div className="h-16 w-auto px-6 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform">
-                            <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-12 w-auto object-contain" />
+                        <div className="h-14 w-auto px-4 bg-white flex items-center justify-center shadow-lg overflow-hidden rounded-xl group-hover:scale-105 transition-transform">
+                            <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-10 w-auto object-contain" />
                         </div>
                     </Link>
 
                     {/* Desktop Navigation */}
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-6">
-                        {mainNavLinks.map((link, index) => (
+                        {mainNavLinks.slice(0, 6).map((link, index) => (
                             link.external ? (
                                 <a
                                     key={index}
@@ -123,6 +123,42 @@ const Header = () => {
                                                 className="block px-4 py-2.5 text-sm text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200 hover:translate-x-1"
                                             >
                                                 {course.name}
+                                            </Link>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* More Dropdown */}
+                        <div className="relative group">
+                            <button
+                                className="flex items-center gap-1 px-1 py-2 text-sm font-medium text-slate-300 hover:text-white transition-all duration-300 rounded-lg whitespace-nowrap"
+                                onMouseEnter={() => setMoreDropdownOpen(true)}
+                                onMouseLeave={() => setMoreDropdownOpen(false)}
+                            >
+                                More
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${moreDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                                {moreDropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-full right-0 mt-2 w-48 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden"
+                                        onMouseEnter={() => setMoreDropdownOpen(true)}
+                                        onMouseLeave={() => setMoreDropdownOpen(false)}
+                                    >
+                                        {mainNavLinks.slice(6).map((link, index) => (
+                                            <Link
+                                                key={index}
+                                                to={link.path}
+                                                className="block px-4 py-2.5 text-sm text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200 hover:translate-x-1"
+                                            >
+                                                {link.name}
                                             </Link>
                                         ))}
                                     </motion.div>
@@ -202,15 +238,9 @@ const Header = () => {
                             <>
                                 <Link
                                     to="/login"
-                                    className="hidden lg:block px-3 py-2 text-white hover:text-red-400 font-semibold transition-all duration-300 text-sm whitespace-nowrap"
+                                    className="hidden lg:block px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
                                 >
                                     Sign In
-                                </Link>
-                                <Link
-                                    to="/signup"
-                                    className="hidden lg:block px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm shadow-lg shadow-red-900/30 hover:shadow-red-600/40 hover:scale-105 whitespace-nowrap"
-                                >
-                                    Sign Up
                                 </Link>
                             </>
                         )}
@@ -306,22 +336,13 @@ const Header = () => {
                                         Write a Review
                                     </Link>
                                     {!user && (
-                                        <>
-                                            <Link
-                                                to="/login"
-                                                className="px-4 py-3 text-center text-white hover:bg-slate-800 font-semibold rounded-lg transition-all"
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                Sign In
-                                            </Link>
-                                            <Link
-                                                to="/signup"
-                                                className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg text-center transition-all"
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                Sign Up
-                                            </Link>
-                                        </>
+                                        <Link
+                                            to="/login"
+                                            className="px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg text-center shadow-lg shadow-red-900/30"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            Sign In
+                                        </Link>
                                     )}
                                 </div>
                             </nav>

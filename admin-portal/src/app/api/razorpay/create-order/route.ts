@@ -4,65 +4,121 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/razorpay/create-order
+ *
+ * Creates a Razorpay order and saves a pending payment record to DB.
+ * Supports optional coupon discounts validated server-side.
+ */
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { userId, planType } = body;
+        const { userId, planType, couponCode } = body;
 
         if (!userId || !planType) {
             return NextResponse.json({ error: 'Missing userId or planType' }, { status: 400 });
         }
 
-        // Initialize Supabase Admin Client to bypass RLS (optional, for validation)
         const supabaseAdmin = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL || '',
             process.env.SUPABASE_SERVICE_ROLE_KEY || ''
         );
 
-        // Optionally fetch user profile to ensure they exist (commented out by default)
-        // const { data: profile } = await supabaseAdmin.from('user_profiles').select('id, email').eq('id', userId).single();
-        // if (!profile) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-
-        // Calculate amount based on plan
-        let amountInPaise = 0;
+        // ── Calculate base amount ─────────────────────────────────────────────
+        let baseAmountPaise = 0;
         if (planType === 'pro') {
-            amountInPaise = 30000 * 100; // ₹30000
+            baseAmountPaise = 30000 * 100; // ₹30,000
         } else if (planType === 'premium') {
-            amountInPaise = 3000 * 100; // ₹3000
+            baseAmountPaise = 3000 * 100;  // ₹3,000
         } else {
             return NextResponse.json({ error: 'Invalid planType' }, { status: 400 });
         }
 
+        // ── Validate coupon & apply discount ──────────────────────────────────
+        let discountPaise = 0;
+        let validatedCouponCode: string | null = null;
+
+        if (couponCode) {
+            const { data: coupon, error: couponErr } = await supabaseAdmin
+                .from('coupons')
+                .select('*')
+                .eq('code', couponCode.toUpperCase())
+                .eq('is_active', true)
+                .single();
+
+            if (couponErr || !coupon) {
+                return NextResponse.json({ error: 'Invalid or inactive coupon code' }, { status: 400 });
+            }
+            if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+                return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
+            }
+            if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+                return NextResponse.json({ error: 'Coupon usage limit reached' }, { status: 400 });
+            }
+
+            discountPaise = Math.floor(baseAmountPaise * (coupon.discount_percentage / 100));
+            validatedCouponCode = coupon.code;
+        }
+
+        const finalAmountPaise = baseAmountPaise - discountPaise;
+
+        if (finalAmountPaise < 100) {
+            return NextResponse.json({ error: 'Final amount too low for payment' }, { status: 400 });
+        }
+
+        // ── Create Razorpay order ─────────────────────────────────────────────
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID || '',
             key_secret: process.env.RAZORPAY_KEY_SECRET || '',
         });
 
-        const options = {
-            amount: amountInPaise,
-            currency: 'INR',
-            receipt: `receipt_${userId}_${Date.now()}`.substring(0, 40),
-            notes: {
-                user_id: userId,
-                plan_type: planType
-            }
-        };
+        const receipt = `rcpt_${userId.slice(0, 8)}_${Date.now()}`.substring(0, 40);
 
-        const order = await razorpay.orders.create(options);
+        const order = await razorpay.orders.create({
+            amount: finalAmountPaise,
+            currency: 'INR',
+            receipt,
+            notes: {
+                user_id:     userId,
+                plan_type:   planType,
+                coupon_code: validatedCouponCode || '',
+            }
+        });
 
         if (!order || !order.id) {
             throw new Error('Failed to create Razorpay order');
         }
 
+        // ── Save payment record in DB (status: created) ───────────────────────
+        const { error: insertError } = await supabaseAdmin
+            .from('payments')
+            .insert({
+                user_id:           userId,
+                razorpay_order_id: order.id,
+                plan_type:         planType,
+                amount_paise:      baseAmountPaise,
+                currency:          'INR',
+                coupon_code:       validatedCouponCode,
+                discount_paise:    discountPaise,
+                status:            'created',
+            });
+
+        if (insertError) {
+            console.error('[Create Order] Failed to save payment record:', insertError);
+            // Don't block the user — order is still valid
+        }
+
         return NextResponse.json({
-            success: true,
-            orderId: order.id,
-            amount: order.amount,
-            currency: order.currency,
+            success:       true,
+            orderId:       order.id,
+            amount:        order.amount,
+            currency:      order.currency,
+            discountPaise,
+            finalAmount:   finalAmountPaise,
         });
 
     } catch (error: any) {
-        console.error('[Razorpay Order Creation] Error:', error);
+        console.error('[Create Order] Error:', error);
         return NextResponse.json(
             { error: error.message || 'Internal Server Error' },
             { status: 500 }

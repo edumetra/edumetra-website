@@ -202,7 +202,7 @@ const NewHeroSection = () => {
                         transition={{ delay: 0.2 }}
                         className="max-w-3xl mx-auto mb-8"
                     >
-                        <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-4 md:p-6 border border-white/20">
                             <form onSubmit={handleSearch}>
                                 <div className="flex flex-col md:flex-row gap-3">
                                     <div className="flex-1 relative">
@@ -211,33 +211,32 @@ const NewHeroSection = () => {
                                             type="text"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Search colleges by name, course, or location..."
-                                            className="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                            placeholder="Search colleges, courses..."
+                                            className="w-full pl-11 md:pl-12 pr-4 py-3.5 md:py-4 border-2 border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm md:text-base"
                                         />
                                     </div>
                                     <button
                                         type="submit"
-                                        className="px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                        className="px-8 py-3.5 md:py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 active:scale-95"
                                     >
                                         <Search className="w-5 h-5" />
-                                        <span className="hidden sm:inline">Search Colleges</span>
-                                        <span className="sm:hidden">Search</span>
+                                        <span className="">Search</span>
                                     </button>
                                 </div>
                             </form>
 
-                            {/* CTA Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-slate-200">
+                            {/* CTA Buttons - Hidden on Mobile if Sticky CTA is present, or just simplified */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200">
                                 <button
                                     onClick={handleCounseling}
-                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-95"
                                 >
                                     <MessageCircle className="w-5 h-5" />
                                     Book Free Counselling
                                 </button>
                                 <Link
                                     to="/signup"
-                                    className="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                                    className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
                                 >
                                     <Sparkles className="w-5 h-5" />
                                     Get Started Free

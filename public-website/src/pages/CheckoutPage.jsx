@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Check, Shield, Lock, CreditCard,
-    Zap, Sparkles, Tag, Ticket, ChevronRight, Clock
+    Zap, Sparkles, Tag, Ticket, ChevronRight,
+    FileText, Download, CheckCircle, AlertCircle, Loader2, X
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../services/supabaseClient';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+
+const ADMIN_URL = 'https://admin.edumetra.in';
 
 const PLANS = {
     premium: {
@@ -54,6 +57,146 @@ const PLANS = {
     },
 };
 
+// ── Load Razorpay SDK ─────────────────────────────────────────────────────────
+function loadRazorpaySDK() {
+    return new Promise((resolve) => {
+        if (window.Razorpay) { resolve(true); return; }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+}
+
+// ── Invoice Card ──────────────────────────────────────────────────────────────
+function InvoiceCard({ invoice, onClose }) {
+    const [downloading, setDownloading] = React.useState(false);
+
+    const handleDownload = async () => {
+        setDownloading(true);
+        try {
+            const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+                import('jspdf'),
+                import('html2canvas'),
+            ]);
+            const el = document.getElementById('invoice-printable');
+            if (!el) return;
+            const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#1e293b', logging: false });
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const w = pdf.internal.pageSize.getWidth();
+            const h = (canvas.height * w) / canvas.width;
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+            pdf.save(`Invoice-${invoice.invoice_number}.pdf`);
+        } catch (e) {
+            console.error('PDF error:', e);
+            window.print();
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        >
+            <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl w-full max-w-lg shadow-2xl shadow-emerald-900/20 overflow-hidden">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-white font-black text-lg">Payment Successful!</h3>
+                            <p className="text-emerald-100 text-xs">Your account has been upgraded</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-white/60 hover:text-white transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Invoice Body */}
+                <div className="p-6 space-y-4" id="invoice-printable">
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-sm">Invoice Number</span>
+                        <span className="text-white font-bold font-mono">{invoice.invoice_number}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-sm">Plan</span>
+                        <span className="text-white font-semibold capitalize">{invoice.plan_type} Plan</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-sm">Billing Period</span>
+                        <span className="text-white font-semibold">{invoice.billing_period}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-sm">Email</span>
+                        <span className="text-white text-sm truncate max-w-[200px]">{invoice.user_email}</span>
+                    </div>
+                    <div className="border-t border-slate-800 pt-3 space-y-2">
+                        <div className="flex justify-between text-sm text-slate-300">
+                            <span>Subtotal</span>
+                            <span>₹{(invoice.amount_inr || invoice.amount_paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        {invoice.discount_inr > 0 && (
+                            <div className="flex justify-between text-sm text-emerald-400">
+                                <span>Discount</span>
+                                <span>−₹{Number(invoice.discount_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between text-white font-black text-lg pt-1 border-t border-slate-800">
+                            <span>Total Paid</span>
+                            <span>₹{Number(invoice.total_inr || invoice.total_paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-3 text-xs text-slate-400">
+                        <span className="font-mono text-slate-300">Payment ID: </span>
+                        {invoice.razorpay_payment_id}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="px-6 pb-6 space-y-3">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleDownload}
+                            disabled={downloading}
+                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all text-sm disabled:opacity-60"
+                        >
+                            {downloading
+                                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+                                : <><Download className="w-4 h-4" /> Download PDF</>
+                            }
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-bold rounded-xl transition-all text-sm"
+                        >
+                            Go to Dashboard
+                        </button>
+                    </div>
+                    {invoice?.id && (
+                        <p className="text-center text-xs text-slate-500">
+                            <a
+                                href={`/invoice?id=${invoice.id}`}
+                                className="text-slate-400 hover:text-white underline"
+                                target="_blank" rel="noreferrer"
+                            >
+                                View full invoice page ↗
+                            </a>
+                        </p>
+                    )}
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 const CheckoutPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -62,26 +205,27 @@ const CheckoutPage = () => {
     const plan = PLANS[planKey] || PLANS.premium;
 
     const [couponCode, setCouponCode] = useState('');
-    const [appliedCoupon, setCouponApplied] = useState(null);
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [validating, setValidating] = useState(false);
     const [couponError, setCouponError] = useState('');
 
-    useEffect(() => {
-        if (!user) navigate('/login');
-    }, [user, navigate]);
+    const [paymentState, setPaymentState] = useState('idle'); // idle | loading | processing | success | failed
+    const [paymentError, setPaymentError] = useState('');
+    const [invoice, setInvoice] = useState(null);
+    const [showInvoice, setShowInvoice] = useState(false);
 
-    // Push checkout intent to TeleCRM when user lands on this page
+    useEffect(() => {
+        if (!user) navigate('/login?redirect=/checkout?plan=' + planKey);
+    }, [user, navigate, planKey]);
+
     useEffect(() => {
         if (user?.email) {
             pushLeadToTeleCRM(
-                {
-                    email: user.email,
-                    status: 'Fresh',
-                },
+                { email: user.email, status: 'Fresh' },
                 ['Checkout Intent', `Plan: ${plan.name}`]
             );
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     const discountedPrice = appliedCoupon
@@ -90,6 +234,7 @@ const CheckoutPage = () => {
 
     const savings = plan.originalPrice - discountedPrice;
 
+    // ── Coupon Validation ─────────────────────────────────────────────────────
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
         setValidating(true);
@@ -104,15 +249,15 @@ const CheckoutPage = () => {
 
             if (error || !data) {
                 setCouponError('Invalid or inactive coupon code.');
-                setCouponApplied(null);
+                setAppliedCoupon(null);
             } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
                 setCouponError('This coupon has expired.');
-                setCouponApplied(null);
+                setAppliedCoupon(null);
             } else if (data.max_uses && data.used_count >= data.max_uses) {
                 setCouponError('Coupon usage limit reached.');
-                setCouponApplied(null);
+                setAppliedCoupon(null);
             } else {
-                setCouponApplied(data);
+                setAppliedCoupon(data);
                 setCouponError('');
             }
         } catch {
@@ -122,14 +267,129 @@ const CheckoutPage = () => {
         }
     };
 
+    // ── Razorpay Payment Flow ─────────────────────────────────────────────────
+    const handlePayment = useCallback(async () => {
+        if (!user) return;
+        setPaymentState('loading');
+        setPaymentError('');
+
+        try {
+            // 1. Load SDK
+            const sdkLoaded = await loadRazorpaySDK();
+            if (!sdkLoaded) {
+                throw new Error('Failed to load payment SDK. Please check your internet connection.');
+            }
+
+            // 2. Create order on backend
+            const orderRes = await fetch(`${ADMIN_URL}/api/razorpay/create-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    planType: plan.id,
+                    couponCode: appliedCoupon?.code || null,
+                }),
+            });
+
+            const orderData = await orderRes.json();
+            if (!orderRes.ok || !orderData.orderId) {
+                throw new Error(orderData.error || 'Failed to create payment order.');
+            }
+
+            // 3. Open Razorpay checkout
+            setPaymentState('processing');
+
+            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+            const options = {
+                key: razorpayKey,
+                amount: orderData.amount,
+                currency: orderData.currency || 'INR',
+                name: 'Edumetra',
+                description: `${plan.name} Plan — ${plan.period}`,
+                order_id: orderData.orderId,
+                prefill: {
+                    email: user.email,
+                    name: user.user_metadata?.full_name || '',
+                },
+                theme: { color: '#e11d48' },
+                modal: {
+                    ondismiss: () => {
+                        setPaymentState('idle');
+                        setPaymentError('Payment cancelled. You can try again.');
+                    },
+                },
+                handler: async (response) => {
+                    // 4. Verify payment on backend
+                    try {
+                        const verifyRes = await fetch(`${ADMIN_URL}/api/razorpay/verify-payment`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                userId: user.id,
+                                planType: plan.id,
+                                couponCode: appliedCoupon?.code || null,
+                                discountPaise: orderData.discountPaise || 0,
+                            }),
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (!verifyRes.ok || !verifyData.success) {
+                            throw new Error(verifyData.error || 'Payment verification failed.');
+                        }
+
+                        // 5. Success!
+                        setInvoice(verifyData.invoice);
+                        setPaymentState('success');
+                        setShowInvoice(true);
+
+                        pushLeadToTeleCRM(
+                            { email: user.email, status: 'Won' },
+                            [`Payment Success: ${plan.name}`, `Invoice: ${verifyData.invoice?.invoice_number}`]
+                        );
+
+                    } catch (verifyErr) {
+                        setPaymentState('failed');
+                        setPaymentError(verifyErr.message || 'Verification failed. Contact support with your payment ID.');
+                    }
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => {
+                setPaymentState('failed');
+                setPaymentError(resp.error?.description || 'Payment failed. Please try again.');
+            });
+            rzp.open();
+
+        } catch (err) {
+            setPaymentState('failed');
+            setPaymentError(err.message || 'Something went wrong. Please try again.');
+        }
+    }, [user, plan, appliedCoupon]);
+
     const PlanIcon = plan.icon;
 
     return (
         <>
             <SEO page="checkout" />
+
+            {/* Invoice Modal */}
+            <AnimatePresence>
+                {showInvoice && invoice && (
+                    <InvoiceCard
+                        invoice={invoice}
+                        onClose={() => { setShowInvoice(false); navigate('/dashboard'); }}
+                    />
+                )}
+            </AnimatePresence>
+
             <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
                 <div className="max-w-5xl mx-auto">
-                    {/* Back */}
                     <Link to="/pricing" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-10 transition-colors text-sm">
                         <ArrowLeft className="w-4 h-4" /> Back to Pricing
                     </Link>
@@ -152,7 +412,6 @@ const CheckoutPage = () => {
                                         <h2 className="text-xl font-black text-white">{plan.name} Plan</h2>
                                     </div>
                                 </div>
-
                                 <div className="space-y-2.5">
                                     {plan.features.map((f, i) => (
                                         <div key={i} className="flex items-start gap-2.5">
@@ -193,11 +452,11 @@ const CheckoutPage = () => {
                                 </div>
                             </div>
 
-                            {/* Trust */}
-                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                            {/* Trust Badges */}
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
                                 <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-slate-400" /> Secure checkout</div>
                                 <div className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-slate-400" /> Data encrypted</div>
-                                <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-400" /> Cancel anytime</div>
+                                <div className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-slate-400" /> Invoice generated</div>
                             </div>
                         </motion.div>
 
@@ -233,7 +492,7 @@ const CheckoutPage = () => {
                                 {appliedCoupon && (
                                     <div className="mt-3 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
                                         <span className="text-xs font-bold text-emerald-400">✓ {appliedCoupon.code} — {appliedCoupon.discount_percentage}% off applied!</span>
-                                        <button onClick={() => { setCouponApplied(null); setCouponCode(''); }} className="text-xs text-emerald-400/60 hover:text-emerald-400 underline">Remove</button>
+                                        <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="text-xs text-emerald-400/60 hover:text-emerald-400 underline">Remove</button>
                                     </div>
                                 )}
                             </div>
@@ -245,32 +504,57 @@ const CheckoutPage = () => {
                                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">Payment</h3>
                                 </div>
 
-                                {/* Coming Soon Placeholder */}
-                                <div className="bg-slate-950 border-2 border-dashed border-slate-700 rounded-xl p-10 text-center mb-6">
-                                    <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <CreditCard className="w-8 h-8 text-slate-500" />
-                                    </div>
-                                    <h4 className="text-white font-bold text-lg mb-2">Payment Gateway</h4>
-                                    <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                                        Secure payment via Razorpay is being integrated. You'll be able to pay with UPI, Cards, Net Banking & Wallets.
-                                    </p>
-                                    <div className="flex items-center justify-center gap-3 mt-5 text-slate-600 text-xs font-semibold">
-                                        <span>UPI</span><span>•</span><span>VISA</span><span>•</span><span>Mastercard</span><span>•</span><span>Net Banking</span>
+                                {/* Payment Methods */}
+                                <div className="bg-slate-950/60 border border-slate-700/50 rounded-xl p-5 mb-6">
+                                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-4">Accepted via Razorpay</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {['UPI / GPay / PhonePe', 'Credit / Debit Card', 'Net Banking', 'Wallets'].map((method) => (
+                                            <div key={method} className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-2.5">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                                                <span className="text-xs text-slate-300 font-medium">{method}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
-                                {/* Proceed Button (disabled until payment is integrated) */}
+                                {/* Error State */}
+                                <AnimatePresence>
+                                    {paymentError && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3"
+                                        >
+                                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                                            <p className="text-sm text-red-300">{paymentError}</p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Pay Button */}
                                 <button
-                                    disabled
-                                    className="w-full py-4 px-6 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-lg rounded-xl transition-all shadow-lg shadow-red-900/20 opacity-50 cursor-not-allowed flex items-center justify-center gap-3"
+                                    onClick={handlePayment}
+                                    disabled={paymentState === 'loading' || paymentState === 'processing' || paymentState === 'success'}
+                                    className="w-full py-4 px-6 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-lg rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                                 >
-                                    <Lock className="w-5 h-5" />
-                                    Proceed to Payment — ₹{discountedPrice.toLocaleString()}/{plan.period.replace('per ', '')}
+                                    {paymentState === 'loading' && (
+                                        <><Loader2 className="w-5 h-5 animate-spin" /> Preparing Payment...</>
+                                    )}
+                                    {paymentState === 'processing' && (
+                                        <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                                    )}
+                                    {paymentState === 'success' && (
+                                        <><CheckCircle className="w-5 h-5" /> Payment Successful!</>
+                                    )}
+                                    {(paymentState === 'idle' || paymentState === 'failed') && (
+                                        <><Lock className="w-5 h-5" /> Pay ₹{discountedPrice.toLocaleString()} via Razorpay</>
+                                    )}
                                 </button>
 
                                 <p className="text-center text-xs text-slate-500 mt-4 flex items-center justify-center gap-1.5">
                                     <Shield className="w-3.5 h-3.5" />
-                                    Payment integration coming soon. Your order details have been saved.
+                                    256-bit SSL encrypted • Powered by Razorpay • Invoice generated automatically
                                 </p>
                             </div>
 
