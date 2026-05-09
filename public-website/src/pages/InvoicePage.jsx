@@ -8,7 +8,7 @@ import {
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 
-const ADMIN_URL = 'https://admin.edumetra.in';
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
 
 // ── PDF Download ──────────────────────────────────────────────────────────────
 async function downloadAsPDF(elementId, filename) {

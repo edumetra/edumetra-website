@@ -9,7 +9,7 @@ import {
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://admin.edumetra.in';
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
 
 const PLANS = {
     premium: {

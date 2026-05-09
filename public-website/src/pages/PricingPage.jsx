@@ -29,11 +29,13 @@ function getGuestFingerprint() {
     return id;
 }
 
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
+
 async function trackPricingView() {
     try {
         const identifier = getGuestFingerprint();
         if (!identifier) return;
-        await fetch('https://admin.edumetra.in/api/track-pricing-view', {
+        await fetch(`${ADMIN_URL}/api/track-pricing-view`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ identifier }),

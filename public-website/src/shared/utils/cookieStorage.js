@@ -46,6 +46,11 @@ export const cookieStorage = {
             "SameSite=Lax"
         ];
 
+        // Add Secure attribute for HTTPS connections
+        if (window.location.protocol === 'https:') {
+            attributes.push("Secure");
+        }
+
         // Only set domain for production edumetra domains
         if (rootDomain.includes('edumetra')) {
             attributes.push(`domain=.${rootDomain}`);
@@ -67,6 +72,10 @@ export const cookieStorage = {
             "path=/",
             "SameSite=Lax"
         ];
+
+        if (window.location.protocol === 'https:') {
+            attributes.push("Secure");
+        }
 
         if (rootDomain.includes('edumetra')) {
             attributes.push(`domain=.${rootDomain}`);

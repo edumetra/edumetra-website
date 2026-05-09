@@ -11,7 +11,7 @@ import { supabase } from '../services/supabaseClient';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://admin.edumetra.in';
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
 
 const PLANS = {
     premium: {

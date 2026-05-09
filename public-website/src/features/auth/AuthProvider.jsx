@@ -20,21 +20,42 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
+        let isMounted = true;
+
+        const checkSession = async (retries = 3) => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!isMounted) return;
+
+                if (session) {
+                    setSession(session);
+                    setUser(session.user);
+                    setLoading(false);
+                } else if (window.location.hash.includes('access_token') && retries > 0) {
+                    // Token is in URL but not parsed yet, retry in 500ms
+                    setTimeout(() => checkSession(retries - 1), 500);
+                } else {
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.warn('Auth session check failed:', err);
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        checkSession();
 
         // Listen for auth changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             const currentUser = session?.user ?? null;
-            setSession(session);
-            setUser(currentUser);
-            setLoading(false);
+            if (isMounted) {
+                setSession(session);
+                setUser(currentUser);
+                setLoading(false);
+            }
 
             if (currentUser) {
                 const metadata = currentUser.user_metadata || {};
@@ -47,7 +68,10 @@ export const AuthProvider = ({ children }) => {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signUp = async (email, password, metadata = {}) => {

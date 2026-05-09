@@ -9,6 +9,19 @@ import { cookies } from "next/headers";
  * Call this from the public website's PricingPage on mount.
  * identifier = user_id (if logged in) OR a guest fingerprint.
  */
+
+// Handle CORS preflight
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+    });
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
