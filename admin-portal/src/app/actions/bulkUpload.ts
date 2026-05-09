@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { logAdminAction } from "@/utils/logger";
@@ -81,9 +82,9 @@ export async function processBulkColleges(rows: CollegeTemplateRow[]) {
             return { error: "No valid college names found in the uploaded file." };
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: insertError } = await (supabase.from("colleges") as any)
-            .insert(newColleges);
+        // Use ADMIN client for insertion
+        const supabaseAdmin = createAdminClient();
+        const { error: insertError } = await supabaseAdmin.from("colleges").insert(newColleges);
 
         if (insertError) {
             return { error: "Database error during insertion: " + insertError.message };

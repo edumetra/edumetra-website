@@ -54,8 +54,11 @@ export async function updateSession(request: NextRequest) {
         .eq("id", user.id)
         .single();
 
-    if (adminError || !adminProfile) {
-        // Valid Supabase user but not an admin — sign them out and redirect
+    // Only redirect if we are SURE they are not an admin (no record found)
+    // If it's a generic database error (network/timeout), let them pass through 
+    // for now rather than forcing a logout, as the page components will handle 
+    // their own specific data fetching errors.
+    if (adminError && adminError.code === 'PGRST116') { // PGRST116 = No rows found
         const loginUrl = new URL("/login", request.url);
         loginUrl.searchParams.set("error", "not_admin");
         return NextResponse.redirect(loginUrl);

@@ -52,12 +52,9 @@ function App() {
             <SiteNotice />
             <ChatbotWidget />
             <Routes>
-              {/* Standalone Coming Soon Page */}
-              <Route path="/" element={<ComingSoonPage />} />
-
-              {/* All other routes rendered inside Navigation + Footer via Outlet */}
+              {/* All routes rendered inside Navigation + Footer via Outlet */}
               <Route element={<MainLayout />}>
-                <Route path="home" element={<HomePage />} />
+                <Route index element={<HomePage />} />
                 <Route path="colleges" element={<CollegeListPage />} />
                 <Route path="colleges/:slug" element={<CollegeDetailPage />} />
                 <Route path="profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />

@@ -2,6 +2,7 @@
 import { createClient } from "../utils/supabase/client";
 import { Database } from "../shared/types/database.types";
 import { useRouter } from "next/navigation";
+import { deleteColleges, updateCollegeVisibility } from "@/app/actions/colleges";
 import Link from "next/link";
 import { useState } from "react";
 import { Edit, Trash2, ChevronDown, Eye } from "lucide-react";
@@ -17,23 +18,23 @@ const VISIBILITY_OPTIONS: { value: Visibility; label: string; color: string }[] 
 
 export default function CollegeActions({ id, visibility: initialVisibility }: { id: string; visibility: Visibility }) {
     const router = useRouter();
-    const supabase = createClient();
     const [loading, setLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [currentVisibility, setCurrentVisibility] = useState<Visibility>(initialVisibility || "draft");
 
     const handleVisibilityChange = async (newVisibility: Visibility) => {
+        if (!newVisibility) return;
         setStatusLoading(true);
         setDropdownOpen(false);
-        const { error } = await (supabase
-            .from('colleges') as any)
-            .update({ visibility: newVisibility })
-            .eq('id', id);
-
-        if (!error) {
+        
+        const res = await updateCollegeVisibility(id, newVisibility);
+        
+        if (!res.error) {
             setCurrentVisibility(newVisibility);
             router.refresh();
+        } else {
+            alert(res.error);
         }
         setStatusLoading(false);
     };
@@ -41,8 +42,13 @@ export default function CollegeActions({ id, visibility: initialVisibility }: { 
     const handleDelete = async () => {
         if (!confirm("Are you sure you want to delete this college? This cannot be undone.")) return;
         setLoading(true);
-        await supabase.from("colleges").delete().eq("id", id);
-        router.refresh();
+        const res = await deleteColleges([id]);
+        if (!res.error) {
+            router.push("/colleges");
+            router.refresh();
+        } else {
+            alert(res.error);
+        }
         setLoading(false);
     };
 

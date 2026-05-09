@@ -10,7 +10,7 @@ import {
     LayoutGrid, List, Upload,
 } from "lucide-react";
 import BulkUploadModal from "@/features/colleges/components/BulkUploadModal";
-import { deleteColleges } from "@/app/actions/colleges";
+import { deleteColleges, updateCollegeVisibility } from "@/app/actions/colleges";
 
 type Visibility = "public" | "draft" | "hidden";
 type SortKey = "name" | "rank" | "rating" | "created_at";
@@ -103,7 +103,11 @@ export default function CollegesPage() {
     useEffect(() => { fetch(); }, [fetch]);
 
     const handleVisibilityChange = async (id: string, vis: Visibility) => {
-        await supabase.from("colleges").update({ visibility: vis, is_published: vis === "public" }).eq("id", id);
+        const res = await updateCollegeVisibility(id, vis);
+        if (res.error) {
+            alert(res.error);
+            return;
+        }
         setColleges((prev) => prev.map((c) => c.id === id ? { ...c, visibility: vis } : c));
     };
 
@@ -122,7 +126,16 @@ export default function CollegesPage() {
         if (selected.size === 0) return;
         setBulkLoading(true);
         const ids = [...selected];
-        await supabase.from("colleges").update({ visibility: vis, is_published: vis === "public" }).in("id", ids);
+        
+        // Update all selected via server actions
+        const promises = ids.map(id => updateCollegeVisibility(id, vis));
+        const results = await Promise.all(promises);
+        
+        const errors = results.filter(r => r.error);
+        if (errors.length > 0) {
+            alert(`Failed to update ${errors.length} colleges.`);
+        }
+
         setColleges((prev) => prev.map((c) => ids.includes(c.id) ? { ...c, visibility: vis } : c));
         setSelected(new Set());
         setBulkLoading(false);

@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Shield, X } from "lucide-react";
-
-const SESSION_POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -23,7 +21,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     // ──────────────────────────────────────────────
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            // SIGNED_OUT event handles token expiry and manual logout across tabs
             if (event === "SIGNED_OUT" && pathname !== "/login" && pathname !== "/denied") {
+                // If it's a manual logout, Supabase usually handles it, 
+                // but this listener ensures the UI reacts instantly.
                 redirectToLogin("session_expired");
             }
 
@@ -47,20 +48,8 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     }, [pathname]);
 
     // ──────────────────────────────────────────────
-    // 2. Session polling — verify server-side every 3 min
+    // 2. Session polling — REMOVED (Caused frequent session expiries)
     // ──────────────────────────────────────────────
-    useEffect(() => {
-        const poll = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user && pathname !== "/login" && pathname !== "/denied") {
-                redirectToLogin("session_expired");
-            }
-        };
-
-        const interval = setInterval(poll, SESSION_POLL_INTERVAL);
-        return () => clearInterval(interval);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pathname]);
 
     // ──────────────────────────────────────────────
     // 3. Inactivity auto-logout — REMOVED per user request

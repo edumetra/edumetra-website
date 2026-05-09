@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, HelpCircle, Star, Zap, Sparkles } from 'lucide-react';
+import { Check, HelpCircle, Star, Zap, Sparkles, Tag, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
