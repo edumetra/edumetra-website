@@ -11,7 +11,7 @@ import { supabase } from '../services/supabaseClient';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
-const ADMIN_URL = 'https://admin.edumetra.in';
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://admin.edumetra.in';
 
 const PLANS = {
     premium: {
@@ -267,7 +267,7 @@ const CheckoutPage = () => {
         }
     };
 
-    // ── Razorpay Payment Flow ─────────────────────────────────────────────────
+    // ── Razorpay Payment Flow (Subscription) ──────────────────────────────────
     const handlePayment = useCallback(async () => {
         if (!user) return;
         setPaymentState('loading');
@@ -280,8 +280,8 @@ const CheckoutPage = () => {
                 throw new Error('Failed to load payment SDK. Please check your internet connection.');
             }
 
-            // 2. Create order on backend
-            const orderRes = await fetch(`${ADMIN_URL}/api/razorpay/create-order`, {
+            // 2. Create subscription on backend
+            const subRes = await fetch(`${ADMIN_URL}/api/razorpay/create-subscription`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -291,9 +291,9 @@ const CheckoutPage = () => {
                 }),
             });
 
-            const orderData = await orderRes.json();
-            if (!orderRes.ok || !orderData.orderId) {
-                throw new Error(orderData.error || 'Failed to create payment order.');
+            const subData = await subRes.json();
+            if (!subRes.ok || !subData.subscriptionId) {
+                throw new Error(subData.error || 'Failed to initialize subscription checkout.');
             }
 
             // 3. Open Razorpay checkout
@@ -303,11 +303,9 @@ const CheckoutPage = () => {
 
             const options = {
                 key: razorpayKey,
-                amount: orderData.amount,
-                currency: orderData.currency || 'INR',
+                subscription_id: subData.subscriptionId,
                 name: 'Edumetra',
-                description: `${plan.name} Plan — ${plan.period}`,
-                order_id: orderData.orderId,
+                description: `${plan.name} Plan — Subscription Verification`,
                 prefill: {
                     email: user.email,
                     name: user.user_metadata?.full_name || '',
@@ -320,42 +318,16 @@ const CheckoutPage = () => {
                     },
                 },
                 handler: async (response) => {
-                    // 4. Verify payment on backend
-                    try {
-                        const verifyRes = await fetch(`${ADMIN_URL}/api/razorpay/verify-payment`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                userId: user.id,
-                                planType: plan.id,
-                                couponCode: appliedCoupon?.code || null,
-                                discountPaise: orderData.discountPaise || 0,
-                            }),
-                        });
+                    console.log('Payment Successful', response);
+                    setPaymentState('success');
+                    
+                    pushLeadToTeleCRM(
+                        { email: user.email, status: 'Won' },
+                        [`Subscription Success: ${plan.name}`]
+                    );
 
-                        const verifyData = await verifyRes.json();
-
-                        if (!verifyRes.ok || !verifyData.success) {
-                            throw new Error(verifyData.error || 'Payment verification failed.');
-                        }
-
-                        // 5. Success!
-                        setInvoice(verifyData.invoice);
-                        setPaymentState('success');
-                        setShowInvoice(true);
-
-                        pushLeadToTeleCRM(
-                            { email: user.email, status: 'Won' },
-                            [`Payment Success: ${plan.name}`, `Invoice: ${verifyData.invoice?.invoice_number}`]
-                        );
-
-                    } catch (verifyErr) {
-                        setPaymentState('failed');
-                        setPaymentError(verifyErr.message || 'Verification failed. Contact support with your payment ID.');
-                    }
+                    // Show success state briefly then redirect
+                    setTimeout(() => navigate('/dashboard'), 2000);
                 },
             };
 
@@ -370,7 +342,7 @@ const CheckoutPage = () => {
             setPaymentState('failed');
             setPaymentError(err.message || 'Something went wrong. Please try again.');
         }
-    }, [user, plan, appliedCoupon]);
+    }, [user, plan, appliedCoupon, navigate]);
 
     const PlanIcon = plan.icon;
 

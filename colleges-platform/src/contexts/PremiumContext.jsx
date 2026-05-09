@@ -32,13 +32,13 @@ export function PremiumProvider({ children }) {
         try {
             const { data, error } = await supabase
                 .from('user_profiles')
-                .select('subscription_tier, ai_usage_count')
+                .select('account_type, ai_usage_count')
                 .eq('id', user.id)
                 .single();
             
             if (error) throw error;
 
-            const apiTier = data?.subscription_tier;
+            const apiTier = data?.account_type;
             setTier(apiTier || 'free');
             setAiUsage(data?.ai_usage_count || 0);
             setVisibilityTier(apiTier || 'free');
