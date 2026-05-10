@@ -1,10 +1,8 @@
-// Vercel Serverless Function to cancel a Razorpay subscription
-// Same-origin approach to avoid CORS issues on www.edumetraglobal.com
+// Vercel Serverless Function — ESM Format
+import Razorpay from 'razorpay';
+import { createClient } from '@supabase/supabase-js';
 
-const Razorpay = require('razorpay');
-const { createClient } = require('@supabase/supabase-js');
-
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -17,11 +15,10 @@ module.exports = async function handler(req, res) {
         if (!userId) return res.status(400).json({ error: 'Missing userId' });
 
         const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
             process.env.SUPABASE_SERVICE_ROLE_KEY || ''
         );
 
-        // 1. Get the subscription ID from the user's profile
         const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('razorpay_subscription_id')
@@ -37,10 +34,8 @@ module.exports = async function handler(req, res) {
             key_secret: process.env.RAZORPAY_KEY_SECRET || '',
         });
 
-        // 2. Cancel on Razorpay (false = cancel immediately)
         await razorpay.subscriptions.cancel(profile.razorpay_subscription_id, false);
 
-        // 3. Update local DB status
         await supabase
             .from('user_profiles')
             .update({

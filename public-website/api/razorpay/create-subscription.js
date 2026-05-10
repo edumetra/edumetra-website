@@ -1,12 +1,10 @@
-// Vercel Serverless Function — runs on the same domain as the public website
-// Eliminates cross-origin CORS issues entirely since both are on edumetraglobal.com
-// Secrets (Razorpay, Supabase service role) are kept server-side in Vercel env vars.
+// Vercel Serverless Function — ESM Format
+// Runs on the same domain to eliminate CORS issues.
+import Razorpay from 'razorpay';
+import { createClient } from '@supabase/supabase-js';
 
-const Razorpay = require('razorpay');
-const { createClient } = require('@supabase/supabase-js');
-
-module.exports = async function handler(req, res) {
-    // CORS headers (belt-and-suspenders, same-origin so shouldn't be needed)
+export default async function handler(req, res) {
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -21,35 +19,39 @@ module.exports = async function handler(req, res) {
 
     try {
         const { userId, planType, couponCode } = req.body;
+        console.log(`[create-subscription] Request for User: ${userId}, Plan: ${planType}`);
 
         if (!userId || !planType) {
             return res.status(400).json({ error: 'Missing userId or planType' });
         }
 
-        // Validate planType and resolve Razorpay Plan ID from server-side env
+        // 1. Resolve Razorpay Plan ID
         let razorpayPlanId = '';
         if (planType === 'pro') {
-            razorpayPlanId = process.env.RAZORPAY_PRO_PLAN_ID || '';
+            razorpayPlanId = process.env.RAZORPAY_PRO_PLAN_ID;
         } else if (planType === 'premium') {
-            razorpayPlanId = process.env.RAZORPAY_PREMIUM_PLAN_ID || '';
-        } else {
-            return res.status(400).json({ error: 'Invalid planType' });
+            razorpayPlanId = process.env.RAZORPAY_PREMIUM_PLAN_ID;
         }
 
         if (!razorpayPlanId) {
-            console.error(`[create-subscription] Missing RAZORPAY_${planType.toUpperCase()}_PLAN_ID env var`);
-            return res.status(500).json({ error: 'Subscription plans not configured. Please contact support.' });
+            console.error(`[create-subscription] Missing Plan ID for ${planType}`);
+            return res.status(500).json({ error: `Plan ID for ${planType} not configured in Vercel environment variables.` });
         }
 
-        // Initialise Razorpay with server-side secret (never exposed to browser)
+        // 2. Initialize Clients
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID || '',
             key_secret: process.env.RAZORPAY_KEY_SECRET || '',
         });
 
+        const supabase = createClient(
+            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+        );
+
         const options = {
             plan_id: razorpayPlanId,
-            total_count: 120,          // 10 years max
+            total_count: 12, // 12 months as requested
             customer_notify: 1,
             notes: {
                 user_id: userId,
@@ -58,60 +60,48 @@ module.exports = async function handler(req, res) {
             },
         };
 
-        // Handle coupon / Razorpay offer
+        // 3. Handle Coupon
         if (couponCode) {
-            const supabase = createClient(
-                process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-                process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-            );
-
-            const { data: coupon } = await supabase
+            console.log(`[create-subscription] Validating coupon: ${couponCode}`);
+            const { data: coupon, error: couponErr } = await supabase
                 .from('coupons')
-                .select('id, code, discount_percentage, razorpay_offer_id, expires_at, max_uses, used_count, is_active')
+                .select('*')
                 .eq('code', couponCode.toUpperCase())
                 .eq('is_active', true)
                 .single();
 
-            if (!coupon) {
-                return res.status(400).json({ error: 'Invalid or inactive coupon code' });
-            }
-            if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-                return res.status(400).json({ error: 'Coupon has expired' });
-            }
-            if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
-                return res.status(400).json({ error: 'Coupon usage limit reached' });
-            }
-            if (coupon.razorpay_offer_id) {
+            if (couponErr) {
+                console.warn('[create-subscription] Coupon fetch error:', couponErr.message);
+            } else if (coupon && coupon.razorpay_offer_id) {
                 options.offer_id = coupon.razorpay_offer_id;
+                console.log(`[create-subscription] Applied Razorpay Offer: ${coupon.razorpay_offer_id}`);
             }
-
-            // Optimistically increment usage count
-            await supabase
-                .from('coupons')
-                .update({ used_count: (coupon.used_count || 0) + 1 })
-                .eq('id', coupon.id);
         }
 
+        // 4. Create Subscription on Razorpay
+        console.log('[create-subscription] Calling Razorpay API...');
         const subscription = await razorpay.subscriptions.create(options);
 
         if (!subscription || !subscription.id) {
-            throw new Error('Razorpay did not return a subscription ID');
+            throw new Error('Razorpay did not return a valid subscription object.');
         }
 
-        // Store the subscription ID in the database so the user can cancel it later
-        const supabase = createClient(
-            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-        );
+        console.log(`[create-subscription] Success: ${subscription.id}`);
 
-        await supabase
+        // 5. Update User Profile in Supabase
+        const { error: dbError } = await supabase
             .from('user_profiles')
             .update({ 
                 razorpay_subscription_id: subscription.id,
                 subscription_status: 'active',
-                account_type: planType // Optimistically set account type
+                account_type: planType
             })
             .eq('id', userId);
+
+        if (dbError) {
+            console.error('[create-subscription] Database update failed:', dbError.message);
+            // We don't throw here because the subscription was successfully created on Razorpay
+        }
 
         return res.status(200).json({
             success: true,
@@ -119,7 +109,10 @@ module.exports = async function handler(req, res) {
         });
 
     } catch (err) {
-        console.error('[create-subscription] Error:', err);
-        return res.status(500).json({ error: err.message || 'Internal Server Error' });
+        console.error('[create-subscription] FATAL ERROR:', err);
+        return res.status(500).json({ 
+            error: err.message || 'Internal Server Error',
+            details: 'Check Vercel Function logs for more info.'
+        });
     }
 };

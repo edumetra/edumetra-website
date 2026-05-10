@@ -1,8 +1,8 @@
-// Vercel Serverless Function — runs on the same domain as the colleges platform
-const Razorpay = require('razorpay');
-const { createClient } = require('@supabase/supabase-js');
+// Vercel Serverless Function — ESM Format
+import Razorpay from 'razorpay';
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -16,11 +16,9 @@ module.exports = async function handler(req, res) {
 
         let razorpayPlanId = '';
         if (planType === 'pro') {
-            razorpayPlanId = process.env.RAZORPAY_PRO_PLAN_ID || '';
+            razorpayPlanId = process.env.RAZORPAY_PRO_PLAN_ID;
         } else if (planType === 'premium') {
-            razorpayPlanId = process.env.RAZORPAY_PREMIUM_PLAN_ID || '';
-        } else {
-            return res.status(400).json({ error: 'Invalid planType' });
+            razorpayPlanId = process.env.RAZORPAY_PREMIUM_PLAN_ID;
         }
 
         const razorpay = new Razorpay({
@@ -28,29 +26,25 @@ module.exports = async function handler(req, res) {
             key_secret: process.env.RAZORPAY_KEY_SECRET || '',
         });
 
+        const supabase = createClient(
+            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+        );
+
         const options = {
             plan_id: razorpayPlanId,
-            total_count: 120,
+            total_count: 12,
             customer_notify: 1,
             notes: { user_id: userId, plan_type: planType, coupon_code: couponCode || null },
         };
 
         if (couponCode) {
-            const supabase = createClient(
-                process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '', 
-                process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-            );
             const { data: coupon } = await supabase.from('coupons').select('*').eq('code', couponCode.toUpperCase()).eq('is_active', true).single();
             if (coupon && coupon.razorpay_offer_id) options.offer_id = coupon.razorpay_offer_id;
         }
 
         const subscription = await razorpay.subscriptions.create(options);
 
-        // Store ID
-        const supabase = createClient(
-            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '', 
-            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-        );
         await supabase.from('user_profiles').update({ 
             razorpay_subscription_id: subscription.id,
             subscription_status: 'active',
