@@ -36,7 +36,10 @@ module.exports = async function handler(req, res) {
         };
 
         if (couponCode) {
-            const supabase = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+            const supabase = createClient(
+                process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '', 
+                process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+            );
             const { data: coupon } = await supabase.from('coupons').select('*').eq('code', couponCode.toUpperCase()).eq('is_active', true).single();
             if (coupon && coupon.razorpay_offer_id) options.offer_id = coupon.razorpay_offer_id;
         }
@@ -44,7 +47,10 @@ module.exports = async function handler(req, res) {
         const subscription = await razorpay.subscriptions.create(options);
 
         // Store ID
-        const supabase = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+        const supabase = createClient(
+            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '', 
+            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+        );
         await supabase.from('user_profiles').update({ 
             razorpay_subscription_id: subscription.id,
             subscription_status: 'active',

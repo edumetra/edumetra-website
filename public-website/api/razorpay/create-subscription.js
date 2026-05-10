@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
         // Handle coupon / Razorpay offer
         if (couponCode) {
             const supabase = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+                process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
                 process.env.SUPABASE_SERVICE_ROLE_KEY || ''
             );
 
@@ -100,7 +100,7 @@ module.exports = async function handler(req, res) {
 
         // Store the subscription ID in the database so the user can cancel it later
         const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+            process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
             process.env.SUPABASE_SERVICE_ROLE_KEY || ''
         );
 
