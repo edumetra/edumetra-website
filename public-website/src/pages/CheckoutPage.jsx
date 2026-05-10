@@ -320,15 +320,38 @@ const CheckoutPage = () => {
                 },
                 handler: async (response) => {
                     console.log('Payment Successful', response);
-                    setPaymentState('success');
+                    setPaymentState('processing');
                     
-                    pushLeadToTeleCRM(
-                        { email: user.email, status: 'Won' },
-                        [`Subscription Success: ${plan.name}`]
-                    );
+                    try {
+                        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_subscription_id: response.razorpay_subscription_id,
+                                razorpay_signature: response.razorpay_signature,
+                                userId: user.id,
+                                planType: plan.id
+                            }),
+                        });
 
-                    // Show success state briefly then redirect
-                    setTimeout(() => navigate('/dashboard'), 2000);
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok && verifyData.success) {
+                            setInvoice(verifyData.invoice);
+                            setPaymentState('success');
+                            setShowInvoice(true);
+
+                            pushLeadToTeleCRM(
+                                { email: user.email, status: 'Won' },
+                                [`Subscription Success: ${plan.name}`, `Invoice: ${verifyData.invoice.invoice_number}`]
+                            );
+                        } else {
+                            throw new Error(verifyData.error || 'Payment verification failed.');
+                        }
+                    } catch (err) {
+                        setPaymentState('failed');
+                        setPaymentError('Payment was successful but we couldn\'t generate your invoice. Please contact support with your Payment ID: ' + response.razorpay_payment_id);
+                    }
                 },
             };
 

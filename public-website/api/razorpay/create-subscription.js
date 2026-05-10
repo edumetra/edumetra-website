@@ -71,7 +71,21 @@ export default async function handler(req, res) {
 
         const subscription = await rzp.subscriptions.create(subscriptionOptions);
 
-        // 7. Update Database
+        // 7. Initialize Payment Record
+        const amountPaise = planType === 'pro' ? 3000000 : 300000; // ₹30,000 or ₹3,000
+        
+        await supabase
+            .from('payments')
+            .insert({
+                user_id: userId,
+                razorpay_order_id: subscription.id, // Using order_id column for subscription_id
+                plan_type: planType,
+                amount_paise: amountPaise,
+                coupon_code: couponCode || null,
+                status: 'created'
+            });
+
+        // 8. Update Profile
         await supabase
             .from('user_profiles')
             .update({ 

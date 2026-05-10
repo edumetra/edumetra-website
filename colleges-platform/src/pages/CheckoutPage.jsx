@@ -78,9 +78,10 @@ const CheckoutPage = () => {
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [validating, setValidating] = useState(false);
     const [couponError, setCouponError] = useState('');
-
     const [paymentState, setPaymentState] = useState('idle'); // idle | loading | processing | success | failed
     const [paymentError, setPaymentError] = useState('');
+    const [invoice, setInvoice] = useState(null);
+    const [showInvoice, setShowInvoice] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -100,6 +101,109 @@ const CheckoutPage = () => {
         : plan.price;
 
     const savings = plan.originalPrice - discountedPrice;
+
+    // ── Invoice Card ──────────────────────────────────────────────────────────────
+    function InvoiceCard({ invoice, onClose }) {
+        const [downloading, setDownloading] = useState(false);
+
+        const handleDownload = async () => {
+            setDownloading(true);
+            try {
+                const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+                    import('jspdf'),
+                    import('html2canvas'),
+                ]);
+                const el = document.getElementById('invoice-printable');
+                if (!el) return;
+                const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#1e293b', logging: false });
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const w = pdf.internal.pageSize.getWidth();
+                const h = (canvas.height * w) / canvas.width;
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+                pdf.save(`Invoice-${invoice.invoice_number}.pdf`);
+            } catch (e) {
+                console.error('PDF error:', e);
+                window.print();
+            } finally {
+                setDownloading(false);
+            }
+        };
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            >
+                <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl w-full max-w-lg shadow-2xl shadow-emerald-900/20 overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-black text-lg">Payment Successful!</h3>
+                                <p className="text-emerald-100 text-xs">Your account has been upgraded</p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="text-white/60 hover:text-white transition-colors">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="p-6 space-y-4" id="invoice-printable">
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-400 text-sm">Invoice Number</span>
+                            <span className="text-white font-bold font-mono">{invoice.invoice_number}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-400 text-sm">Plan</span>
+                            <span className="text-white font-semibold capitalize">{invoice.plan_type} Plan</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-400 text-sm">Billing Period</span>
+                            <span className="text-white font-semibold">{invoice.billing_period}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-400 text-sm">Email</span>
+                            <span className="text-white text-sm truncate max-w-[200px]">{invoice.user_email}</span>
+                        </div>
+                        <div className="border-t border-slate-800 pt-3 space-y-2">
+                            <div className="flex justify-between text-white font-black text-lg pt-1 border-t border-slate-800">
+                                <span>Total Paid</span>
+                                <span>₹{Number(invoice.total_inr || invoice.total_paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-xl p-3 text-xs text-slate-400">
+                            <span className="font-mono text-slate-300">Payment ID: </span>
+                            {invoice.razorpay_payment_id}
+                        </div>
+                    </div>
+
+                    <div className="px-6 pb-6 space-y-3">
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleDownload}
+                                disabled={downloading}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all text-sm disabled:opacity-60"
+                            >
+                                {downloading
+                                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+                                    : <><Download className="w-4 h-4" /> Download PDF</>
+                                }
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-bold rounded-xl transition-all text-sm"
+                            >
+                                Go to Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
 
     // ── Coupon Validation ─────────────────────────────────────────────────────
     const handleApplyCoupon = async () => {
@@ -187,8 +291,34 @@ const CheckoutPage = () => {
                 },
                 handler: async (response) => {
                     console.log('Payment Successful', response);
-                    setPaymentState('success');
-                    toast.success('Successfully subscribed!');
+                    setPaymentState('processing');
+                    
+                    try {
+                        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_subscription_id: response.razorpay_subscription_id,
+                                razorpay_signature: response.razorpay_signature,
+                                userId: user.id,
+                                planType: plan.id
+                            }),
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok && verifyData.success) {
+                            setInvoice(verifyData.invoice);
+                            setPaymentState('success');
+                            setShowInvoice(true);
+                            toast.success('Payment verified! Invoice generated.');
+                        } else {
+                            throw new Error(verifyData.error || 'Payment verification failed.');
+                        }
+                    } catch (err) {
+                        setPaymentState('failed');
+                        setPaymentError('Payment was successful but we couldn\'t generate your invoice. Please contact support with your Payment ID: ' + response.razorpay_payment_id);
+                    }
                     
                     if (typeof window !== 'undefined' && window.fbq) {
                         window.fbq('track', 'Purchase', {
@@ -197,7 +327,6 @@ const CheckoutPage = () => {
                             content_name: `${plan.name.toUpperCase()} Subscription`
                         });
                     }
-
                     setTimeout(() => navigate('/profile'), 2000);
                 },
             };
@@ -224,11 +353,22 @@ const CheckoutPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
-            <div className="max-w-5xl mx-auto">
-                <Link to="/pricing" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-10 transition-colors text-sm">
-                    <ArrowLeft className="w-4 h-4" /> Back to Pricing
-                </Link>
+        <>
+            {/* Invoice Modal */}
+            <AnimatePresence>
+                {showInvoice && invoice && (
+                    <InvoiceCard
+                        invoice={invoice}
+                        onClose={() => { setShowInvoice(false); navigate('/profile'); }}
+                    />
+                )}
+            </AnimatePresence>
+
+            <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
+                <div className="max-w-5xl mx-auto">
+                    <Link to="/pricing" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-10 transition-colors text-sm">
+                        <ArrowLeft className="w-4 h-4" /> Back to Pricing
+                    </Link>
 
                 <div className="grid lg:grid-cols-5 gap-8 items-start">
                     {/* ── Left: Order Summary ── */}
