@@ -65,12 +65,12 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Superadmins pass through everything
-    if (adminProfile.role === "superadmin") {
+    if (adminProfile?.role === "superadmin") {
         return response;
     }
 
     // Per-path permission check for mini_admins
-    const permissions = (adminProfile.permissions ?? {}) as Record<string, boolean>;
+    const permissions = (adminProfile?.permissions ?? {}) as Record<string, boolean>;
     const PERMISSION_MAP: Record<string, string> = {
         "/colleges": "colleges",
         "/reviews": "reviews",
