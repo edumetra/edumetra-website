@@ -174,9 +174,57 @@ const DashboardPage = () => {
                         </div>
                     </div>
 
+                    {/* ── Subscription Section ── */}
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
+                    >
+                        <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-slate-900 via-slate-900 to-red-950/20">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                                    profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
+                                    profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
+                                    'bg-slate-800 text-slate-400 border border-slate-700'
+                                }`}>
+                                    <Save className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-xl font-bold text-white">Your {profile.account_type.toUpperCase()} Plan</h2>
+                                    </div>
+                                    <p className="text-sm text-slate-400">Manage your subscription and billing details.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-3">
+                                {profile.account_type !== 'pro' && (
+                                    <Link 
+                                        to="/pricing" 
+                                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap flex items-center justify-center"
+                                    >
+                                        Upgrade Plan
+                                    </Link>
+                                )}
+                                {profile.account_type !== 'free' && (
+                                    <button 
+                                        type="button"
+                                        onClick={handleCancelSubscription}
+                                        className="px-6 py-3 bg-slate-800 hover:bg-red-900/30 text-red-400 hover:text-red-300 font-bold text-sm rounded-xl border border-slate-700 hover:border-red-900/50 transition-all whitespace-nowrap"
+                                    >
+                                        Cancel Subscription
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* ── Personal Info Section ── */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
                         className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl"
                     >
                         <div className="p-6 md:p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
@@ -189,7 +237,7 @@ const DashboardPage = () => {
                                     onClick={() => setIsEditing(true)}
                                     className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors"
                                 >
-                                    <Pencil className="w-4 h-4" /> Edit
+                                    <Pencil className="w-4 h-4" /> Edit Profile
                                 </button>
                             ) : (
                                 <button 
@@ -235,44 +283,6 @@ const DashboardPage = () => {
                                     ) : (
                                         <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.phone_number || 'Not provided'}</div>
                                     )}
-                                </div>
-
-                                <div className="space-y-2 md:col-span-2 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/50">
-                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Account Plan</label>
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="px-4 py-2.5 bg-slate-900 rounded-xl text-slate-300 border border-slate-800 flex items-center cursor-not-allowed opacity-80">
-                                                <span className={`px-2 py-0.5 rounded-md text-xs font-bold mr-2 ${
-                                                    profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400' :
-                                                    profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400' :
-                                                    'bg-slate-800 text-slate-300'
-                                                }`}>
-                                                    {profile.account_type.toUpperCase()}
-                                                </span>
-                                                <span className="text-sm">Plan (Non-editable)</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex flex-wrap items-center gap-3">
-                                            {profile.account_type !== 'pro' && (
-                                                <Link 
-                                                    to="/pricing" 
-                                                    className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-amber-900/20 whitespace-nowrap flex items-center justify-center min-w-[140px]"
-                                                >
-                                                    Upgrade Now
-                                                </Link>
-                                            )}
-                                            {profile.account_type !== 'free' && (
-                                                <button 
-                                                    type="button"
-                                                    onClick={handleCancelSubscription}
-                                                    className="px-6 py-2.5 bg-slate-800 hover:bg-red-900/30 text-red-400 hover:text-red-300 font-bold text-sm rounded-xl border border-slate-700 hover:border-red-900/50 transition-all whitespace-nowrap min-w-[140px]"
-                                                >
-                                                    Cancel Subscription
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
