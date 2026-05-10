@@ -11,8 +11,9 @@
     "sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.95.2",
-    "framer-motion": "^12.31.1",
+    "@supabase/supabase-js": "^2.45.0",
+    "razorpay": "^2.9.2",
+    "framer-motion": "^12.0.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.563.0",
