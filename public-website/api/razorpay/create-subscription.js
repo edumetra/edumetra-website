@@ -98,6 +98,21 @@ module.exports = async function handler(req, res) {
             throw new Error('Razorpay did not return a subscription ID');
         }
 
+        // Store the subscription ID in the database so the user can cancel it later
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+        );
+
+        await supabase
+            .from('user_profiles')
+            .update({ 
+                razorpay_subscription_id: subscription.id,
+                subscription_status: 'active',
+                account_type: planType // Optimistically set account type
+            })
+            .eq('id', userId);
+
         return res.status(200).json({
             success: true,
             subscriptionId: subscription.id,

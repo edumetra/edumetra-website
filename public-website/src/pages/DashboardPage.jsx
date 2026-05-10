@@ -110,6 +110,34 @@ const DashboardPage = () => {
         navigate('/');
     };
 
+    const handleCancelSubscription = async () => {
+        if (!window.confirm('Are you sure you want to cancel your active subscription? Your pro features will be removed immediately.')) {
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const res = await fetch('/api/razorpay/cancel-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setMessage('Subscription cancelled successfully.');
+                setProfile(prev => ({ ...prev, account_type: 'free' }));
+            } else {
+                throw new Error(data.error || 'Failed to cancel subscription');
+            }
+        } catch (error) {
+            setMessage(`Error: ${error.message}`);
+        } finally {
+            setSaving(false);
+            setTimeout(() => setMessage(''), 3000);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center pt-20">
@@ -229,6 +257,15 @@ const DashboardPage = () => {
                                             >
                                                 Upgrade Now
                                             </Link>
+                                        )}
+                                        {profile.account_type !== 'free' && (
+                                            <button 
+                                                type="button"
+                                                onClick={handleCancelSubscription}
+                                                className="shrink-0 px-4 py-2.5 bg-slate-800 hover:bg-red-900/30 text-red-400 hover:text-red-300 font-bold text-sm rounded-xl border border-slate-700 hover:border-red-900/50 transition-all whitespace-nowrap"
+                                            >
+                                                Cancel Subscription
+                                            </button>
                                         )}
                                     </div>
                                 </div>

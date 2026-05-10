@@ -9,7 +9,7 @@ import {
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
+const SUBSCRIPTION_API = '/api/razorpay/create-subscription';
 
 const PLANS = {
     premium: {
@@ -148,8 +148,8 @@ const CheckoutPage = () => {
                 throw new Error('Failed to load payment SDK. Please check your internet connection.');
             }
 
-            // 2. Create subscription on backend
-            const subRes = await fetch(`${ADMIN_URL}/api/razorpay/create-subscription`, {
+            // 2. Create subscription via same-origin serverless function (no CORS)
+            const subRes = await fetch(SUBSCRIPTION_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
