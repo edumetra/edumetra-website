@@ -550,7 +550,8 @@ const CheckoutPage = () => {
                 </div>
             </div>
         </div>
-    );
+    </>
+);
 };
 
 export default CheckoutPage;
