@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../features/auth/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Calendar, 
@@ -26,6 +27,7 @@ import { supabase } from '../services/supabaseClient';
 
 const EventDetailPage = () => {
     const { slug } = useParams();
+    const { user } = useAuth();
     const [event, setEvent] = useState(null);
     const [regStatus, setRegStatus] = useState('idle'); // idle, submitting, success
     const [regForm, setRegForm] = useState({ name: '', email: '', phone: '' });
@@ -74,25 +76,46 @@ const EventDetailPage = () => {
         }
     }, [slug]);
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
         setRegStatus('submitting');
 
-        // Push to TeleCRM (fire-and-forget)
-        pushLeadToTeleCRM(
-            {
-                name: regForm.name,
-                email: regForm.email,
-                phone: regForm.phone,
-                status: 'Fresh',
-            },
-            ['Event Registration', event?.title].filter(Boolean)
-        );
+        try {
+            // 1. Save to Supabase
+            const { error: dbErr } = await supabase
+                .from('event_registrations')
+                .insert([{
+                    event_id: event.id,
+                    user_id: user?.id || null,
+                    registration_type: user ? 'authenticated' : 'guest',
+                    status: 'registered',
+                    guest_name: regForm.name,
+                    guest_email: regForm.email,
+                    guest_phone: regForm.phone
+                }]);
 
-        analytics.trackEvent('Webinar', 'Registration', event.title);
-        setTimeout(() => {
+            if (dbErr && dbErr.code !== '23505') {
+                console.error('Supabase registration error:', dbErr);
+                // Continue anyway to TeleCRM
+            }
+
+            // 2. Push to TeleCRM
+            pushLeadToTeleCRM(
+                {
+                    name: regForm.name,
+                    email: regForm.email,
+                    phone: regForm.phone,
+                    status: 'Fresh',
+                },
+                ['Event Registration', event?.title].filter(Boolean)
+            );
+
+            analytics.trackEvent('Webinar', 'Registration', event.title);
             setRegStatus('success');
-        }, 1000);
+        } catch (err) {
+            console.error('Registration error:', err);
+            setRegStatus('idle');
+        }
     };
 
     if (!event) {

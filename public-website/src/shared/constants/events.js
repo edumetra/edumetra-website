@@ -1,6 +1,6 @@
 export const WEBINAR_EVENTS = [
     {
-        id: 'neet-2026-counseling',
+        id: '02e6af4d-aae3-49b5-8cc8-37198991cbc4',
         slug: 'neet-2026-counseling-strategy',
         title: 'NEET 2026 Counseling: Complete Strategy and Timeline',
         date: '2026-05-15',
