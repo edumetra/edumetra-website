@@ -47,6 +47,11 @@ const WriteReviewPage = () => {
                 phone: formData.phone,
                 role: formData.role,
                 college: formData.college,
+                course: formData.course,
+                rating: formData.rating,
+                review_title: formData.title,
+                review_content: formData.review,
+                would_recommend: formData.wouldRecommend ? 'Yes' : 'No',
             },
             ['Review Submitted']
         );

@@ -48,6 +48,8 @@ const CareersPage = () => {
                     phone: formData.phone,
                     status: 'Fresh',
                     position: formData.position,
+                    message: formData.message,
+                    resume_url: formData.resume_url,
                 },
                 ['Career Application', `Role: ${formData.position}`]
             );

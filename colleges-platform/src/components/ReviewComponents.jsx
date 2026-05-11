@@ -54,7 +54,11 @@ export function ReviewForm({ collegeId, onReviewSubmitted }) {
                 pushLeadToTeleCRM({
                     name: user.user_metadata?.full_name || user.email.split('@')[0],
                     email: user.email,
-                    status: 'Fresh'
+                    status: 'Fresh',
+                    rating: rating,
+                    review_title: formData.title,
+                    review_content: formData.review_text,
+                    college_id: collegeId
                 }, ['College Detail Review Submitted']);
             } catch (e) {}
             
