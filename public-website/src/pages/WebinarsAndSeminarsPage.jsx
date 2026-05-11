@@ -52,7 +52,7 @@ const WebinarsAndSeminarsPage = () => {
                     type: evt.type,
                     agenda: evt.agenda
                 }));
-                setUpcomingEvents(formatted);
+                setUpcomingEvents([...WEBINAR_EVENTS, ...formatted]);
             } else {
                 setUpcomingEvents(WEBINAR_EVENTS); // fallback
             }

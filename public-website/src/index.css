@@ -490,6 +490,7 @@
         transparent);
     transform: rotate(45deg);
     animation: shimmer 3s linear infinite;
+    pointer-events: none;
   }
 
   .card-premium:hover {
@@ -594,6 +595,7 @@
     background: radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, transparent 70%);
     opacity: 0;
     transition: opacity 300ms;
+    pointer-events: none;
   }
 
   .feature-icon:hover {
@@ -697,6 +699,7 @@
         rgba(255, 255, 255, 0.1) 50%,
         rgba(255, 255, 255, 0) 100%);
     animation: shimmer 2s linear infinite;
+    pointer-events: none;
   }
 
   /* Gradient border animation */

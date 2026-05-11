@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { 
     User, Mail, LogOut, ArrowLeft, Star, 
     BookmarkX, Pencil, Trash2, Bookmark, 
-    ChevronRight, Save, Brain, Target, Sparkles 
+    ChevronRight, Save, Brain, Target, Sparkles, X, ShieldCheck, Zap
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator, Trophy, Lock, Search, AlertCircle, Loader2 } from 'lucide-react';
@@ -59,6 +59,8 @@ export default function ProfilePage() {
     });
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     const [loadingReviews, setLoadingReviews] = useState(false);
     const [loadingSaved, setLoadingSaved] = useState(false);
@@ -181,10 +183,7 @@ export default function ProfilePage() {
     };
 
     const handleCancelSubscription = async () => {
-        if (!window.confirm('Are you sure you want to cancel your active subscription? Your premium features will be removed immediately.')) {
-            return;
-        }
-
+        setIsCancelling(true);
         const loadingToast = toast.loading('Cancelling subscription...');
         try {
             const res = await fetch('/api/razorpay/cancel-subscription', {
@@ -195,13 +194,16 @@ export default function ProfilePage() {
 
             const data = await res.json();
             if (data.success) {
-                toast.success('Subscription cancelled.', { id: loadingToast });
+                toast.success('Subscription cancelled. No further charges will be made.', { id: loadingToast });
                 setProfileData(prev => ({ ...prev, account_type: 'free', subscription_status: 'cancelled' }));
+                setShowCancelModal(false);
             } else {
                 throw new Error(data.error || 'Failed to cancel');
             }
         } catch (error) {
             toast.error(error.message, { id: loadingToast });
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -376,7 +378,7 @@ export default function ProfilePage() {
                             {profileData.account_type !== 'free' && profileData.subscription_status === 'active' && (
                                 <button 
                                     type="button"
-                                    onClick={handleCancelSubscription}
+                                    onClick={() => setShowCancelModal(true)}
                                     className="px-6 py-3 bg-slate-800 hover:bg-red-900/30 text-red-400 hover:text-red-300 font-bold text-sm rounded-xl border border-slate-700 hover:border-red-900/50 transition-all whitespace-nowrap"
                                 >
                                     Cancel Subscription
@@ -387,16 +389,18 @@ export default function ProfilePage() {
                 </motion.div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1 mb-6 w-fit">
-                    {TABS.map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? 'bg-red-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
+                <div className="overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1 mb-6 w-fit min-w-full sm:min-w-0">
+                        {TABS.map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === tab ? 'bg-red-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Dashboard Tab */}
@@ -1028,6 +1032,96 @@ export default function ProfilePage() {
                     </div>
                 )}
             </div>
+
+            {/* ── Cancel Subscription Modal ── */}
+            {showCancelModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-slate-900 border border-red-500/30 rounded-3xl w-full max-w-xl shadow-2xl shadow-red-900/20 overflow-hidden"
+                    >
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-red-600 to-rose-700 p-8 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                                    <AlertCircle className="w-8 h-8 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-black text-2xl">Wait! Are you sure?</h3>
+                                    <p className="text-red-100 text-sm opacity-90">Confirming your cancellation</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowCancelModal(false)}
+                                className="w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white/60 hover:text-white transition-all"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-8 space-y-8">
+                            <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6">
+                                <h4 className="text-red-400 font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <Zap className="w-4 h-4" /> You will lose access to:
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[
+                                        'Full College Predictors',
+                                        'Personalized AI Study Plans',
+                                        'Priority Support & Counselling',
+                                        'Verified Recruiter Stats',
+                                        'Unlimited Shortlisting',
+                                        'Comparison Engine'
+                                    ].map((benefit, i) => (
+                                        <div key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500/50" />
+                                            {benefit}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+                                    <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                                    <div>
+                                        <p className="text-emerald-400 font-bold text-sm">No Further Charges</p>
+                                        <p className="text-slate-500 text-xs">Once cancelled, no more money will be deducted from your account.</p>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-slate-950/50 rounded-2xl border border-slate-800">
+                                    <p className="text-slate-400 text-xs leading-relaxed">
+                                        Your {profileData.account_type?.toUpperCase()} features will be deactivated immediately. 
+                                        You can re-subscribe anytime from the pricing page.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-8 pb-8 flex flex-col sm:flex-row gap-4">
+                            <button 
+                                onClick={() => setShowCancelModal(false)}
+                                className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl transition-all shadow-lg"
+                            >
+                                Keep My Benefits
+                            </button>
+                            <button 
+                                onClick={handleCancelSubscription}
+                                disabled={isCancelling}
+                                className="flex-1 py-4 bg-gradient-to-r from-red-600 to-rose-700 hover:brightness-110 text-white font-black rounded-2xl transition-all shadow-lg shadow-red-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isCancelling ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Cancelling...</>
+                                ) : 'Yes, Cancel Now'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

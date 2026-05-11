@@ -22,6 +22,7 @@ import FAQSection from '../shared/ui/FAQSection';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import { supabase } from '../services/supabaseClient';
 
 const EventDetailPage = () => {
     const { slug } = useParams();
@@ -35,9 +36,41 @@ const EventDetailPage = () => {
 
     useEffect(() => {
         const foundEvent = WEBINAR_EVENTS.find(e => e.slug === slug);
-        setEvent(foundEvent);
         if (foundEvent) {
+            setEvent(foundEvent);
             analytics.trackPageView(`/webinars-seminars/${slug}`, foundEvent.title);
+        } else {
+            // Fetch from DB
+            const fetchFromDB = async () => {
+                const { data, error } = await supabase
+                    .from('events')
+                    .select('*')
+                    .eq('slug', slug)
+                    .single();
+                
+                if (!error && data) {
+                    const formatted = {
+                        id: data.id,
+                        slug: data.slug,
+                        title: data.title,
+                        date: data.date,
+                        time: data.time,
+                        category: data.category,
+                        speaker: data.speaker,
+                        speakerTitle: data.speaker_title,
+                        description: data.description,
+                        longDescription: data.long_description,
+                        image: data.image,
+                        featured: data.featured,
+                        type: data.type,
+                        agenda: data.agenda,
+                        attendees: data.attendees || 0
+                    };
+                    setEvent(formatted);
+                    analytics.trackPageView(`/webinars-seminars/${slug}`, formatted.title);
+                }
+            };
+            fetchFromDB();
         }
     }, [slug]);
 
