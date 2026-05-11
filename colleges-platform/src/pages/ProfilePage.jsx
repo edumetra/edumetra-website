@@ -300,6 +300,17 @@ export default function ProfilePage() {
             setUsage(getUsage());
             setCalculating(false);
             
+            // Push to TeleCRM (fire-and-forget)
+            pushLeadToTeleCRM(
+                {
+                    email: user.email,
+                    neet_marks: mockScore, // neet_marks is a standard-ish extra field
+                    exam_type: exam.label,
+                    status: 'Fresh'
+                },
+                ['AI Predictor Used', `Exam: ${exam.label}`, `Score: ${mockScore}`]
+            );
+            
             // Save to session for Detail Page badge
             sessionStorage.setItem('last_prediction', JSON.stringify({ examId: exam.id, score: mockScore }));
         }, 1200);

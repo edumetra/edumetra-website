@@ -75,6 +75,7 @@ const ContactForm = () => {
                     name: formData.name,
                     email: formData.email,
                     subject: formData.subject,
+                    message: formData.message,
                 },
                 ['Contact Inquiry']
             );

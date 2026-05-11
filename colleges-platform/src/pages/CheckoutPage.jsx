@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const SUBSCRIPTION_API = '/api/razorpay/create-subscription';
 
@@ -99,6 +100,15 @@ const CheckoutPage = () => {
     const discountedPrice = appliedCoupon
         ? Math.floor(plan.price * (1 - appliedCoupon.discount_percentage / 100))
         : plan.price;
+
+    useEffect(() => {
+        if (user?.email) {
+            pushLeadToTeleCRM(
+                { email: user.email, status: 'Fresh' },
+                ['Colleges Checkout Intent', `Plan: ${plan.name}`]
+            );
+        }
+    }, [user, plan.name]);
 
     const savings = plan.originalPrice - discountedPrice;
 
@@ -287,6 +297,10 @@ const CheckoutPage = () => {
                     ondismiss: () => {
                         setPaymentState('idle');
                         setPaymentError('Payment cancelled. You can try again.');
+                        pushLeadToTeleCRM(
+                            { email: user.email, status: 'Fresh' },
+                            ['Colleges Payment Modal Cancelled', `Plan: ${plan.name}`]
+                        );
                     },
                 },
                 handler: async (response) => {
@@ -312,6 +326,12 @@ const CheckoutPage = () => {
                             setPaymentState('success');
                             setShowInvoice(true);
                             toast.success('Payment verified! Invoice generated.');
+                            
+                            // TeleCRM conversion tracking
+                            pushLeadToTeleCRM(
+                                { email: user.email, status: 'Won' },
+                                [`Colleges Subscription Success: ${plan.name}`, `Invoice: ${verifyData.invoice.invoice_number}`]
+                            );
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed.');
                         }
@@ -335,6 +355,10 @@ const CheckoutPage = () => {
             rzp.on('payment.failed', (resp) => {
                 setPaymentState('failed');
                 setPaymentError(resp.error?.description || 'Payment failed. Please try again.');
+                pushLeadToTeleCRM(
+                    { email: user.email, status: 'Fresh' },
+                    ['Colleges Payment Failed', `Plan: ${plan.name}`, `Error: ${resp.error?.description || 'Unknown'}`]
+                );
             });
             rzp.open();
 

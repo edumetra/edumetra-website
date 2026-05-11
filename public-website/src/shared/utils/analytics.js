@@ -1,6 +1,7 @@
 // Analytics utility for tracking user interactions
 
 import { supabase } from '../../services/supabaseClient';
+import { trackTeleCRMPageView } from '../../services/telecrm';
 
 class Analytics {
     constructor() {
@@ -27,6 +28,9 @@ class Analytics {
             page_title: pageTitle,
             timestamp: new Date().toISOString(),
         };
+
+        // TeleCRM touch point
+        trackTeleCRMPageView(pagePath, pageTitle);
 
         if (this.initialized) {
             console.log('📊 Page View:', event);

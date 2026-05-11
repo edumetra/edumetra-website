@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Integrated Groq AI Workflows
 import { Toaster } from 'react-hot-toast';
@@ -30,7 +31,21 @@ import { CommandPalette } from './components/ui/CommandPalette';
 import { ChatbotProvider, ChatbotWidget } from './components/chatbot';
 import ComingSoonPage from './pages/ComingSoonPage';
 import AuthGuard from './components/auth/AuthGuard';
+import { trackTeleCRMPageView } from './services/telecrm';
+import { useLocation } from 'react-router-dom';
 import './index.css';
+
+// Track page views in TeleCRM
+function RouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    // Generate a human-readable name from the path
+    const path = location.pathname;
+    let name = path.split('/').filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' > ') || 'Home';
+    trackTeleCRMPageView(path, name);
+  }, [location]);
+  return null;
+}
 
 function App() {
   return (
@@ -40,6 +55,7 @@ function App() {
         <ChatbotProvider>
           <Router>
             <ScrollToTop />
+            <RouteTracker />
             <CommandPalette />
             <Toaster 
                 position="bottom-center" 

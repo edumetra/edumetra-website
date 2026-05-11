@@ -80,15 +80,18 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
     try {
         // Build the clean fields object
         const leadFields = {};
-        // Standard fields that are likely native
-        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status']);
+        // Standard fields that are likely native in TeleCRM fields object
+        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state']);
+        const extraFields = [];
         
         for (const [key, val] of Object.entries(fields)) {
             if (val !== undefined && val !== null && val !== '') {
                 if (standardFields.has(key)) {
-                    leadFields[key] = val;
+                    leadFields[key] = (key === 'phone') ? normalisePhone(val) : val;
+                } else {
+                    // Collect unknown fields to put in a note
+                    extraFields.push(`${key.replace(/_/g, ' ').toUpperCase()}: ${val}`);
                 }
-                // Dropping unknown fields from the note to keep the CRM Activity UI extremely clean
             }
         }
 
@@ -109,8 +112,8 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
 
         const body = { fields: leadFields };
         
-        // Add tags as a beautifully formatted SYSTEM_NOTE
-        if (tags && tags.length > 0) {
+        // Add tags and extra fields as a beautifully formatted SYSTEM_NOTE
+        if ((tags && tags.length > 0) || extraFields.length > 0) {
             const isPageVisit = tags.some(t => t.startsWith('Visited:'));
             let noteText = '';
             
@@ -118,7 +121,9 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 const path = tags[0].replace('Visited: ', '');
                 noteText = `🌐 PAGE VISIT: ${path}`;
             } else {
-                noteText = `📌 SOURCE: ${tags.join(' | ')}`;
+                const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
+                const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
+                noteText = [tagStr, extraStr].filter(Boolean).join('\n\n');
             }
 
             body.actions = [

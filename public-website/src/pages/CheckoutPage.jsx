@@ -316,6 +316,10 @@ const CheckoutPage = () => {
                     ondismiss: () => {
                         setPaymentState('idle');
                         setPaymentError('Payment cancelled. You can try again.');
+                        pushLeadToTeleCRM(
+                            { email: user.email, status: 'Fresh' },
+                            ['Payment Modal Cancelled', `Plan: ${plan.name}`]
+                        );
                     },
                 },
                 handler: async (response) => {
@@ -359,6 +363,10 @@ const CheckoutPage = () => {
             rzp.on('payment.failed', (resp) => {
                 setPaymentState('failed');
                 setPaymentError(resp.error?.description || 'Payment failed. Please try again.');
+                pushLeadToTeleCRM(
+                    { email: user.email, status: 'Fresh' },
+                    ['Payment Failed', `Plan: ${plan.name}`, `Error: ${resp.error?.description || 'Unknown'}`]
+                );
             });
             rzp.open();
 

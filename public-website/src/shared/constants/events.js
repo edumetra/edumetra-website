@@ -1,3 +1,4 @@
+// Webinar Events Configuration - Fixed UUID IDs
 export const WEBINAR_EVENTS = [
     {
         id: '02e6af4d-aae3-49b5-8cc8-37198991cbc4',
