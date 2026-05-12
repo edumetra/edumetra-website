@@ -93,20 +93,34 @@ export const AuthProvider = ({ children }) => {
 
     const signIn = async (identifier, password) => {
         try {
+            console.log('Attempting login for:', identifier);
+            
             // First, try to resolve phone to email if needed
-            const { data: resolvedEmail } = await supabase.rpc('get_email_for_auth', { 
+            const { data: resolvedEmail, error: rpcError } = await supabase.rpc('get_email_for_auth', { 
                 p_identifier: identifier 
             });
 
+            if (rpcError) console.error('Email resolution error:', rpcError);
+            console.log('Resolved email:', resolvedEmail);
+
             // Always sign in with email (resolved or original)
+            const finalEmail = resolvedEmail || (identifier.includes('@') ? identifier : null);
+            
+            if (!finalEmail) {
+                throw new Error('Could not find an account with that phone number. Please sign up or use email.');
+            }
+
+            console.log('Final login payload:', { email: finalEmail });
+
             const { data, error } = await supabase.auth.signInWithPassword({
-                email: resolvedEmail || identifier,
+                email: finalEmail,
                 password,
             });
 
             if (error) throw error;
             return { data, error: null };
         } catch (error) {
+            console.error('SignIn error details:', error);
             return { data: null, error: error.message };
         }
     };

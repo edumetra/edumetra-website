@@ -40,21 +40,31 @@ export default function SignupModal({ isOpen, onClose }) {
         try {
             if (view === 'login') {
                 const identifier = formData.email;
+                console.log('Colleges Login attempt:', identifier);
                 
                 // Resolve phone to email if needed
-                const { data: resolvedEmail } = await supabase.rpc('get_email_for_auth', { 
+                const { data: resolvedEmail, error: rpcError } = await supabase.rpc('get_email_for_auth', { 
                     p_identifier: identifier 
                 });
 
+                if (rpcError) console.error('Resolution error:', rpcError);
+                console.log('Resolved:', resolvedEmail);
+
+                const finalEmail = resolvedEmail || (identifier.includes('@') ? identifier : null);
+
+                if (!finalEmail) {
+                    throw new Error('User not found with this phone number. Please sign up first.');
+                }
+
                 const { error } = await supabase.auth.signInWithPassword({
-                    email: resolvedEmail || identifier,
+                    email: finalEmail,
                     password: formData.password,
                 });
                 if (error) throw error;
 
                 // Push login event to TeleCRM (fire-and-forget)
                 pushLeadToTeleCRM(
-                    { email: resolvedEmail || identifier, status: 'Fresh' },
+                    { email: finalEmail, status: 'Fresh' },
                     ['Colleges Platform Login']
                 );
 
