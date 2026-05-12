@@ -22,11 +22,21 @@ export default async function handler(req, res) {
     formattedPhone = '91' + formattedPhone;
   }
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
-
   try {
+    // 0. Check if phone is already registered and verified
+    const { data: status, error: checkError } = await supabase.rpc('check_phone_registration', { 
+      p_phone: formattedPhone 
+    });
+
+    if (checkError) throw checkError;
+
+    if (status === 'verified') {
+      return res.status(400).json({ 
+        error: 'This phone number is already registered. Please login instead.' 
+      });
+    }
+
+    // Generate 6-digit OTP
     // 1. Store OTP in database
     const { error: dbError } = await supabase
       .from('otp_verifications')
