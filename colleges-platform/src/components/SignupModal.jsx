@@ -12,6 +12,10 @@ export default function SignupModal({ isOpen, onClose }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
 
     // Sync with modalMode whenever the modal opens or mode changes
     useEffect(() => {
@@ -20,6 +24,8 @@ export default function SignupModal({ isOpen, onClose }) {
             setError(null);
             setSuccessMsg(null);
             setFormData({ name: '', email: '', phone: '', password: '', otp: '' });
+            setOtpSent(false);
+            setOtpVerified(false);
         }
     }, [isOpen, modalMode]);
 
@@ -33,21 +39,27 @@ export default function SignupModal({ isOpen, onClose }) {
 
         try {
             if (view === 'login') {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email: formData.email,
-                    password: formData.password,
-                });
+                const identifier = formData.email;
+                const isEmail = identifier.includes('@');
+                const loginData = isEmail 
+                    ? { email: identifier, password: formData.password } 
+                    : { phone: identifier.startsWith('+') ? identifier : `+91${identifier.replace(/\D/g, '')}`, password: formData.password };
+
+                const { error } = await supabase.auth.signInWithPassword(loginData);
                 if (error) throw error;
 
                 // Push login event to TeleCRM (fire-and-forget)
                 pushLeadToTeleCRM(
-                    { email: formData.email, status: 'Fresh' },
+                    { [isEmail ? 'email' : 'phone']: identifier, status: 'Fresh' },
                     ['Colleges Platform Login']
                 );
 
                 closeModal();
                 onClose && onClose();
             } else if (view === 'signup') {
+                if (!otpVerified) {
+                    throw new Error('Please verify your phone number with OTP first');
+                }
                 const { error } = await supabase.auth.signUp({
                     email: formData.email,
                     password: formData.password,
@@ -88,22 +100,6 @@ export default function SignupModal({ isOpen, onClose }) {
         }
     };
 
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: `${window.location.origin}/`,
-                },
-            });
-            if (error) throw error;
-        } catch (err) {
-            setError(err.message);
-            setLoading(false);
-        }
-    };
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -254,42 +250,149 @@ export default function SignupModal({ isOpen, onClose }) {
                             {/* Email */}
                                         <div>
                                             <label htmlFor="email" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                                                Email Address
+                                                {view === 'login' ? 'Email or Phone Number' : 'Email Address'}
                                             </label>
                                             <div className="relative">
-                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                {view === 'login' ? (
+                                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                ) : (
+                                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                                )}
                                                 <input
-                                                    type="email"
+                                                    type={view === 'login' ? 'text' : 'email'}
                                                     id="email"
                                                     name="email"
                                                     value={formData.email}
                                                     onChange={handleChange}
                                                     required
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                                    placeholder="john@example.com"
+                                                    placeholder={view === 'login' ? 'Email or 10-digit phone' : 'john@example.com'}
                                                 />
                                             </div>
                                         </div>
 
                                         {/* Phone — signup only */}
                                         {view === 'signup' && (
-                                            <div>
-                                                <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                                                    Phone Number
-                                                </label>
-                                                <div className="relative">
-                                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                                                    <input
-                                                        type="tel"
-                                                        id="phone"
-                                                        name="phone"
-                                                        value={formData.phone}
-                                                        onChange={handleChange}
-                                                        required
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                                        placeholder="+91 98765 43210"
-                                                    />
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label htmlFor="phone" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                                                        Phone Number
+                                                    </label>
+                                                    <div className="flex gap-2">
+                                                        <div className="relative flex-1">
+                                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">
+                                                                +91
+                                                            </div>
+                                                            <input
+                                                                type="tel"
+                                                                id="phone"
+                                                                name="phone"
+                                                                value={formData.phone}
+                                                                onChange={handleChange}
+                                                                required
+                                                                disabled={otpVerified}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm disabled:opacity-50"
+                                                                placeholder="10-digit number"
+                                                                pattern="[0-9]{10}"
+                                                            />
+                                                        </div>
+                                                        {!otpVerified && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    if (formData.phone.length !== 10) {
+                                                                        setError('Please enter a valid 10-digit phone number');
+                                                                        return;
+                                                                    }
+                                                                    setSendingOtp(true);
+                                                                    setError(null);
+                                                                    try {
+                                                                        const res = await fetch('/api/otp/send', {
+                                                                            method: 'POST',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            body: JSON.stringify({ phone: formData.phone }),
+                                                                        });
+                                                                        const data = await res.json();
+                                                                        if (data.success) {
+                                                                            setOtpSent(true);
+                                                                            setSuccessMsg('OTP sent successfully!');
+                                                                            setTimeout(() => setSuccessMsg(null), 3000);
+                                                                        } else {
+                                                                            setError(data.error || 'Failed to send OTP');
+                                                                        }
+                                                                    } catch (err) {
+                                                                        setError('Failed to send OTP. Please try again.');
+                                                                    } finally {
+                                                                        setSendingOtp(false);
+                                                                    }
+                                                                }}
+                                                                disabled={sendingOtp}
+                                                                className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs font-medium hover:bg-white/10 transition-all disabled:opacity-50 min-w-[80px]"
+                                                            >
+                                                                {sendingOtp ? '...' : otpSent ? 'Resend' : 'Send'}
+                                                            </button>
+                                                        )}
+                                                        {otpVerified && (
+                                                            <div className="flex items-center gap-1 text-green-500 text-xs font-medium px-1">
+                                                                Verified
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
+
+                                                {otpSent && !otpVerified && (
+                                                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                        <label htmlFor="otp" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                                            Verify OTP
+                                                        </label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                id="otp"
+                                                                type="text"
+                                                                value={formData.otp}
+                                                                name="otp"
+                                                                onChange={handleChange}
+                                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
+                                                                placeholder="6-digit code"
+                                                                maxLength={6}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    if (formData.otp.length !== 6) {
+                                                                        setError('Please enter 6-digit OTP');
+                                                                        return;
+                                                                    }
+                                                                    setVerifyingOtp(true);
+                                                                    setError(null);
+                                                                    try {
+                                                                        const res = await fetch('/api/otp/verify', {
+                                                                            method: 'POST',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            body: JSON.stringify({ phone: formData.phone, otp: formData.otp }),
+                                                                        });
+                                                                        const data = await res.json();
+                                                                        if (data.success) {
+                                                                            setOtpVerified(true);
+                                                                            setSuccessMsg('Phone verified!');
+                                                                            setTimeout(() => setSuccessMsg(null), 3000);
+                                                                        } else {
+                                                                            setError(data.error || 'Invalid OTP');
+                                                                        }
+                                                                    } catch (err) {
+                                                                        setError('Verification failed.');
+                                                                    } finally {
+                                                                        setVerifyingOtp(false);
+                                                                    }
+                                                                }}
+                                                                disabled={verifyingOtp}
+                                                                className="px-4 py-2 bg-red-600 rounded-xl text-white text-xs font-bold hover:bg-red-500 transition-all disabled:opacity-50"
+                                                            >
+                                                                {verifyingOtp ? '...' : 'Verify'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
@@ -327,38 +430,19 @@ export default function SignupModal({ isOpen, onClose }) {
 
                                         <button
                                             type="submit"
-                                            disabled={loading || !!successMsg}
+                                            disabled={loading || !!successMsg || (view === 'signup' && !otpVerified)}
                                             className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:scale-[1.02] mt-1"
                                         >
                                             {loading
                                                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                                 : <>
                                                     {view === 'login' ? <LogIn className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-                                                    {view === 'login' ? 'Sign In' : 'Create Account'}
+                                                    {view === 'login' ? 'Sign In' : (otpVerified ? 'Create Account' : 'Verify Phone to Continue')}
                                                 </>
                                             }
                                         </button>
                                     </form>
 
-                                    <div className="mt-4 flex items-center justify-center gap-3">
-                                        <div className="flex-1 h-px bg-white/10"></div>
-                                        <span className="text-xs font-semibold text-slate-500 uppercase">Or continue with</span>
-                                        <div className="flex-1 h-px bg-white/10"></div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleGoogleSignIn}
-                                        disabled={loading || !!successMsg}
-                                        className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
-                                    >
-                                        <img
-                                            src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                            alt="Google logo"
-                                            className="w-5 h-5 bg-white p-0.5 rounded-full"
-                                        />
-                                        Google
-                                    </button>
 
                                     {/* Toggle sign in <-> sign up */}
                             <div className="mt-4 text-center">

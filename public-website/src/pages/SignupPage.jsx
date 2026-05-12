@@ -13,9 +13,15 @@ const SignupPage = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
     });
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -51,6 +57,11 @@ const SignupPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!otpVerified) {
+            setError('Please verify your phone number with OTP first');
+            return;
+        }
+
         if (!validateForm()) {
             return;
         }
@@ -60,6 +71,7 @@ const SignupPage = () => {
 
         const { error } = await signUp(formData.email, formData.password, {
             full_name: formData.name,
+            phone: formData.phone,
         });
 
         if (error) {
@@ -71,9 +83,10 @@ const SignupPage = () => {
                 {
                     name: formData.name,
                     email: formData.email,
+                    phone: formData.phone,
                     status: 'Fresh',
                 },
-                ['Signup', 'New User']
+                ['Signup', 'New User', 'OTP Verified']
             );
             setSuccess('Account created successfully! Please check your email to verify your account.');
             setTimeout(() => {
@@ -118,35 +131,6 @@ const SignupPage = () => {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="card space-y-6">
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                setLoading(true);
-                                const { error } = await signInWithGoogle();
-                                if (error) {
-                                    setError(error);
-                                    setLoading(false);
-                                }
-                            }}
-                            disabled={loading}
-                            className="flex items-center justify-center gap-2 border border-slate-700 rounded-lg p-3 w-full hover:bg-slate-800 bg-slate-800/50 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <img
-                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                alt="Google logo"
-                                className="w-5 h-5"
-                            />
-                            Continue with Google
-                        </button>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-700"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-[#0f1629] text-slate-400">Or sign up with email</span>
-                            </div>
-                        </div>
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
                                 Full Name
@@ -184,6 +168,129 @@ const SignupPage = () => {
                                 />
                             </div>
                         </div>
+
+                        <div>
+                            <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
+                                Phone Number
+                            </label>
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">
+                                        +91
+                                    </div>
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        required
+                                        disabled={otpVerified}
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50"
+                                        placeholder="Enter 10-digit number"
+                                        pattern="[0-9]{10}"
+                                    />
+                                </div>
+                                {!otpVerified && (
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (formData.phone.length !== 10) {
+                                                setError('Please enter a valid 10-digit phone number');
+                                                return;
+                                            }
+                                            setSendingOtp(true);
+                                            setError('');
+                                            try {
+                                                const res = await fetch('/api/otp/send', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ phone: formData.phone }),
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) {
+                                                    setOtpSent(true);
+                                                    setSuccess('OTP sent successfully!');
+                                                    setTimeout(() => setSuccess(''), 3000);
+                                                } else {
+                                                    setError(data.error || 'Failed to send OTP');
+                                                }
+                                            } catch (err) {
+                                                setError('Failed to send OTP. Please try again.');
+                                            } finally {
+                                                setSendingOtp(false);
+                                            }
+                                        }}
+                                        disabled={sendingOtp}
+                                        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm font-medium hover:bg-slate-700 transition-all disabled:opacity-50 min-w-[100px]"
+                                    >
+                                        {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
+                                    </button>
+                                )}
+                                {otpVerified && (
+                                    <div className="flex items-center gap-1 text-green-500 text-sm font-medium px-2">
+                                        <CheckCircle className="w-4 h-4" /> Verified
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {otpSent && !otpVerified && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="space-y-2"
+                            >
+                                <label htmlFor="otp" className="block text-sm font-medium text-slate-300">
+                                    Verify OTP
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        id="otp"
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        className="flex-1 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                        placeholder="6-digit OTP"
+                                        maxLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (otp.length !== 6) {
+                                                setError('Please enter 6-digit OTP');
+                                                return;
+                                            }
+                                            setVerifyingOtp(true);
+                                            setError('');
+                                            try {
+                                                const res = await fetch('/api/otp/verify', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ phone: formData.phone, otp }),
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) {
+                                                    setOtpVerified(true);
+                                                    setSuccess('Phone number verified!');
+                                                    setTimeout(() => setSuccess(''), 3000);
+                                                } else {
+                                                    setError(data.error || 'Invalid OTP');
+                                                }
+                                            } catch (err) {
+                                                setError('Verification failed. Please try again.');
+                                            } finally {
+                                                setVerifyingOtp(false);
+                                            }
+                                        }}
+                                        disabled={verifyingOtp}
+                                        className="px-4 py-2 bg-primary-600 rounded-lg text-white text-sm font-medium hover:bg-primary-700 transition-all disabled:opacity-50"
+                                    >
+                                        {verifyingOtp ? 'Verifying...' : 'Verify'}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
 
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
@@ -267,10 +374,10 @@ const SignupPage = () => {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !otpVerified}
                             className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white font-semibold rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Creating account...' : 'Create Account'}
+                            {!otpVerified ? 'Verify Phone to Continue' : loading ? 'Creating account...' : 'Create Account'}
                         </button>
                     </form>
 

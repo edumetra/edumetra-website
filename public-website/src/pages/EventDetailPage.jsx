@@ -80,23 +80,29 @@ const EventDetailPage = () => {
         e.preventDefault();
         setRegStatus('submitting');
 
-        try {
-            // 1. Save to Supabase
-            const { error: dbErr } = await supabase
-                .from('event_registrations')
-                .insert([{
-                    event_id: event.id,
-                    user_id: user?.id || null,
-                    registration_type: user ? 'authenticated' : 'guest',
-                    status: 'registered',
-                    guest_name: regForm.name,
-                    guest_email: regForm.email,
-                    guest_phone: regForm.phone
-                }]);
+        // Guard: only insert if event.id is a valid UUID
+        const isValidUUID = (str) =>
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-            if (dbErr && dbErr.code !== '23505') {
-                console.error('Supabase registration error:', dbErr);
-                // Continue anyway to TeleCRM
+        try {
+            // 1. Save to Supabase (only if event.id is a valid UUID)
+            if (isValidUUID(event?.id)) {
+                const { error: dbErr } = await supabase
+                    .from('event_registrations')
+                    .insert([{
+                        event_id: event.id,
+                        user_id: user?.id || null,
+                        registration_type: user ? 'authenticated' : 'guest',
+                        status: 'registered',
+                        guest_name: regForm.name,
+                        guest_email: regForm.email,
+                        guest_phone: regForm.phone
+                    }]);
+
+                if (dbErr && dbErr.code !== '23505') {
+                    console.error('Supabase registration error:', dbErr);
+                    // Continue anyway to TeleCRM
+                }
             }
 
             // 2. Push to TeleCRM

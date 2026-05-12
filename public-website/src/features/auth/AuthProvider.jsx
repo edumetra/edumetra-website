@@ -91,12 +91,14 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signIn = async (email, password) => {
+    const signIn = async (identifier, password) => {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            const isEmail = identifier.includes('@');
+            const loginData = isEmail 
+                ? { email: identifier, password } 
+                : { phone: identifier.startsWith('+') ? identifier : `+91${identifier.replace(/\D/g, '')}`, password };
+
+            const { data, error } = await supabase.auth.signInWithPassword(loginData);
 
             if (error) throw error;
             return { data, error: null };
@@ -105,21 +107,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signInWithGoogle = async () => {
-        try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: `${window.location.origin}/`,
-                },
-            });
-
-            if (error) throw error;
-            return { data, error: null };
-        } catch (error) {
-            return { data: null, error: error.message };
-        }
-    };
 
     const signOut = async () => {
         try {
@@ -163,7 +150,6 @@ export const AuthProvider = ({ children }) => {
         loading,
         signUp,
         signIn,
-        signInWithGoogle,
         signOut,
         resetPassword,
         updatePassword,

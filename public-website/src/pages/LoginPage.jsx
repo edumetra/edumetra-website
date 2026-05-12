@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
@@ -12,7 +12,7 @@ const LoginPage = () => {
     const returnUrl = searchParams.get('returnUrl') || '/dashboard';
     const { signIn, signInWithGoogle, user } = useAuth();
     const [formData, setFormData] = useState({
-        email: '',
+        identifier: '',
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +37,7 @@ const LoginPage = () => {
         setLoading(true);
         setError('');
 
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(formData.identifier, formData.password);
 
         if (error) {
             setError(error);
@@ -48,7 +48,7 @@ const LoginPage = () => {
             // TeleCRM Integration
             try {
                 pushLeadToTeleCRM({ 
-                    email: formData.email, 
+                    [formData.identifier.includes('@') ? 'email' : 'phone']: formData.identifier, 
                     status: 'Fresh' 
                 }, ['Website Login']);
             } catch (e) {}
@@ -95,50 +95,21 @@ const LoginPage = () => {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="card space-y-6">
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                setLoading(true);
-                                const { error } = await signInWithGoogle();
-                                if (error) {
-                                    setError(error);
-                                    setLoading(false);
-                                }
-                            }}
-                            disabled={loading}
-                            className="flex items-center justify-center gap-2 border border-slate-700 rounded-lg p-3 w-full hover:bg-slate-800 bg-slate-800/50 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <img
-                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                alt="Google logo"
-                                className="w-5 h-5"
-                            />
-                            Continue with Google
-                        </button>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-700"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-[#0f1629] text-slate-400">Or continue with email</span>
-                            </div>
-                        </div>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                                Email Address
+                            <label htmlFor="identifier" className="block text-sm font-medium text-slate-300 mb-2">
+                                Email or Phone Number
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
+                                    id="identifier"
+                                    name="identifier"
+                                    type="text"
                                     required
-                                    value={formData.email}
+                                    value={formData.identifier}
                                     onChange={handleChange}
                                     className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                    placeholder="you@example.com"
+                                    placeholder="you@example.com or 10-digit phone"
                                 />
                             </div>
                         </div>
