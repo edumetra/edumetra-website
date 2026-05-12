@@ -32,11 +32,14 @@ export default async function handler(req, res) {
 
     if (status === 'verified') {
       return res.status(400).json({ 
-        error: 'This phone number is already registered. Please login instead.' 
+        error: 'Phone number already exists. Please login instead.' 
       });
     }
 
     // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+
     // 1. Store OTP in database
     const { error: dbError } = await supabase
       .from('otp_verifications')
