@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
