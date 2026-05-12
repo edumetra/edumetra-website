@@ -105,13 +105,21 @@ const SignupPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     {/* Header */}
-                    <div className="text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                            Create Account
-                        </h2>
-                        <p className="text-slate-400">
-                            Start your journey with Edumetra
-                        </p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                                Create Account
+                            </h2>
+                            <p className="text-slate-400">
+                                Start your journey with Edumetra or <Link to="/login" className="text-primary-400 hover:text-primary-300 font-semibold underline-offset-4 hover:underline">sign in</Link>
+                            </p>
+                        </div>
+                        <Link 
+                            to="/login" 
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 text-primary-400 border border-primary-500/20 rounded-lg text-sm font-bold transition-all"
+                        >
+                            Sign In <ArrowLeft className="w-4 h-4 rotate-180" />
+                        </Link>
                     </div>
 
                     {/* Error/Success Messages */}
