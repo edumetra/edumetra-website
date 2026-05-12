@@ -68,26 +68,29 @@ const LoginPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    {/* Header */}
-                    <div className="card relative p-0 overflow-hidden">
-                        <div className="p-6 md:p-8 space-y-8">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                                        Welcome Back
-                                    </h2>
-                                    <p className="text-slate-400">
-                                        Sign in to access your account or <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-semibold underline-offset-4 hover:underline">create one</Link>
-                                    </p>
-                                </div>
-                                <Link 
-                                    to="/signup" 
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 text-primary-400 border border-primary-500/20 rounded-lg text-sm font-bold transition-all"
-                                >
-                                    Sign Up <ArrowLeft className="w-4 h-4 rotate-180" />
-                                </Link>
+                    {/* Header Section */}
+                    <div className="relative mb-8 pt-2">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-1.5">
+                                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                                    Welcome Back
+                                </h2>
+                                <p className="text-slate-400 text-sm md:text-base font-medium">
+                                    New here? <Link to="/signup" className="text-primary-400 hover:text-primary-300 transition-colors border-b border-primary-500/30 hover:border-primary-500 pb-0.5">Create an account</Link>
+                                </p>
                             </div>
+                            <Link 
+                                to="/signup" 
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest border border-white/10 rounded-full transition-all group"
+                            >
+                                Sign Up 
+                                <ArrowLeft className="w-3 h-3 rotate-180 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </div>
+                    </div>
 
+                    <div className="card relative p-0 overflow-hidden">
+                        <div className="p-6 md:p-8 space-y-6">
                             {/* Error/Success Messages */}
                     {error && (
                         <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">

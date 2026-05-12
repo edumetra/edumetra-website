@@ -104,23 +104,28 @@ const SignupPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                                Create Account
-                            </h2>
-                            <p className="text-slate-400">
-                                Start your journey with Edumetra or <Link to="/login" className="text-primary-400 hover:text-primary-300 font-semibold underline-offset-4 hover:underline">sign in</Link>
-                            </p>
+                    {/* Header Section */}
+                    <div className="relative mb-8 pt-2">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-1.5">
+                                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                                    Create Account
+                                </h2>
+                                <p className="text-slate-400 text-sm md:text-base font-medium">
+                                    Already have an account? <Link to="/login" className="text-primary-400 hover:text-primary-300 transition-colors border-b border-primary-500/30 hover:border-primary-500 pb-0.5">Sign in here</Link>
+                                </p>
+                            </div>
+                            <Link 
+                                to="/login" 
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest border border-white/10 rounded-full transition-all group"
+                            >
+                                Sign In
+                                <ArrowLeft className="w-3 h-3 rotate-180 transition-transform group-hover:translate-x-1" />
+                            </Link>
                         </div>
-                        <Link 
-                            to="/login" 
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 text-primary-400 border border-primary-500/20 rounded-lg text-sm font-bold transition-all"
-                        >
-                            Sign In <ArrowLeft className="w-4 h-4 rotate-180" />
-                        </Link>
                     </div>
+
+                    {/* Error/Success Messages */}
 
                     {/* Error/Success Messages */}
                     {error && (
