@@ -24,11 +24,19 @@ export default async function handler(req, res) {
 
   try {
     // 0. Check if phone is already registered and verified
-    const { data: status, error: checkError } = await supabase.rpc('check_phone_registration', { 
-      p_phone: formattedPhone 
-    });
-
-    if (checkError) throw checkError;
+    let status = 'available';
+    try {
+      const { data, error: checkError } = await supabase.rpc('check_phone_registration', { 
+        p_phone: formattedPhone 
+      });
+      if (!checkError) {
+        status = data;
+      } else {
+        console.warn('RPC check_phone_registration failed:', checkError);
+      }
+    } catch (e) {
+      console.warn('Error checking registration:', e);
+    }
 
     if (status === 'verified') {
       return res.status(400).json({ 
