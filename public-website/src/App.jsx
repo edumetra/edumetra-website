@@ -55,7 +55,8 @@ function ScrollToTop() {
 function App() {
   useEffect(() => {
     // Initialize analytics
-    analytics.init('YOUR_TRACKING_ID'); // Replace with actual tracking ID
+    const trackingId = import.meta.env.VITE_GA_TRACKING_ID || '';
+    analytics.init(trackingId);
   }, []);
 
   return (

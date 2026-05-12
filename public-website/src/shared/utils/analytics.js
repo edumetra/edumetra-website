@@ -11,7 +11,6 @@ class Analytics {
 
     // Initialize analytics (placeholder for GA, Mixpanel, etc.)
     init(trackingId) {
-        console.log('Analytics initialized with ID:', trackingId);
         this.initialized = true;
         this.trackingId = trackingId;
 
@@ -33,7 +32,6 @@ class Analytics {
         trackTeleCRMPageView(pagePath, pageTitle);
 
         if (this.initialized) {
-            console.log('📊 Page View:', event);
             this.track('page_view', event);
         } else {
             this.queue.push({ name: 'page_view', properties: event });
@@ -49,7 +47,6 @@ class Analytics {
         };
 
         if (this.initialized) {
-            console.log('📊 Event:', eventName, event);
 
             // Persist to Supabase if user is logged in
             try {
