@@ -40,17 +40,21 @@ export default function SignupModal({ isOpen, onClose }) {
         try {
             if (view === 'login') {
                 const identifier = formData.email;
-                const isEmail = identifier.includes('@');
-                const loginData = isEmail 
-                    ? { email: identifier, password: formData.password } 
-                    : { phone: identifier.startsWith('+') ? identifier : `+91${identifier.replace(/\D/g, '')}`, password: formData.password };
+                
+                // Resolve phone to email if needed
+                const { data: resolvedEmail } = await supabase.rpc('get_email_for_auth', { 
+                    p_identifier: identifier 
+                });
 
-                const { error } = await supabase.auth.signInWithPassword(loginData);
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: resolvedEmail || identifier,
+                    password: formData.password,
+                });
                 if (error) throw error;
 
                 // Push login event to TeleCRM (fire-and-forget)
                 pushLeadToTeleCRM(
-                    { [isEmail ? 'email' : 'phone']: identifier, status: 'Fresh' },
+                    { email: resolvedEmail || identifier, status: 'Fresh' },
                     ['Colleges Platform Login']
                 );
 

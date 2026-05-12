@@ -93,12 +93,16 @@ export const AuthProvider = ({ children }) => {
 
     const signIn = async (identifier, password) => {
         try {
-            const isEmail = identifier.includes('@');
-            const loginData = isEmail 
-                ? { email: identifier, password } 
-                : { phone: identifier.startsWith('+') ? identifier : `+91${identifier.replace(/\D/g, '')}`, password };
+            // First, try to resolve phone to email if needed
+            const { data: resolvedEmail } = await supabase.rpc('get_email_for_auth', { 
+                p_identifier: identifier 
+            });
 
-            const { data, error } = await supabase.auth.signInWithPassword(loginData);
+            // Always sign in with email (resolved or original)
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: resolvedEmail || identifier,
+                password,
+            });
 
             if (error) throw error;
             return { data, error: null };
