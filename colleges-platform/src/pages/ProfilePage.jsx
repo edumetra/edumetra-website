@@ -344,7 +344,18 @@ export default function ProfilePage() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-black text-white">{user.user_metadata?.full_name || 'User'}</h1>
-                        <p className="text-slate-400 text-sm">{user.email}</p>
+                        <p className="text-slate-400 text-sm flex items-center gap-2">
+                            {user.email}
+                            {user.email_confirmed_at ? (
+                                <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                    <ShieldCheck className="w-3 h-3" /> Verified
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                    <AlertCircle className="w-3 h-3" /> Unverified
+                                </span>
+                            )}
+                        </p>
                     </div>
                 </div>
 

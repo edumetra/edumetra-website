@@ -163,6 +163,15 @@ const DashboardPage = () => {
                             <h1 className="text-2xl md:text-3xl font-black text-white">{profile.full_name || 'Student Profile'}</h1>
                             <p className="text-slate-400 flex items-center gap-2 mt-1">
                                 <Mail className="w-4 h-4" /> {user?.email}
+                                {user?.email_confirmed_at ? (
+                                    <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                        <ShieldCheck className="w-3 h-3" /> Verified
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-bold">
+                                        <AlertCircle className="w-3 h-3" /> Unverified Email
+                                    </span>
+                                )}
                                 <span className={`ml-3 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                                     profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
                                     profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
