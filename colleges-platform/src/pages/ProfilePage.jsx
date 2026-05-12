@@ -38,6 +38,7 @@ export default function ProfilePage() {
     const [neetPlans, setNeetPlans] = useState([]);
     const [profileData, setProfileData] = useState({
         full_name: '',
+        email: '',
         phone_number: '',
         state: '',
         city: '',
@@ -103,7 +104,8 @@ export default function ProfilePage() {
             if (data) {
                 setProfileData({
                     full_name: data.full_name || user.user_metadata?.full_name || '',
-                    phone_number: data.phone_number || '',
+                    email: user.email || '',
+                    phone_number: user.phone || data.phone_number || '',
                     state: data.state || '',
                     city: data.city || '',
                     stream: data.stream || '',
@@ -122,8 +124,13 @@ export default function ProfilePage() {
                     account_type: data.account_type || 'free',
                     subscription_status: data.subscription_status || null
                 });
-            } else if (user.user_metadata?.full_name) {
-                setProfileData(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
+            } else {
+                setProfileData(prev => ({ 
+                    ...prev, 
+                    full_name: user.user_metadata?.full_name || '',
+                    email: user.email || '',
+                    phone_number: user.phone || ''
+                }));
             }
         } catch (err) {
             console.error('Error fetching profile:', err);
@@ -239,6 +246,13 @@ export default function ProfilePage() {
             if (profileData.full_name !== user.user_metadata?.full_name) {
                 updates.push(supabase.auth.updateUser({
                     data: { full_name: profileData.full_name }
+                }));
+            }
+
+            // 3. Update Email if changed
+            if (profileData.email && profileData.email !== user.email) {
+                updates.push(supabase.auth.updateUser({
+                    email: profileData.email
                 }));
             }
 
@@ -613,12 +627,17 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number</label>
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Email Address</label>
                                 {isEditingProfile ? (
-                                    <input value={profileData.phone_number} onChange={e => setProfileData(p => ({ ...p, phone_number: e.target.value }))} placeholder="+91" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
+                                    <input type="email" value={profileData.email} onChange={e => setProfileData(p => ({ ...p, email: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500/50" />
                                 ) : (
-                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.phone_number || 'Not provided'}</p>
+                                    <p className="text-slate-200 bg-slate-800/20 px-4 py-2.5 rounded-xl border border-transparent">{profileData.email || 'Not provided'}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded ml-2 normal-case">Fixed</span></label>
+                                <p className="text-slate-400 bg-slate-950/50 px-4 py-2.5 rounded-xl border border-transparent cursor-not-allowed">{profileData.phone_number || 'Not provided'}</p>
                             </div>
 
                             <div className="space-y-1">

@@ -19,6 +19,7 @@ const DashboardPage = () => {
     
     const [profile, setProfile] = useState({
         full_name: '',
+        email: '',
         phone_number: '',
         state: '',
         city: '',
@@ -45,7 +46,8 @@ const DashboardPage = () => {
                 if (data) {
                     setProfile({
                         full_name: data.full_name || user.user_metadata?.full_name || '',
-                        phone_number: data.phone_number || '',
+                        email: user.email || '',
+                        phone_number: user.phone || data.phone_number || '',
                         state: data.state || '',
                         city: data.city || '',
                         gender: data.gender || '',
@@ -53,8 +55,13 @@ const DashboardPage = () => {
                         stream: data.stream || '',
                         account_type: data.account_type || 'free'
                     });
-                } else if (user.user_metadata?.full_name) {
-                    setProfile(prev => ({ ...prev, full_name: user.user_metadata.full_name }));
+                } else {
+                    setProfile(prev => ({ 
+                        ...prev, 
+                        full_name: user.user_metadata?.full_name || '',
+                        email: user.email || '',
+                        phone_number: user.phone || ''
+                    }));
                 }
             } catch (error) {
                 console.error("Error fetching profile:", error);
@@ -72,7 +79,8 @@ const DashboardPage = () => {
         setMessage('');
         
         try {
-            const { error } = await supabase
+            // 1. Update user_profiles
+            const { error: profileError } = await supabase
                 .from('user_profiles')
                 .update({
                     full_name: profile.full_name,
@@ -83,27 +91,38 @@ const DashboardPage = () => {
                     dob: profile.dob || null,
                     stream: profile.stream
                 })
-            if (error) throw error;
+                .eq('id', user.id);
+            if (profileError) throw profileError;
+
+            // 2. Update auth email if it changed
+            if (profile.email && profile.email !== user.email) {
+                const { error: authError } = await supabase.auth.updateUser({
+                    email: profile.email
+                });
+                if (authError) throw authError;
+                setMessage('Profile updated! Check your new email inbox to confirm the change.');
+            } else {
+                setMessage('Profile updated successfully!');
+            }
             
             // TeleCRM Integration
             try {
                 pushLeadToTeleCRM({
                     name: profile.full_name,
                     phone: profile.phone_number,
-                    email: user.email,
+                    email: profile.email,
                     city: profile.city,
                     state: profile.state,
                     status: 'Fresh'
                 }, ['Profile Updated']);
             } catch (e) {}
             
-            setMessage('Profile updated successfully!');
             setIsEditing(false);
         } catch (error) {
             setMessage(`Error: ${error.message}`);
         } finally {
             setSaving(false);
-            setTimeout(() => setMessage(''), 3000);
+            setTimeout(() => setMessage(''), 5000);
         }
     };
 
@@ -281,17 +300,25 @@ const DashboardPage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number</label>
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Email Address</label>
                                     {isEditing ? (
                                         <input 
-                                            value={profile.phone_number} 
-                                            onChange={e => setProfile({...profile, phone_number: e.target.value})} 
+                                            type="email"
+                                            value={profile.email} 
+                                            onChange={e => setProfile({...profile, email: e.target.value})} 
                                             className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
-                                            placeholder="+91"
+                                            required
                                         />
                                     ) : (
-                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.phone_number || 'Not provided'}</div>
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.email || 'Not provided'}</div>
                                     )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded ml-2 normal-case">Fixed</span></label>
+                                    <div className="px-4 py-2.5 bg-slate-950/50 rounded-xl text-slate-400 border border-transparent cursor-not-allowed">
+                                        {profile.phone_number || 'Not provided'}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
