@@ -69,16 +69,26 @@ const LoginPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     {/* Header */}
-                    <div className="text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                            Welcome Back
-                        </h2>
-                        <p className="text-slate-400">
-                            Sign in to access your account
-                        </p>
-                    </div>
+                    <div className="card relative p-0 overflow-hidden">
+                        <div className="p-6 md:p-8 space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                                        Welcome Back
+                                    </h2>
+                                    <p className="text-slate-400">
+                                        Sign in to access your account or <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-semibold underline-offset-4 hover:underline">create one</Link>
+                                    </p>
+                                </div>
+                                <Link 
+                                    to="/signup" 
+                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 text-primary-400 border border-primary-500/20 rounded-lg text-sm font-bold transition-all"
+                                >
+                                    Sign Up <ArrowLeft className="w-4 h-4 rotate-180" />
+                                </Link>
+                            </div>
 
-                    {/* Error/Success Messages */}
+                            {/* Error/Success Messages */}
                     {error && (
                         <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
                             <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -94,7 +104,7 @@ const LoginPage = () => {
                     )}
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="card space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label htmlFor="identifier" className="block text-sm font-medium text-slate-300 mb-2">
                                 Email or Phone Number
@@ -175,15 +185,17 @@ const LoginPage = () => {
                     </form>
 
                     {/* Footer */}
-                    <p className="text-center text-slate-400">
+                    <p className="text-center text-slate-400 mt-8">
                         Don't have an account?{' '}
                         <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-semibold">
                             Sign up
                         </Link>
                     </p>
-                </motion.div>
+                </div>
             </div>
-        </>
+        </motion.div>
+    </div>
+</>
     );
 };
 
