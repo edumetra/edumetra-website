@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
-import { Search, Trophy, ArrowRight, BookOpen, Star, GraduationCap } from 'lucide-react';
+import { Search, Trophy, ArrowRight, BookOpen, Star, GraduationCap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const EXAMS = [
