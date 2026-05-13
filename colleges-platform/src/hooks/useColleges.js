@@ -141,7 +141,7 @@ export function useColleges() {
                 return;
             }
 
-            if (err.message === 'Filter timeout') {
+            if (err.message === 'Filter timeout' || err.message?.includes('Failed to fetch')) {
                 setError('DATABASE_CONNECTION_BLOCKED');
             } else {
                 console.error('Error fetching colleges:', err.message || err);
@@ -156,7 +156,7 @@ export function useColleges() {
     // Optimized Fetch: Get distinct options for filters
     const fetchFilterOptions = useCallback(async () => {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout for filters
+        const timeout = setTimeout(() => controller.abort(), 12000); // Increased to 12s for slow connections
 
         try {
             // Note: Scanning 10,000+ rows in-browser is slow. 

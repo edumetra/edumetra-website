@@ -52,7 +52,7 @@ export default function CollegeListPage() {
             try {
                 const options = await Promise.race([
                     fetchFilterOptions(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Filter timeout')), 8000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Filter timeout')), 15000))
                 ]);
                 if (options) setFilterOptions(options);
             } catch (err) {
