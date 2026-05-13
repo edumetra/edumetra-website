@@ -7,9 +7,7 @@ import App from './App.jsx'
 // Deploy trigger: 2026-05-13T21:49:00
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HelmetProvider>
-      <App />
-    </HelmetProvider>
+    <App />
   </StrictMode>,
 )
 

@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 // Integrated Groq AI Workflows
 import { Toaster } from 'react-hot-toast';
 import ScrollToTop from './components/ScrollToTop';
@@ -28,12 +29,15 @@ import NewsUpdatesPage from './pages/NewsUpdatesPage';
 import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
 import { CommandPalette } from './components/ui/CommandPalette';
-import { ChatbotProvider, ChatbotWidget } from './components/chatbot';
+import { ChatbotProvider } from './components/chatbot';
 import ComingSoonPage from './pages/ComingSoonPage';
 import AuthGuard from './components/auth/AuthGuard';
 import { trackTeleCRMPageView } from './services/telecrm';
 import { useLocation } from 'react-router-dom';
 import './index.css';
+
+// Lazy load heavy components to prevent initialization race conditions (ReferenceError: Ke)
+const ChatbotWidget = lazy(() => import('./components/chatbot').then(m => ({ default: m.ChatbotWidget })));
 
 // Track page views in TeleCRM
 function RouteTracker() {
@@ -49,58 +53,62 @@ function RouteTracker() {
 
 function App() {
   return (
-    <SignupProvider>
-      <CompareProvider>
-        <PremiumProvider>
-        <ChatbotProvider>
-          <Router>
-            <ScrollToTop />
-            <RouteTracker />
-            <CommandPalette />
-            <Toaster 
-                position="bottom-center" 
-                toastOptions={{ 
-                    className: 'bg-slate-900 border border-slate-700 text-white shadow-2xl rounded-xl text-sm font-medium tracking-wide', 
-                    duration: 3000,
-                    success: { iconTheme: { primary: '#22c55e', secondary: '#0f172a' } },
-                    error: { iconTheme: { primary: '#ef4444', secondary: '#0f172a' } },
-                }} 
-            />
-            <SiteNotice />
-            <ChatbotWidget />
-            <Routes>
-              {/* All routes rendered inside Navigation + Footer via Outlet */}
-              <Route element={<MainLayout />}>
-                <Route index element={<HomePage />} />
-                <Route path="colleges" element={<CollegeListPage />} />
-                <Route path="colleges/:slug" element={<CollegeDetailPage />} />
-                <Route path="profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
-                <Route path="review" element={<WriteReviewPage />} />
-                <Route path="compare" element={<ComparePage />} />
-                <Route path="rankings" element={<RankingsPage />} />
-                <Route path="eligibility" element={<AuthGuard><EligibilityCheckerPage /></AuthGuard>} />
-                <Route path="rank-predictor" element={<AuthGuard><RankPredictorPage /></AuthGuard>} />
-                <Route path="neet-prep" element={<AuthGuard><NEETPrepPage /></AuthGuard>} />
-                <Route path="articles" element={<ArticlesPage />} />
-                <Route path="articles/:slug" element={<ArticleDetailPage />} />
-                <Route path="exams/:slug" element={<ExamDetailPage />} />
-                <Route path="news-updates" element={<NewsUpdatesPage />} />
-                <Route path="careers" element={<CareersPage />} />
-                <Route path="pricing" element={<PricingPage />} />
-                <Route path="checkout" element={<CheckoutPage />} />
-                {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
-                <Route path="404" element={<NotFoundPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
+    <HelmetProvider>
+      <SignupProvider>
+        <CompareProvider>
+          <PremiumProvider>
+          <ChatbotProvider>
+            <Router>
+              <ScrollToTop />
+              <RouteTracker />
+              <CommandPalette />
+              <Toaster 
+                  position="bottom-center" 
+                  toastOptions={{ 
+                      className: 'bg-slate-900 border border-slate-700 text-white shadow-2xl rounded-xl text-sm font-medium tracking-wide', 
+                      duration: 3000,
+                      success: { iconTheme: { primary: '#22c55e', secondary: '#0f172a' } },
+                      error: { iconTheme: { primary: '#ef4444', secondary: '#0f172a' } },
+                  }} 
+              />
+              <SiteNotice />
+              <Suspense fallback={null}>
+                <ChatbotWidget />
+              </Suspense>
+              <Routes>
+                {/* All routes rendered inside Navigation + Footer via Outlet */}
+                <Route element={<MainLayout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="colleges" element={<CollegeListPage />} />
+                  <Route path="colleges/:slug" element={<CollegeDetailPage />} />
+                  <Route path="profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
+                  <Route path="review" element={<WriteReviewPage />} />
+                  <Route path="compare" element={<ComparePage />} />
+                  <Route path="rankings" element={<RankingsPage />} />
+                  <Route path="eligibility" element={<AuthGuard><EligibilityCheckerPage /></AuthGuard>} />
+                  <Route path="rank-predictor" element={<AuthGuard><RankPredictorPage /></AuthGuard>} />
+                  <Route path="neet-prep" element={<AuthGuard><NEETPrepPage /></AuthGuard>} />
+                  <Route path="articles" element={<ArticlesPage />} />
+                  <Route path="articles/:slug" element={<ArticleDetailPage />} />
+                  <Route path="exams/:slug" element={<ExamDetailPage />} />
+                  <Route path="news-updates" element={<NewsUpdatesPage />} />
+                  <Route path="careers" element={<CareersPage />} />
+                  <Route path="pricing" element={<PricingPage />} />
+                  <Route path="checkout" element={<CheckoutPage />} />
+                  {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
+                  <Route path="404" element={<NotFoundPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
 
-              {/* Standalone — no nav/footer wrapper */}
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-            </Routes>
-          </Router>
-        </ChatbotProvider>
-        </PremiumProvider>
-      </CompareProvider>
-    </SignupProvider>
+                {/* Standalone — no nav/footer wrapper */}
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+              </Routes>
+            </Router>
+          </ChatbotProvider>
+          </PremiumProvider>
+        </CompareProvider>
+      </SignupProvider>
+    </HelmetProvider>
   );
 }
 
