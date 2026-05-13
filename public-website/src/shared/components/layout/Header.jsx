@@ -65,6 +65,8 @@ const Header = () => {
                                 <a
                                     key={index}
                                     href={link.path}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     onClick={() => pushLeadToTeleCRM({}, ['Header: Visited Colleges Portal'])}
                                     className="relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-300 hover:text-white"
                                 >
@@ -279,6 +281,8 @@ const Header = () => {
                                             <a
                                                 key={index}
                                                 href={link.path}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="block px-4 py-2.5 rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white"
                                                 onClick={() => {
                                                     setMobileMenuOpen(false);

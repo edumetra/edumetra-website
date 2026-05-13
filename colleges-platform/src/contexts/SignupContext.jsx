@@ -50,18 +50,18 @@ export function SignupProvider({ children }) {
 
         // Listen for auth changes - THIS captures the initial session too
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
+
             const currentUser = session?.user ?? null;
+            setUser(currentUser);
             
-            if (isMounted) {
-                setUser(currentUser);
-                // If we just got a user (e.g. from a shared cookie), fetch their profile
-                if (currentUser) {
-                    await fetchProfile(currentUser.id);
-                } else {
-                    setProfile(null);
-                }
-                setLoading(false);
+            // If we just got a user (e.g. from a shared cookie), fetch their profile
+            if (currentUser) {
+                await fetchProfile(currentUser.id);
+            } else {
+                setProfile(null);
             }
+            setLoading(false);
             
             if (currentUser && event === 'SIGNED_IN') {
                 // Sync with TeleCRM only on actual sign-in events
@@ -78,6 +78,7 @@ export function SignupProvider({ children }) {
         // Fallback & Recovery: Catch sessions that standard listeners might miss
         const checkInitialSession = async () => {
             try {
+                // Use a non-aborting session check
                 const { data: { session }, error } = await supabase.auth.getSession();
                 
                 if (error) throw error;
@@ -88,7 +89,10 @@ export function SignupProvider({ children }) {
                     await fetchProfile(session.user.id);
                 }
             } catch (err) {
-                console.warn('Initial session check failed or was missing:', err.message);
+                // Ignore AbortError and other non-critical session errors
+                if (err.name !== 'AbortError') {
+                    console.warn('Initial session check failed:', err.message);
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -100,20 +104,17 @@ export function SignupProvider({ children }) {
         // In strict privacy browsers (like Ulaa), Supabase might be blocked entirely.
         // We force loading to false after 3 seconds to ensure the app shell mounts regardless.
         const safetyTimer = setTimeout(() => {
-            if (isMounted && loading) {
-                console.warn('SignupProvider: Safety timeout reached. Forcing loading to false.');
+            if (isMounted) {
                 setLoading(false);
             }
         }, 3000);
-
-        checkInitialSession();
 
         return () => {
             isMounted = false;
             subscription.unsubscribe();
             clearTimeout(safetyTimer);
         };
-    }, [loading]); // Added loading to deps to check state in timeout
+    }, []); // Empty dependency array for mount only
 
     // Show signup nudge after 8 seconds if not logged in
     useEffect(() => {

@@ -40,21 +40,53 @@ export default function SignupModal({ isOpen, onClose }) {
 
         try {
             if (view === 'login') {
-                const identifier = formData.email;
+                let identifier = formData.email.trim();
                 console.log('Colleges Login attempt:', identifier);
                 
-                // Resolve phone to email if needed
-                const { data: resolvedEmail, error: rpcError } = await supabase.rpc('get_email_for_auth', { 
-                    p_identifier: identifier 
-                });
+                let finalEmail = null;
 
-                if (rpcError) console.error('Resolution error:', rpcError);
-                console.log('Resolved:', resolvedEmail);
+                // 1. If it's already an email, use it
+                if (identifier.includes('@')) {
+                    finalEmail = identifier;
+                } else {
+                    // 2. Clean phone number (remove +91, spaces, etc.)
+                    const cleanPhone = identifier.replace(/[^0-9]/g, '').slice(-10);
+                    
+                    if (cleanPhone.length === 10) {
+                        console.log('Resolving phone:', cleanPhone);
+                        
+                        // Try to find by phone in user_profiles using standard select
+                        // (Requires RLS to allow reading your own profile by phone, 
+                        // or a public view if security allows)
+                        const { data: profile, error: profileError } = await supabase
+                            .from('user_profiles')
+                            .select('email')
+                            .eq('phone_number', cleanPhone)
+                            .maybeSingle();
 
-                const finalEmail = resolvedEmail || (identifier.includes('@') ? identifier : null);
+                        if (profile?.email) {
+                            finalEmail = profile.email;
+                            console.log('Resolved via profile select:', finalEmail);
+                        } else {
+                            // Try RPC as fallback
+                            const { data: resolvedEmail, error: rpcError } = await supabase.rpc('get_email_for_auth', { 
+                                p_identifier: cleanPhone 
+                            });
+
+                            if (rpcError) {
+                                console.warn('RPC Resolution error (expected if not exists):', rpcError);
+                            }
+                            
+                            if (resolvedEmail) {
+                                finalEmail = resolvedEmail;
+                                console.log('Resolved via RPC:', finalEmail);
+                            }
+                        }
+                    }
+                }
 
                 if (!finalEmail) {
-                    throw new Error('User not found with this phone number. Please sign up first.');
+                    throw new Error('User not found. Please sign up or check your credentials.');
                 }
 
                 const { error } = await supabase.auth.signInWithPassword({
@@ -181,9 +213,12 @@ export default function SignupModal({ isOpen, onClose }) {
                 )}
 
                 {/* Error */}
-                {error && !error.includes('already exists') && !error.includes('OTP attempts') && (
+                {error && !error.includes('OTP attempts') && (
                     <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl mb-4 text-center">
-                        {error}
+                        {error.includes('already exists') 
+                            ? <span>Account already exists. <button onClick={() => switchView('login')} className="font-bold underline">Sign In instead</button></span>
+                            : error
+                        }
                     </div>
                 )}
 

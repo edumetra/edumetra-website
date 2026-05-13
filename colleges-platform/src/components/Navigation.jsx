@@ -179,6 +179,8 @@ const Navigation = () => {
                                     <a
                                         key={label}
                                         href={to}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         onClick={() => {
                                             pushLeadToTeleCRM({}, ['Header: Visited Main Site']);
                                         }}
@@ -317,7 +319,10 @@ const Navigation = () => {
                                             {active && <ChevronRight className="w-4 h-4 ml-auto text-red-500" />}
                                         </Link>
                                     ) : (
-                                        <a key={label} href={to} onClick={() => { setMobileMenuOpen(false); pushLeadToTeleCRM({}, ['Header: Visited Main Site']); }}
+                                        <a key={label} href={to} 
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={() => { setMobileMenuOpen(false); pushLeadToTeleCRM({}, ['Header: Visited Main Site']); }}
                                             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/6 transition-all">
                                             {Icon && <Icon className="w-4 h-4 shrink-0 text-slate-500" />}
                                             {label}
