@@ -42,13 +42,26 @@ export default async function handler(req, res) {
     // 0b. Check if phone is already registered and verified
     let status = 'available';
     try {
+      // First try the RPC which has access to auth.users
       const { data, error: checkError } = await supabase.rpc('check_phone_registration', { 
         p_phone: formattedPhone 
       });
-      if (!checkError) {
+      
+      if (!checkError && data) {
         status = data;
       } else {
-        console.warn('RPC check_phone_registration failed:', checkError);
+        // Fallback: Check user_profiles directly
+        // We check for both formatted (91...) and local (10-digit) versions
+        const localPhone = formattedPhone.length === 12 ? formattedPhone.slice(2) : formattedPhone;
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .or(`phone_number.eq.${formattedPhone},phone_number.eq.${localPhone}`)
+          .maybeSingle();
+
+        if (profile) {
+          status = 'verified';
+        }
       }
     } catch (e) {
       console.warn('Error checking registration:', e);
