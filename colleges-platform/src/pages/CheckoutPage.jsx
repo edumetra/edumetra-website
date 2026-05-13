@@ -35,12 +35,12 @@ const PLANS = {
     },
     pro: {
         id: 'pro',
-        name: 'Pro',
+        name: 'Plus',
         price: 30000,
         originalPrice: 50000,
         period: 'per month',
         color: 'from-amber-500 to-yellow-500',
-        badge: 'Full Access',
+        badge: 'Elite Access',
         badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
         icon: Zap,
         features: [
@@ -72,6 +72,7 @@ const CheckoutPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const planKey = searchParams.get('plan') || 'premium';
     const plan = PLANS[planKey] || PLANS.premium;
 
@@ -93,6 +94,32 @@ const CheckoutPage = () => {
                 return;
             }
             setUser(session.user);
+
+            // Fetch profile for eligibility check
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('account_type')
+                .eq('id', session.user.id)
+                .single();
+            
+            setProfile(profile);
+
+            if (profile) {
+                const currentTier = profile.account_type || 'free';
+                
+                // Eligibility Checks
+                if (currentTier === 'pro') {
+                    toast.error('You already have the highest plan (Plus).');
+                    navigate('/profile');
+                    return;
+                }
+                
+                if (currentTier === 'premium' && planKey === 'premium') {
+                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
+                    navigate('/pricing');
+                    return;
+                }
+            }
         };
         checkAuth();
     }, [navigate, planKey]);
@@ -119,18 +146,73 @@ const CheckoutPage = () => {
         const handleDownload = async () => {
             setDownloading(true);
             try {
-                const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-                    import('jspdf'),
-                    import('html2canvas'),
-                ]);
-                const el = document.getElementById('invoice-printable');
-                if (!el) return;
-                const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#1e293b', logging: false });
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                const w = pdf.internal.pageSize.getWidth();
-                const h = (canvas.height * w) / canvas.width;
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
-                pdf.save(`Invoice-${invoice.invoice_number}.pdf`);
+                const { default: jsPDF } = await import('jspdf');
+                const doc = new jsPDF();
+                
+                // Professional PDF Header
+                doc.setFillColor(15, 23, 42); // slate-900
+                doc.rect(0, 0, 210, 40, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.setFont('helvetica', 'bold');
+                doc.text('EDUMETRA', 20, 25);
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text('INVOICE / RECEIPT', 160, 25);
+                
+                // Body content
+                doc.setTextColor(15, 23, 42);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Bill To:', 20, 60);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.text(user?.user_metadata?.full_name || 'Customer', 20, 68);
+                doc.text(invoice.user_email, 20, 73);
+                
+                // Invoice details
+                doc.setFont('helvetica', 'bold');
+                doc.text('Invoice Details:', 130, 60);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Invoice #: ${invoice.invoice_number}`, 130, 68);
+                doc.text(`Date: ${new Date().toLocaleDateString()}`, 130, 73);
+                doc.text(`Status: PAID`, 130, 78);
+                
+                // Table-like structure
+                doc.setDrawColor(226, 232, 240); // slate-200
+                doc.line(20, 90, 190, 90);
+                
+                doc.setFont('helvetica', 'bold');
+                doc.text('Description', 25, 98);
+                doc.text('Period', 100, 98);
+                doc.text('Amount', 165, 98);
+                
+                doc.line(20, 102, 190, 102);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${invoice.plan_type.toUpperCase()} Subscription`, 25, 112);
+                doc.text(invoice.billing_period, 100, 112);
+                doc.text(`INR ${Number(invoice.total_inr || invoice.total_paise / 100).toFixed(2)}`, 165, 112);
+                
+                doc.line(20, 120, 190, 120);
+                
+                // Summary
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text('Total Amount Paid:', 110, 140);
+                doc.text(`INR ${Number(invoice.total_inr || invoice.total_paise / 100).toFixed(2)}`, 165, 140);
+                
+                // Footer
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(100, 116, 139);
+                doc.text('Thank you for choosing Edumetra. For support, contact support@edumetra.com', 105, 280, { align: 'center' });
+                doc.text(`Payment ID: ${invoice.razorpay_payment_id}`, 105, 285, { align: 'center' });
+                
+                doc.save(`Invoice-${invoice.invoice_number}.pdf`);
             } catch (e) {
                 console.error('PDF error:', e);
                 window.print();

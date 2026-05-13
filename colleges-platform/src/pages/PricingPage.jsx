@@ -120,7 +120,7 @@ const PricingPage = () => {
         },
         {
             id: 'pro',
-            name: 'Pro',
+            name: 'Plus',
             originalPrice: '₹50,000',
             price: '₹30,000',
             period: 'per month',
@@ -135,7 +135,7 @@ const PricingPage = () => {
                 { text: 'Interview preparation resources', included: true },
                 { text: 'Scholarship discovery engine', included: true },
             ],
-            cta: 'Get Pro',
+            cta: 'Get Plus',
             buttonStyle: 'bg-white/5 border border-white/10 hover:bg-white/10 text-white',
             popular: false,
         },

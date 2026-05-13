@@ -391,7 +391,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-bold text-white">Your {profileData.account_type?.toUpperCase()} Plan</h2>
+                                    <h2 className="text-xl font-bold text-white">Your {profileData.account_type === 'pro' ? 'PLUS' : profileData.account_type?.toUpperCase()} Plan</h2>
                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                         profileData.subscription_status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-slate-700'
                                     }`}>
