@@ -23,23 +23,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 0a. Rate limiting: Max 2 tries per number in one day
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { count, error: countError } = await supabase
-      .from('otp_verifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('phone', formattedPhone)
-      .gt('created_at', oneDayAgo);
-
-    if (countError) throw countError;
-
-    if (count >= 2) {
-      return res.status(429).json({ 
-        error: 'Maximum 2 OTP attempts per day allowed. Please try again later.' 
-      });
-    }
-
-    // 0b. Check if phone is already registered and verified
+    // 0a. Check if phone is already registered and verified
     let status = 'available';
     try {
       // First try the RPC which has access to auth.users
@@ -51,9 +35,8 @@ export default async function handler(req, res) {
         status = data;
       } else {
         // Fallback: Check user_profiles directly
-        // We check for both formatted (91...) and local (10-digit) versions
         const localPhone = formattedPhone.length === 12 ? formattedPhone.slice(2) : formattedPhone;
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('user_profiles')
           .select('id')
           .or(`phone_number.eq.${formattedPhone},phone_number.eq.${localPhone}`)
@@ -72,6 +55,23 @@ export default async function handler(req, res) {
         error: 'Phone number already exists. Please login instead.' 
       });
     }
+
+    // 0b. Rate limiting: Max 2 tries per number in one day
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from('otp_verifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone', formattedPhone)
+      .gt('created_at', oneDayAgo);
+
+    if (countError) throw countError;
+
+    if (count >= 2) {
+      return res.status(429).json({ 
+        error: 'Maximum 2 OTP attempts per day allowed. Please try again later.' 
+      });
+    }
+
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
