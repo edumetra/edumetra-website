@@ -200,9 +200,9 @@ export function startPredictorFlow({ botSay, role, setFlow }) {
 }
 
 // ── Counsellor flow ──────────────────────────────────────────────────────────
-export function startCounsellorFlow({ botSay, setFlow, setFlowData }) {
+export function startCounsellorFlow({ botSay, setFlow, setFlowData, query }) {
     setFlow('counsellor_name');
-    setFlowData({});
+    setFlowData({ originalQuery: query || 'Chatbot counselling request' });
     botSay(`I'll connect you with our expert counselling team! 🎯\n\nFirst, what's your name?`, {
         delay: 500,
         inputMode: 'text',
@@ -295,7 +295,7 @@ export async function handleTextInput({
             name: flowData.name || 'Unknown',
             phone: text,
             userId: user?.id || null,
-            query: 'Chatbot counselling request',
+            query: flowData.originalQuery || 'Chatbot counselling request',
         });
         if (success) {
             botSay(`Perfect, ${flowData.name}!`, {
@@ -368,7 +368,7 @@ export async function handleTextInput({
     const intent = detectIntent(text);
 
     if (intent.isCounsellorIntent) {
-        startCounsellorFlow({ botSay, setFlow, setFlowData });
+        startCounsellorFlow({ botSay, setFlow, setFlowData, query: text });
         return;
     }
     if (intent.isPricingIntent) {
