@@ -51,10 +51,20 @@ export function SignupProvider({ children }) {
         // Listen for auth changes - THIS captures the initial session too
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             const currentUser = session?.user ?? null;
-            if (isMounted) setUser(currentUser);
             
-            if (currentUser) {
-                // Sync with TeleCRM
+            if (isMounted) {
+                setUser(currentUser);
+                // If we just got a user (e.g. from a shared cookie), fetch their profile
+                if (currentUser) {
+                    await fetchProfile(currentUser.id);
+                } else {
+                    setProfile(null);
+                }
+                setLoading(false);
+            }
+            
+            if (currentUser && event === 'SIGNED_IN') {
+                // Sync with TeleCRM only on actual sign-in events
                 const metadata = currentUser.user_metadata || {};
                 pushLeadToTeleCRM({
                     name: metadata.full_name || metadata.name || '',
@@ -62,41 +72,29 @@ export function SignupProvider({ children }) {
                     phone: metadata.phone || '',
                     status: 'Fresh'
                 }, ['Sync: Colleges Platform']);
-
-                await fetchProfile(currentUser.id);
-            } else if (isMounted) {
-                setProfile(null);
             }
-
-            // Always clear loading after the first auth event (or if session already exists)
-            if (isMounted) setLoading(false);
         });
 
-        // Fallback & Recovery: Catch sessions that standard listeners might miss (especially OAuth redirects)
-        const checkInitialSession = async (retries = 3) => {
+        // Fallback & Recovery: Catch sessions that standard listeners might miss
+        const checkInitialSession = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session }, error } = await supabase.auth.getSession();
                 
+                if (error) throw error;
                 if (!isMounted) return;
 
                 if (session?.user) {
                     setUser(session.user);
                     await fetchProfile(session.user.id);
-                    setLoading(false);
-                } else if (window.location.hash.includes('access_token') && retries > 0) {
-                    // If we see a token in the URL but Supabase hasn't parsed it yet, retry in 500ms
-                    setTimeout(() => checkInitialSession(retries - 1), 500);
-                } else {
-                    // If no session after retries or no hash, stop loading
-                    setLoading(false);
                 }
             } catch (err) {
-                if (isMounted) {
-                    console.warn('Auth check aborted:', err);
-                    setLoading(false);
-                }
+                console.warn('Initial session check failed or was missing:', err.message);
+            } finally {
+                if (isMounted) setLoading(false);
             }
         };
+
+        checkInitialSession();
 
         // SAFETY FAIL-SAFE:
         // In strict privacy browsers (like Ulaa), Supabase might be blocked entirely.

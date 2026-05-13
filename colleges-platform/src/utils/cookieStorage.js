@@ -1,16 +1,21 @@
-// Extracts the root domain enabling shared cookies across *.edumetra.com subdomains
+// Extracts the root domain enabling shared cookies across subdomains
 export const getRootDomain = () => {
-    const hostname = window.location.hostname;
-    // Handle localhost and IP addresses
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
-        return hostname;
-    }
-    // Extract root domain (e.g. from www.edumetra.in or colleges.edumetra.in -> edumetra.in)
-    const parts = hostname.split('.');
-    if (parts.length >= 2) {
+    try {
+        const hostname = window.location.hostname;
+        
+        // Handle localhost and IP addresses
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
+            return null;
+        }
+
+        const parts = hostname.split('.');
+        if (parts.length <= 2) return hostname;
+
+        // Extract root domain (e.g. from colleges.edumetraglobal.com -> edumetraglobal.com)
         return parts.slice(-2).join('.');
+    } catch (e) {
+        return null;
     }
-    return hostname;
 };
 
 export const cookieStorage = {
@@ -50,13 +55,14 @@ export const cookieStorage = {
             attributes.push("Secure");
         }
 
-        // Only set domain for production edumetra domains
-        if (rootDomain.includes('edumetra')) {
+        // Only set domain for production edumetra domains to enable cross-subdomain auth
+        if (rootDomain && (rootDomain.includes('edumetra') || rootDomain.includes('edumetraglobal'))) {
             attributes.push(`domain=.${rootDomain}`);
         }
 
         try {
-            document.cookie = attributes.join('; ');
+            const cookieString = attributes.join('; ');
+            document.cookie = cookieString;
         } catch (e) {
             console.warn('Cookie storage setItem blocked:', e);
         }
@@ -76,12 +82,13 @@ export const cookieStorage = {
             attributes.push("Secure");
         }
 
-        if (rootDomain.includes('edumetra')) {
+        if (rootDomain && (rootDomain.includes('edumetra') || rootDomain.includes('edumetraglobal'))) {
             attributes.push(`domain=.${rootDomain}`);
         }
         
         try {
-            document.cookie = attributes.join('; ');
+            const cookieString = attributes.join('; ');
+            document.cookie = cookieString;
         } catch (e) {
             console.warn('Cookie storage removeItem blocked:', e);
         }
