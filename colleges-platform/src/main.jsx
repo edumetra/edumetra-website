@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 import App from './App.jsx'
 
+// Deploy trigger: 2026-05-13T21:49:00
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
@@ -11,3 +12,4 @@ createRoot(document.getElementById('root')).render(
     </HelmetProvider>
   </StrictMode>,
 )
+
