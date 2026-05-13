@@ -507,19 +507,21 @@ export default function ProfilePage() {
                                     </div>
                                 ) : savedColleges.slice(0, 3).map(saved => {
                                     const c = saved.colleges;
+                                    if (!c) return null;
+                                    
                                     const prediction = predictions[c.id];
 
                                     return (
                                         <div key={saved.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-all group">
                                             <div className="flex items-center gap-4 flex-1 min-w-0">
                                                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-800">
-                                                    {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
-                                                        <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c.name?.[0]}</div>
+                                                    {c?.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
+                                                        <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">{c?.name?.[0]}</div>
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c.name}</p>
-                                                    <p className="text-slate-500 text-xs">{c.location_city}, {c.location_state}</p>
+                                                    <p className="font-bold text-white text-sm truncate group-hover:text-red-400 transition-colors">{c?.name || 'Unknown College'}</p>
+                                                    <p className="text-slate-500 text-xs">{c?.location_city}, {c?.location_state}</p>
                                                 </div>
                                             </div>
 

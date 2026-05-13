@@ -156,7 +156,24 @@ export function SignupProvider({ children }) {
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.warn('Signout issue', e);
+        }
+        
+        setUser(null);
+        setProfile(null);
+        
+        if (typeof document !== 'undefined') {
+            document.cookie.split(';').forEach(c => {
+                const name = c.split('=')[0].trim();
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.edumetraglobal.com;`;
+            });
+            localStorage.clear();
+            sessionStorage.clear();
+        }
     };
 
     const openAuth = (mode = 'signup') => {
