@@ -31,7 +31,7 @@ export default async function handler(req, res) {
             pro: 30000
         };
 
-        let amount = PRICES[planType] || 3000;
+        let baseAmount = PRICES[planType] || 3000;
         let discount = 0;
 
         // Handle Coupon
@@ -44,19 +44,24 @@ export default async function handler(req, res) {
                 .single();
             
             if (coupon) {
-                discount = Math.floor(amount * (coupon.discount_percentage / 100));
-                amount = amount - discount;
+                discount = Math.floor(baseAmount * (coupon.discount_percentage / 100));
             }
         }
 
+        const taxableAmount = baseAmount - discount;
+        const gstAmount = Math.floor(taxableAmount * 0.18);
+        const totalAmount = taxableAmount + gstAmount;
+
         const order = await rzp.orders.create({
-            amount: amount * 100, // in paise
+            amount: totalAmount * 100, // in paise
             currency: 'INR',
             receipt: `receipt_${Date.now()}`,
             notes: {
                 user_id: userId,
                 plan_type: planType,
-                coupon_code: couponCode || null
+                coupon_code: couponCode || null,
+                taxable_amount: taxableAmount,
+                gst_amount: gstAmount
             }
         });
 
@@ -67,7 +72,7 @@ export default async function handler(req, res) {
                 user_id: userId,
                 razorpay_order_id: order.id,
                 plan_type: planType,
-                amount_paise: amount * 100,
+                amount_paise: totalAmount * 100,
                 discount_paise: discount * 100,
                 coupon_code: couponCode || null,
                 status: 'created'
@@ -76,7 +81,9 @@ export default async function handler(req, res) {
         return res.status(200).json({
             success: true,
             orderId: order.id,
-            amount: amount * 100
+            amount: totalAmount * 100,
+            taxableAmount: taxableAmount * 100,
+            gstAmount: gstAmount * 100
         });
 
     } catch (err) {

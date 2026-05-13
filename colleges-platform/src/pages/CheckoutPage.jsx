@@ -192,18 +192,29 @@ const CheckoutPage = () => {
                 
                 doc.line(20, 102, 190, 102);
                 
+                const totalAmount = Number(invoice.total_inr || invoice.total_paise / 100);
+                const taxableAmount = totalAmount / 1.18;
+                const gstAmount = totalAmount - taxableAmount;
+
                 doc.setFont('helvetica', 'normal');
                 doc.text(`${invoice.plan_type.toUpperCase()} Subscription`, 25, 112);
                 doc.text(invoice.billing_period, 100, 112);
-                doc.text(`INR ${Number(invoice.total_inr || invoice.total_paise / 100).toFixed(2)}`, 165, 112);
+                doc.text(`INR ${taxableAmount.toFixed(2)}`, 165, 112);
                 
                 doc.line(20, 120, 190, 120);
                 
                 // Summary
+                doc.setFont('helvetica', 'normal');
+                doc.text('Subtotal:', 110, 130);
+                doc.text(`INR ${taxableAmount.toFixed(2)}`, 165, 130);
+                
+                doc.text('GST (18%):', 110, 138);
+                doc.text(`INR ${gstAmount.toFixed(2)}`, 165, 138);
+                
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(12);
-                doc.text('Total Amount Paid:', 110, 140);
-                doc.text(`INR ${Number(invoice.total_inr || invoice.total_paise / 100).toFixed(2)}`, 165, 140);
+                doc.text('Total Amount Paid:', 110, 150);
+                doc.text(`INR ${totalAmount.toFixed(2)}`, 165, 150);
                 
                 // Footer
                 doc.setFontSize(9);
@@ -523,16 +534,25 @@ const CheckoutPage = () => {
                                     <span className="text-emerald-400">−₹{(plan.price - discountedPrice).toLocaleString()}</span>
                                 </div>
                             )}
+                            
+                            <div className="border-t border-slate-800 pt-3 flex justify-between text-slate-400 text-xs">
+                                <span>Taxable Amount</span>
+                                <span>₹{discountedPrice.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-slate-400 text-xs">
+                                <span>GST (18%)</span>
+                                <span>₹{Math.floor(discountedPrice * 0.18).toLocaleString()}</span>
+                            </div>
+
                             <div className="border-t border-slate-800 pt-3 flex justify-between items-baseline">
-                                <span className="text-white font-bold">Total Due Now</span>
+                                <span className="text-white font-bold">Total Amount</span>
                                 <div className="text-right">
-                                    <span className="text-2xl font-black text-white">₹{discountedPrice.toLocaleString()}</span>
-                                    <span className="text-slate-500 text-sm">/{plan.period.replace('per ', '')}</span>
+                                    <span className="text-2xl font-black text-white">₹{Math.floor(discountedPrice * 1.18).toLocaleString()}</span>
                                 </div>
                             </div>
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
                                 <Tag className="w-3.5 h-3.5" />
-                                You save ₹{savings.toLocaleString()} compared to regular price!
+                                You save ₹{(plan.originalPrice - discountedPrice).toLocaleString()} compared to regular price!
                             </div>
                         </div>
 
