@@ -17,22 +17,31 @@ export function NewsWidget() {
 
     useEffect(() => {
         async function fetchTopNews() {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('secure_news_updates')
-                .select('id, title, content, image_url, tags, published_at, is_subscriber_only')
-                .order('published_at', { ascending: false })
-                .limit(5);
+            const safetyTimeout = setTimeout(() => {
+                setLoading(false);
+            }, 10000);
 
-            if (error) {
-                console.error("Error fetching news:", error);
-                setFetchError(error.message);
-            }
+            try {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from('secure_news_updates')
+                    .select('id, title, content, image_url, tags, published_at, is_subscriber_only')
+                    .order('published_at', { ascending: false })
+                    .limit(5);
 
-            if (!error && data) {
-                setNewsItems(data);
+                if (error) {
+                    console.error("Error fetching news:", error);
+                    setFetchError(error.message);
+                } else if (data) {
+                    setNewsItems(data);
+                }
+            } catch (err) {
+                console.error("NewsWidget: Uncaught fetch error", err);
+                setFetchError(err.message || "Failed to connect to news service");
+            } finally {
+                clearTimeout(safetyTimeout);
+                setLoading(false);
             }
-            setLoading(false);
         }
 
         fetchTopNews();
