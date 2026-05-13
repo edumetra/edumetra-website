@@ -130,9 +130,18 @@ export function useColleges() {
             setHasMore(from + formattedData.length < count);
 
         } catch (err) {
-            // Supabase sometimes shapes AbortErrors slightly differently
-            const isAbortError = err.name === 'AbortError' || err.message?.includes('Fetch is aborted') || err.message?.includes('aborted');
-            if (isAbortError || err.message === 'Filter timeout') {
+            // Check if this is an intentional abort (e.g. new search started)
+            const isAbortError = err.name === 'AbortError' || 
+                                err.message?.includes('Fetch is aborted') || 
+                                err.message?.includes('aborted');
+
+            if (isAbortError) {
+                // Do NOT set error state for intentional aborts
+                console.log('Fetch aborted intentionally');
+                return;
+            }
+
+            if (err.message === 'Filter timeout') {
                 setError('DATABASE_CONNECTION_BLOCKED');
             } else {
                 console.error('Error fetching colleges:', err.message || err);
