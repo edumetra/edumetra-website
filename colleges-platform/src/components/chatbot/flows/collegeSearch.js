@@ -44,6 +44,8 @@ export async function searchCollegeByName(name) {
     return data || [];
 }
 
+import { pushLeadToTeleCRM } from '../../../services/telecrm';
+
 /**
  * Save counselling request
  */
@@ -55,5 +57,14 @@ export async function saveCounsellingRequest({ name, phone, userId, query }) {
         query: query || 'Chatbot request',
         status: 'pending',
     });
+    
+    // Push the captured details to TeleCRM
+    await pushLeadToTeleCRM({
+        name: name,
+        phone: phone,
+        notes: `Source: Chatbot Counselling Flow\nQuery: ${query || 'Chatbot request'}`,
+        tags: ['Chatbot', 'Counselling Request']
+    });
+
     return !error;
 }
