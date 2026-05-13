@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
-const SUBSCRIPTION_API = '/api/razorpay/create-order';
+const ORDER_API = '/api/razorpay/create-order';
 
 const PLANS = {
     premium: {
@@ -355,8 +355,8 @@ const CheckoutPage = () => {
                 throw new Error('Failed to load payment SDK. Please check your internet connection.');
             }
 
-            // 2. Create order via same-origin serverless function (no CORS)
-            const orderRes = await fetch(SUBSCRIPTION_API, {
+            // 2. Create order via same-origin serverless function
+            const orderRes = await fetch(ORDER_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -367,6 +367,8 @@ const CheckoutPage = () => {
             });
 
             const orderData = await orderRes.json();
+            console.log('[DEBUG] Order created:', orderData); // Debugging order prefix
+
             if (!orderRes.ok || !orderData.orderId) {
                 throw new Error(orderData.error || 'Failed to initialize checkout.');
             }
@@ -649,7 +651,7 @@ const CheckoutPage = () => {
                                     <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
                                 )}
                                 {paymentState === 'success' && (
-                                    <><CheckCircle className="w-5 h-5" /> Subscribed!</>
+                                    <><CheckCircle className="w-5 h-5" /> Success!</>
                                 )}
                                 {(paymentState === 'idle' || paymentState === 'failed') && (
                                     <><Lock className="w-5 h-5" /> Pay Now</>
