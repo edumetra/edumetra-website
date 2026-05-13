@@ -53,18 +53,29 @@ export default async function handler(req, res) {
         const gstAmount = Math.floor(taxableAmount * 0.18);
         const totalAmount = taxableAmount + gstAmount;
 
-        const order = await rzp.orders.create({
-            amount: totalAmount * 100, // in paise
-            currency: 'INR',
-            receipt: `receipt_${Date.now()}`,
-            notes: {
-                user_id: userId,
-                plan_type: planType,
-                coupon_code: couponCode || null,
-                taxable_amount: taxableAmount,
-                gst_amount: gstAmount
-            }
-        });
+        console.log('[DEBUG] Creating order for amount:', totalAmount, 'paise:', totalAmount * 100);
+        
+        let order;
+        try {
+            order = await rzp.orders.create({
+                amount: totalAmount * 100, // in paise
+                currency: 'INR',
+                receipt: `receipt_${Date.now()}`,
+                notes: {
+                    user_id: userId,
+                    plan_type: planType,
+                    coupon_code: couponCode || null,
+                    taxable_amount: taxableAmount,
+                    gst_amount: gstAmount
+                }
+            });
+        } catch (rzpErr) {
+            console.error('[RAZORPAY ORDER ERROR]:', rzpErr);
+            return res.status(400).json({ 
+                error: 'Razorpay order creation failed', 
+                details: rzpErr.description || rzpErr.message || JSON.stringify(rzpErr) 
+            });
+        }
 
         // Initialize Payment Record
         await supabase
