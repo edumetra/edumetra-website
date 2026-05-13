@@ -101,7 +101,7 @@ const PricingPage = () => {
             name: 'Premium',
             originalPrice: '₹10,000',
             price: '₹3,000',
-            period: 'One-time',
+            period: 'One-time payment',
             description: 'Best for serious applicants comparing multiple colleges.',
             badge: 'Most Popular',
             features: [
@@ -123,7 +123,7 @@ const PricingPage = () => {
             name: 'Plus',
             originalPrice: '₹50,000',
             price: '₹30,000',
-            period: 'One-time',
+            period: 'One-time payment',
             description: 'For students who want expert guidance and full access.',
             features: [
                 { text: 'Everything in Premium', included: true },

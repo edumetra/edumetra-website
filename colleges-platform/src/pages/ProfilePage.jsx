@@ -393,7 +393,7 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                     <h2 className="text-xl font-bold text-white">Your {profileData.account_type === 'pro' ? 'PLUS' : profileData.account_type?.toUpperCase()} Plan</h2>
                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        Lifetime Access
+                                        Account Active
                                     </span>
                                 </div>
                                 <p className="text-sm text-slate-400">Access college predictors, AI plans, and expert reviews.</p>
