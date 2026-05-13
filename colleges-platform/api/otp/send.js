@@ -23,7 +23,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 0. Check if phone is already registered and verified
+    // 0a. Rate limiting: Max 2 tries per number in one day
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from('otp_verifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone', formattedPhone)
+      .gt('created_at', oneDayAgo);
+
+    if (countError) throw countError;
+
+    if (count >= 2) {
+      return res.status(429).json({ 
+        error: 'Maximum 2 OTP attempts per day allowed. Please try again later.' 
+      });
+    }
+
+    // 0b. Check if phone is already registered and verified
     let status = 'available';
     try {
       const { data, error: checkError } = await supabase.rpc('check_phone_registration', { 

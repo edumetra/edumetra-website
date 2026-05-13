@@ -16,6 +16,7 @@ export default function SignupModal({ isOpen, onClose }) {
     const [otpVerified, setOtpVerified] = useState(false);
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const [otpError, setOtpError] = useState('');
 
     // Sync with modalMode whenever the modal opens or mode changes
     useEffect(() => {
@@ -359,51 +360,61 @@ export default function SignupModal({ isOpen, onClose }) {
                                                         <label htmlFor="otp" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                                             Verify OTP
                                                         </label>
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                id="otp"
-                                                                type="text"
-                                                                value={formData.otp}
-                                                                name="otp"
-                                                                onChange={handleChange}
-                                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm"
-                                                                placeholder="6-digit code"
-                                                                maxLength={6}
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={async () => {
-                                                                    if (formData.otp.length !== 6) {
-                                                                        setError('Please enter 6-digit OTP');
-                                                                        return;
-                                                                    }
-                                                                    setVerifyingOtp(true);
-                                                                    setError(null);
-                                                                    try {
-                                                                        const res = await fetch('/api/otp/verify', {
-                                                                            method: 'POST',
-                                                                            headers: { 'Content-Type': 'application/json' },
-                                                                            body: JSON.stringify({ phone: formData.phone, otp: formData.otp }),
-                                                                        });
-                                                                        const data = await res.json();
-                                                                        if (data.success) {
-                                                                            setOtpVerified(true);
-                                                                            setSuccessMsg('Phone verified!');
-                                                                            setTimeout(() => setSuccessMsg(null), 3000);
-                                                                        } else {
-                                                                            setError(data.error || 'Invalid OTP');
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    id="otp"
+                                                                    type="text"
+                                                                    value={formData.otp}
+                                                                    name="otp"
+                                                                    onChange={(e) => {
+                                                                        handleChange(e);
+                                                                        setOtpError('');
+                                                                    }}
+                                                                    className={`flex-1 bg-white/5 border ${otpError ? 'border-red-500/50' : 'border-white/10'} rounded-xl px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm`}
+                                                                    placeholder="6-digit code"
+                                                                    maxLength={6}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={async () => {
+                                                                        if (formData.otp.length !== 6) {
+                                                                            setOtpError('Please enter 6-digit OTP');
+                                                                            return;
                                                                         }
-                                                                    } catch (err) {
-                                                                        setError('Verification failed.');
-                                                                    } finally {
-                                                                        setVerifyingOtp(false);
-                                                                    }
-                                                                }}
-                                                                disabled={verifyingOtp}
-                                                                className="px-4 py-2 bg-red-600 rounded-xl text-white text-xs font-bold hover:bg-red-500 transition-all disabled:opacity-50"
-                                                            >
-                                                                {verifyingOtp ? '...' : 'Verify'}
-                                                            </button>
+                                                                        setVerifyingOtp(true);
+                                                                        setOtpError('');
+                                                                        try {
+                                                                            const res = await fetch('/api/otp/verify', {
+                                                                                method: 'POST',
+                                                                                headers: { 'Content-Type': 'application/json' },
+                                                                                body: JSON.stringify({ phone: formData.phone, otp: formData.otp }),
+                                                                            });
+                                                                            const data = await res.json();
+                                                                            if (data.success) {
+                                                                                setOtpVerified(true);
+                                                                                setSuccessMsg('Phone verified!');
+                                                                                setTimeout(() => setSuccessMsg(null), 3000);
+                                                                            } else {
+                                                                                setOtpError(data.error || 'Invalid or expired OTP');
+                                                                            }
+                                                                        } catch (err) {
+                                                                            setOtpError('Verification failed.');
+                                                                        } finally {
+                                                                            setVerifyingOtp(false);
+                                                                        }
+                                                                    }}
+                                                                    disabled={verifyingOtp}
+                                                                    className="px-4 py-2 bg-red-600 rounded-xl text-white text-xs font-bold hover:bg-red-500 transition-all disabled:opacity-50"
+                                                                >
+                                                                    {verifyingOtp ? '...' : 'Verify'}
+                                                                </button>
+                                                            </div>
+                                                            {otpError && (
+                                                                <p className="text-red-400 text-[10px] font-medium pl-1">
+                                                                    {otpError}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}
