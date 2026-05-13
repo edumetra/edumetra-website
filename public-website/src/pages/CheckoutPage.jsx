@@ -431,7 +431,7 @@ const CheckoutPage = () => {
                         setPaymentState('failed');
                         setPaymentError('Payment was successful but we couldn\'t generate your invoice. Please contact support with your Payment ID: ' + response.razorpay_payment_id);
                     }
-                    setTimeout(() => navigate('/dashboard'), 2000);
+                    // Removed auto-redirect to allow user to download invoice manually
                 },
             };
 

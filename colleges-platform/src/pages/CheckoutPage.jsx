@@ -444,7 +444,7 @@ const CheckoutPage = () => {
                             content_name: `${plan.name.toUpperCase()} Payment`
                         });
                     }
-                    setTimeout(() => navigate('/profile'), 2000);
+                    // Removed auto-redirect to allow user to download invoice manually
                 },
             };
 
