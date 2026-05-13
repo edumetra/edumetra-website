@@ -877,6 +877,59 @@ export default function ProfilePage() {
                     </div>
                 )}
 
+                {/* Saved Colleges Tab */}
+                {activeTab === 'Saved Colleges' && (
+                    <div className="space-y-4">
+                        {loadingSaved ? (
+                            [...Array(3)].map((_, i) => <div key={i} className="h-24 bg-slate-900 rounded-2xl animate-pulse" />)
+                        ) : savedColleges.length === 0 ? (
+                            <div className="text-center py-16 text-slate-500 bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+                                <Bookmark className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                <p>You haven't saved any colleges yet.</p>
+                                <Link to="/colleges" className="mt-4 inline-block text-red-400 hover:text-red-300 text-sm font-medium">Explore colleges →</Link>
+                            </div>
+                        ) : savedColleges.map(saved => {
+                            const c = saved.colleges;
+                            if (!c) return null;
+                            const prediction = predictions[c.id];
+
+                            return (
+                                <div key={saved.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center gap-4 group">
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-800">
+                                            {c?.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xl">{c?.name?.[0]}</div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-white text-lg truncate group-hover:text-red-400 transition-colors">{c?.name || 'Unknown College'}</h4>
+                                            <p className="text-slate-500 text-sm">{c?.location_city}, {c?.location_state}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 sm:gap-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-800 sm:justify-end">
+                                        {prediction && (
+                                            <div className={`px-3 py-1 border rounded-lg text-xs font-black ${prediction.bg} ${prediction.color} ${prediction.border}`}>
+                                                {prediction.label.toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-2 text-amber-400 font-bold">
+                                            <Star className="w-4 h-4 fill-current" /> {c.rating || '—'}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Link to={`/colleges/${c.slug}`} className="p-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors">
+                                                <ChevronRight className="w-4 h-4" />
+                                            </Link>
+                                            <button onClick={() => handleUnsave(saved.id)} className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                                                <BookmarkX className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
                 {/* My Reviews Tab */}
                 {activeTab === 'My Reviews' && (
                     <div className="space-y-4">
