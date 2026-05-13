@@ -155,8 +155,8 @@ const PricingPage = () => {
             answer: 'Our placement data is gathered directly from official NIRF reports and verified recruiters to ensure maximum accuracy.',
         },
         {
-            question: 'Can I cancel my subscription?',
-            answer: 'Yes, you can turn off auto-renewal anytime from your profile settings. You will retain access until the end of your billing cycle.',
+            question: 'What happens after payment?',
+            answer: 'After a successful payment, your account is instantly upgraded. You will get immediate access to all the features included in your chosen plan.',
         },
     ];
 

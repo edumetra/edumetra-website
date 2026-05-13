@@ -84,6 +84,20 @@ export default async function handler(req, res) {
 
         if (invoiceErr) throw invoiceErr;
 
+        // 6. Update User Profile (Direct Payment - No Subscription)
+        const { error: profileUpdateErr } = await supabase
+            .from('user_profiles')
+            .update({ 
+                account_type: planType,
+                subscription_status: 'active'
+            })
+            .eq('id', userId);
+
+        if (profileUpdateErr) {
+            console.error('[Profile Update Warning]:', profileUpdateErr);
+            // Non-fatal, but logged
+        }
+
         return res.status(200).json({
             success: true,
             invoice
