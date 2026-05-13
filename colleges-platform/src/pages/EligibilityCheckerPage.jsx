@@ -16,18 +16,19 @@ const EXAMS = [
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 async function checkEligibilityWithAI(examLabel, score, unit) {
-    const prompt = `You are an expert Indian college admission counsellor. A student has achieved the following result:
+    const prompt = `You are an expert Indian college admission counsellor at Edumetra. A student has achieved the following result:
 Exam: ${examLabel}
 Score/Rank: ${score} ${unit}
 
-Provide a realistic, honest, and highly accurate admission eligibility analysis. 
+Provide a highly detailed, realistic, honest, and highly accurate admission eligibility analysis. 
 Return ONLY a valid JSON object in the exact format below (no markdown, no other text):
 {
   "verdict": "A short, direct 1-sentence summary of their chances",
   "probability": "Low", "Medium", or "High",
-  "analysis": "2-3 sentences explaining exactly what this score means for their admission prospects",
-  "expectedColleges": ["Type or tier of colleges they can expect (e.g., 'Lower NITs', 'Tier-3 Private Medical Colleges')", "Another category"],
-  "alternatives": ["Alternative option 1 (e.g., 'Consider state level exams')", "Alternative option 2"]
+  "analysis": "A detailed 4-5 sentence paragraph explaining exactly what this score means for their admission prospects, including historical context and specific challenges or advantages they have.",
+  "expectedColleges": ["Detailed description of a type or tier of college they can expect (e.g., 'Lower tier NITs in home state', 'Tier-3 Private Medical Colleges with high fees')", "Another detailed category"],
+  "alternatives": ["Alternative option 1 in detail (e.g., 'Consider state level exams like MHT-CET or KCET')", "Alternative option 2 in detail"],
+  "edumetraAdvice": "A highly encouraging call to action telling them to get in touch with Edumetra's expert counsellors to navigate these options, find hidden gems, or plan their next steps."
 }`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -225,6 +226,22 @@ export default function EligibilityCheckerPage() {
                                 </ul>
                             </div>
                         </div>
+
+                        {/* Edumetra CTA */}
+                        {result.edumetraAdvice && (
+                            <div className="bg-gradient-to-r from-red-600/10 to-rose-600/10 border border-red-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
+                                <div className="shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center shadow-lg shadow-red-900/30">
+                                    <span className="text-white font-black text-2xl">E</span>
+                                </div>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h3 className="text-lg font-black text-white mb-2">Need Expert Guidance?</h3>
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-4">{result.edumetraAdvice}</p>
+                                    <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-xl transition-all shadow-md">
+                                        Talk to an Expert <ChevronRight className="w-4 h-4" />
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
