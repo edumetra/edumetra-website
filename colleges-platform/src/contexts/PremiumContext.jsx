@@ -6,9 +6,9 @@ const PremiumContext = createContext(null);
 
 // Feature limits per tier
 const LIMITS = {
-    free: { compare: 2, saved: 5, aiInsights: false, aiLimit: 0 },
-    premium: { compare: 5, saved: 50, aiInsights: true, aiLimit: 1 },
-    pro: { compare: 10, saved: Infinity, aiInsights: true, aiLimit: 3 },
+    free: { compare: 2, saved: 5, aiInsights: false, aiLimit: 1 },
+    premium: { compare: 5, saved: 50, aiInsights: true, aiLimit: 5 },
+    pro: { compare: 10, saved: Infinity, aiInsights: true, aiLimit: Infinity },
 };
 
 export function PremiumProvider({ children }) {

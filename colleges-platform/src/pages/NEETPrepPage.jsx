@@ -121,7 +121,7 @@ export default function NEETPrepPage() {
         }
 
         if (aiUsage >= (limits.aiLimit || 0)) {
-            toast.error(`You have reached your limit of ${limits.aiLimit} AI generations for your current plan.`);
+            toast.error(`You have reached your limit of ${limits.aiLimit === Infinity ? 'unlimited' : limits.aiLimit} AI generations for your current plan.`);
             return;
         }
 
@@ -131,6 +131,13 @@ export default function NEETPrepPage() {
         try {
             const plan = await fetchAITips(formData);
             setResult(plan);
+            
+            // Increment usage
+            await supabase
+                .from('user_profiles')
+                .update({ ai_usage_count: aiUsage + 1 })
+                .eq('id', user.id);
+                
             refreshUsage();
         } catch (e) {
             setError(e.message);
