@@ -181,7 +181,7 @@ export default function SignupModal({ isOpen, onClose }) {
                 )}
 
                 {/* Error */}
-                {error && (
+                {error && !error.includes('already exists') && !error.includes('OTP attempts') && (
                     <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl mb-4 text-center">
                         {error}
                     </div>
@@ -306,7 +306,7 @@ export default function SignupModal({ isOpen, onClose }) {
                                                                 onChange={handleChange}
                                                                 required
                                                                 disabled={otpVerified}
-                                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm disabled:opacity-50"
+                                                                className={`w-full bg-white/5 border ${error && (error.includes('already exists') || error.includes('OTP attempts')) ? 'border-red-500/50' : 'border-white/10'} rounded-xl pl-12 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/40 transition-all text-sm disabled:opacity-50`}
                                                                 placeholder="10-digit number"
                                                                 pattern="[0-9]{10}"
                                                             />
@@ -353,6 +353,11 @@ export default function SignupModal({ isOpen, onClose }) {
                                                             </div>
                                                         )}
                                                     </div>
+                                                    {error && (error.includes('already exists') || error.includes('OTP attempts')) && (
+                                                        <p className="text-red-400 text-[10px] font-medium pl-1 mt-1">
+                                                            {error}
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 {otpSent && !otpVerified && (

@@ -129,7 +129,7 @@ const SignupPage = () => {
                     {/* Error/Success Messages */}
 
                     {/* Error/Success Messages */}
-                    {error && (
+                    {error && !error.includes('OTP attempts') && !error.includes('already exists') && (
                         <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
                             <AlertCircle className="w-5 h-5 flex-shrink-0" />
                             <span>{error}</span>
@@ -247,7 +247,7 @@ const SignupPage = () => {
                                     </div>
                                 )}
                             </div>
-                            {error && error.includes('OTP attempts') && (
+                            {(error && (error.includes('OTP attempts') || error.includes('already exists'))) && (
                                 <motion.p 
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
