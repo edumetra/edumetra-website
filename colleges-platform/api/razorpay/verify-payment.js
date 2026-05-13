@@ -31,6 +31,16 @@ export default async function handler(req, res) {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+        // 1. Verify Signature
+        const expectedSignature = crypto
+            .createHmac('sha256', keySecret)
+            .update(razorpay_order_id + '|' + razorpay_payment_id)
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            throw new Error('Invalid payment signature. Verification failed.');
+        }
+
         // 1. Fetch Payment Record
         const { data: payment, error: paymentError } = await supabase
             .from('payments')

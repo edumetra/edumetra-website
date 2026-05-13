@@ -31,7 +31,17 @@ export default async function handler(req, res) {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // 1. Fetch Payment Record
+        // 1. Verify Signature
+        const expectedSignature = crypto
+            .createHmac('sha256', keySecret)
+            .update(razorpay_order_id + '|' + razorpay_payment_id)
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            throw new Error('Invalid payment signature. Verification failed.');
+        }
+
+        // 2. Fetch Payment Record
         const { data: payment, error: paymentError } = await supabase
             .from('payments')
             .select('*')
@@ -42,7 +52,7 @@ export default async function handler(req, res) {
             throw new Error('Payment record not found.');
         }
 
-        // 2. Update Payment to Paid
+        // 3. Update Payment to Paid
         await supabase
             .from('payments')
             .update({
@@ -52,7 +62,7 @@ export default async function handler(req, res) {
             })
             .eq('id', payment.id);
 
-        // 3. Get User Info for Invoice
+        // 4. Get User Info for Invoice
         const { data: profile } = await supabase
             .from('user_profiles')
             .select('full_name')
