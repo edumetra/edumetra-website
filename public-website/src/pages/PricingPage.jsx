@@ -8,6 +8,7 @@ import { useAuth } from '../features/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
+import { supabase } from '../services/supabaseClient';
 import { motion } from 'framer-motion';
 
 // ── Lead Scoring helper ──────────────────────────────────────────────────────
@@ -52,13 +53,32 @@ const PricingPage = () => {
         trackPricingView();
     }, []);
 
-    const handlePlanCTA = (planName) => {
+    const handlePlanCTA = async (planName) => {
         const key = planName.toLowerCase() === 'plus' ? 'pro' : planName.toLowerCase();
         if (key === 'free') {
             navigate('/signup');
             return;
         }
+
         if (user) {
+            // Check eligibility pre-emptively
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('account_type')
+                .eq('id', user.id)
+                .single();
+            
+            if (profile) {
+                const currentTier = profile.account_type || 'free';
+                if (currentTier === 'pro') {
+                    alert('You already have the Plus plan (highest).');
+                    return;
+                }
+                if (currentTier === 'premium' && key === 'premium') {
+                    alert('You already have the Premium plan. You can only upgrade to Plus.');
+                    return;
+                }
+            }
             navigate(`/checkout?plan=${key}`);
         } else {
             navigate(`/signup?plan=${key}`);

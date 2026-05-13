@@ -89,7 +89,37 @@ const CheckoutPage = () => {
     const [showInvoice, setShowInvoice] = useState(false);
 
     useEffect(() => {
-        if (!user) navigate('/login?redirect=/checkout?plan=' + planKey);
+        const checkEligibility = async () => {
+            if (!user) {
+                navigate('/login?redirect=/checkout?plan=' + planKey);
+                return;
+            }
+
+            // Fetch profile for eligibility check
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('account_type')
+                .eq('id', user.id)
+                .single();
+            
+            if (profile) {
+                const currentTier = profile.account_type || 'free';
+                
+                // Eligibility Checks
+                if (currentTier === 'pro') {
+                    alert('You already have the Plus plan (highest).');
+                    navigate('/dashboard');
+                    return;
+                }
+                
+                if (currentTier === 'premium' && planKey === 'premium') {
+                    alert('You already have the Premium plan. You can only upgrade to Plus.');
+                    navigate('/pricing');
+                    return;
+                }
+            }
+        };
+        checkEligibility();
     }, [user, navigate, planKey]);
 
     useEffect(() => {
@@ -335,6 +365,7 @@ const CheckoutPage = () => {
             });
 
             const orderData = await orderRes.json();
+            console.log('[DEBUG] Order Data:', orderData);
             if (!orderRes.ok || !orderData.orderId) {
                 throw new Error(orderData.error || 'Failed to initialize checkout.');
             }

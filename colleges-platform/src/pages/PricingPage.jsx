@@ -72,6 +72,26 @@ const PricingPage = () => {
     };
 
     const handleSubscribe = async (tier) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('account_type')
+                .eq('id', session.user.id)
+                .single();
+            
+            if (profile) {
+                const currentTier = profile.account_type || 'free';
+                if (currentTier === 'pro') {
+                    toast.error('You already have the Plus plan (highest).');
+                    return;
+                }
+                if (currentTier === 'premium' && tier === 'premium') {
+                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
+                    return;
+                }
+            }
+        }
         navigate(`/checkout?plan=${tier}`);
     };
 

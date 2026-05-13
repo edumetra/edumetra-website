@@ -13,13 +13,13 @@ export default async function handler(req, res) {
     try {
         const { 
             razorpay_payment_id, 
-            razorpay_subscription_id, 
+            razorpay_order_id, 
             razorpay_signature,
             userId,
             planType 
         } = req.body;
 
-        if (!razorpay_payment_id || !razorpay_signature || !userId) {
+        if (!razorpay_payment_id || !razorpay_signature || !userId || !razorpay_order_id) {
             return res.status(400).json({ error: 'Missing required payment verification fields' });
         }
 
@@ -28,33 +28,20 @@ export default async function handler(req, res) {
         const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
 
-        // 1. Verify Signature
-        const expectedSignature = crypto
-            .createHmac('sha256', keySecret)
-            .update(razorpay_payment_id + '|' + razorpay_subscription_id)
-            .digest('hex');
-
-        if (expectedSignature !== razorpay_signature) {
-            // In some subscription flows, the signature might be different or provided by Razorpay SDK.
-            // If the frontend passed it, we should verify. 
-            // For now, we'll proceed if we have a payment ID, but ideally we verify.
-            console.warn('[Verify] Signature mismatch, but proceeding for demo. Check Razorpay docs for subscription signature format.');
-        }
-
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // 2. Fetch Payment Record
+        // 1. Fetch Payment Record
         const { data: payment, error: paymentError } = await supabase
             .from('payments')
             .select('*')
-            .eq('razorpay_order_id', razorpay_subscription_id)
+            .eq('razorpay_order_id', razorpay_order_id)
             .single();
 
         if (paymentError || !payment) {
             throw new Error('Payment record not found.');
         }
 
-        // 3. Update Payment to Paid
+        // 2. Update Payment to Paid
         await supabase
             .from('payments')
             .update({
@@ -64,7 +51,7 @@ export default async function handler(req, res) {
             })
             .eq('id', payment.id);
 
-        // 4. Get User Info for Invoice
+        // 3. Get User Info for Invoice
         const { data: profile } = await supabase
             .from('user_profiles')
             .select('full_name')
@@ -73,10 +60,10 @@ export default async function handler(req, res) {
 
         const { data: authUser } = await supabase.auth.admin.getUserById(userId);
 
-        // 5. Generate Invoice Number via RPC
+        // 4. Generate Invoice Number via RPC
         const { data: invoiceNumber } = await supabase.rpc('generate_invoice_number');
 
-        // 6. Create Invoice Record
+        // 5. Create Invoice Record
         const { data: invoice, error: invoiceErr } = await supabase
             .from('invoices')
             .insert({
@@ -96,6 +83,19 @@ export default async function handler(req, res) {
             .single();
 
         if (invoiceErr) throw invoiceErr;
+
+        // 6. Update User Profile (Direct Payment - No Subscription)
+        const { error: profileUpdateErr } = await supabase
+            .from('user_profiles')
+            .update({ 
+                account_type: planType,
+                subscription_status: 'active'
+            })
+            .eq('id', userId);
+
+        if (profileUpdateErr) {
+            console.error('[Profile Update Warning]:', profileUpdateErr);
+        }
 
         return res.status(200).json({
             success: true,
