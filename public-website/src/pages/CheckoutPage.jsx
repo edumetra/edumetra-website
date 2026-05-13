@@ -107,13 +107,13 @@ const CheckoutPage = () => {
                 
                 // Eligibility Checks
                 if (currentTier === 'pro') {
-                    alert('You already have the Plus plan (highest).');
+                    toast.error('You already have the Plus plan (highest).');
                     navigate('/dashboard');
                     return;
                 }
                 
                 if (currentTier === 'premium' && planKey === 'premium') {
-                    alert('You already have the Premium plan. You can only upgrade to Plus.');
+                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
                     navigate('/pricing');
                     return;
                 }

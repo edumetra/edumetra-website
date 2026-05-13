@@ -10,6 +10,7 @@ import { pushLeadToTeleCRM } from '../services/telecrm';
 
 import { supabase } from '../services/supabaseClient';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 // ── Lead Scoring helper ──────────────────────────────────────────────────────
 function getGuestFingerprint() {
@@ -71,11 +72,11 @@ const PricingPage = () => {
             if (profile) {
                 const currentTier = profile.account_type || 'free';
                 if (currentTier === 'pro') {
-                    alert('You already have the Plus plan (highest).');
+                    toast.error('You already have the Plus plan (highest).');
                     return;
                 }
                 if (currentTier === 'premium' && key === 'premium') {
-                    alert('You already have the Premium plan. You can only upgrade to Plus.');
+                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
                     return;
                 }
             }
