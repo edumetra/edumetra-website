@@ -13,13 +13,13 @@ export default async function handler(req, res) {
     try {
         const { 
             razorpay_payment_id, 
-            razorpay_subscription_id, 
+            razorpay_order_id, 
             razorpay_signature,
             userId,
             planType 
         } = req.body;
 
-        if (!razorpay_payment_id || !razorpay_signature || !userId) {
+        if (!razorpay_payment_id || !razorpay_signature || !userId || !razorpay_order_id) {
             return res.status(400).json({ error: 'Missing required payment verification fields' });
         }
 
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         const { data: payment, error: paymentError } = await supabase
             .from('payments')
             .select('*')
-            .eq('razorpay_order_id', razorpay_subscription_id)
+            .eq('razorpay_order_id', razorpay_order_id)
             .single();
 
         if (paymentError || !payment) {

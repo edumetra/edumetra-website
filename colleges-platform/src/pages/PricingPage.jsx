@@ -101,7 +101,7 @@ const PricingPage = () => {
             name: 'Premium',
             originalPrice: '₹10,000',
             price: '₹3,000',
-            period: 'per month',
+            period: 'One-time',
             description: 'Best for serious applicants comparing multiple colleges.',
             badge: 'Most Popular',
             features: [
@@ -114,7 +114,7 @@ const PricingPage = () => {
                 { text: 'Application tracker', included: true },
                 { text: 'Expert counselling sessions', included: false },
             ],
-            cta: 'Subscribe to Premium',
+            cta: 'Get Premium',
             buttonStyle: 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-900/30',
             popular: true,
         },
@@ -123,7 +123,7 @@ const PricingPage = () => {
             name: 'Plus',
             originalPrice: '₹50,000',
             price: '₹30,000',
-            period: 'per month',
+            period: 'One-time',
             description: 'For students who want expert guidance and full access.',
             features: [
                 { text: 'Everything in Premium', included: true },

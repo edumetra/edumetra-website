@@ -392,10 +392,8 @@ export default function ProfilePage() {
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h2 className="text-xl font-bold text-white">Your {profileData.account_type === 'pro' ? 'PLUS' : profileData.account_type?.toUpperCase()} Plan</h2>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                        profileData.subscription_status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-slate-700'
-                                    }`}>
-                                        {profileData.subscription_status || 'Free Account'}
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        Lifetime Access
                                     </span>
                                 </div>
                                 <p className="text-sm text-slate-400">Access college predictors, AI plans, and expert reviews.</p>
@@ -408,17 +406,8 @@ export default function ProfilePage() {
                                     to="/pricing" 
                                     className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap flex items-center justify-center"
                                 >
-                                    Upgrade Now
+                                    Upgrade Plan
                                 </Link>
-                            )}
-                            {profileData.account_type !== 'free' && profileData.subscription_status === 'active' && (
-                                <button 
-                                    type="button"
-                                    onClick={() => setShowCancelModal(true)}
-                                    className="px-6 py-3 bg-slate-800 hover:bg-red-900/30 text-red-400 hover:text-red-300 font-bold text-sm rounded-xl border border-slate-700 hover:border-red-900/50 transition-all whitespace-nowrap"
-                                >
-                                    Cancel Subscription
-                                </button>
                             )}
                         </div>
                     </div>

@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
-const SUBSCRIPTION_API = '/api/razorpay/create-subscription';
+const SUBSCRIPTION_API = '/api/razorpay/create-order';
 
 const PLANS = {
     premium: {
@@ -18,7 +18,7 @@ const PLANS = {
         name: 'Premium',
         price: 3000,
         originalPrice: 10000,
-        period: 'per month',
+        period: 'One-time',
         color: 'from-red-500 to-rose-600',
         badge: 'Most Popular',
         badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
@@ -38,7 +38,7 @@ const PLANS = {
         name: 'Plus',
         price: 30000,
         originalPrice: 50000,
-        period: 'per month',
+        period: 'One-time',
         color: 'from-amber-500 to-yellow-500',
         badge: 'Elite Access',
         badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
@@ -331,7 +331,7 @@ const CheckoutPage = () => {
         }
     };
 
-    // ── Razorpay Payment Flow (Subscription) ──────────────────────────────────
+    // ── Razorpay Payment Flow (One-time Order) ──────────────────────────────────
     const handlePayment = useCallback(async () => {
         if (!user) return;
         setPaymentState('loading');
@@ -344,8 +344,8 @@ const CheckoutPage = () => {
                 throw new Error('Failed to load payment SDK. Please check your internet connection.');
             }
 
-            // 2. Create subscription via same-origin serverless function (no CORS)
-            const subRes = await fetch(SUBSCRIPTION_API, {
+            // 2. Create order via same-origin serverless function (no CORS)
+            const orderRes = await fetch(SUBSCRIPTION_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -355,9 +355,9 @@ const CheckoutPage = () => {
                 }),
             });
 
-            const subData = await subRes.json();
-            if (!subRes.ok || !subData.subscriptionId) {
-                throw new Error(subData.error || 'Failed to initialize subscription checkout.');
+            const orderData = await orderRes.json();
+            if (!orderRes.ok || !orderData.orderId) {
+                throw new Error(orderData.error || 'Failed to initialize checkout.');
             }
 
             // 3. Open Razorpay checkout
@@ -367,9 +367,11 @@ const CheckoutPage = () => {
 
             const options = {
                 key: razorpayKey,
-                subscription_id: subData.subscriptionId,
+                amount: orderData.amount,
+                currency: 'INR',
                 name: 'Edumetra',
-                description: `${plan.name} Plan — Subscription Verification`,
+                description: `${plan.name} Plan — One-time Payment`,
+                order_id: orderData.orderId,
                 prefill: {
                     email: user.email,
                     name: user.user_metadata?.full_name || '',
@@ -395,7 +397,7 @@ const CheckoutPage = () => {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_subscription_id: response.razorpay_subscription_id,
+                                razorpay_order_id: response.razorpay_order_id, // Sent as order_id
                                 razorpay_signature: response.razorpay_signature,
                                 userId: user.id,
                                 planType: plan.id
@@ -412,7 +414,7 @@ const CheckoutPage = () => {
                             // TeleCRM conversion tracking
                             pushLeadToTeleCRM(
                                 { email: user.email, status: 'Won' },
-                                [`Colleges Subscription Success: ${plan.name}`, `Invoice: ${verifyData.invoice.invoice_number}`]
+                                [`Colleges Payment Success: ${plan.name}`, `Invoice: ${verifyData.invoice.invoice_number}`]
                             );
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed.');
@@ -426,7 +428,7 @@ const CheckoutPage = () => {
                         window.fbq('track', 'Purchase', {
                             currency: 'INR',
                             value: plan.price,
-                            content_name: `${plan.name.toUpperCase()} Subscription`
+                            content_name: `${plan.name.toUpperCase()} Payment`
                         });
                     }
                     setTimeout(() => navigate('/profile'), 2000);
@@ -506,7 +508,7 @@ const CheckoutPage = () => {
 
                         {/* Price Summary */}
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Subscription Details</h3>
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Payment Details</h3>
                             <div className="flex justify-between text-slate-300 text-sm">
                                 <span>{plan.name} Plan</span>
                                 <span className="line-through text-slate-500">₹{plan.originalPrice.toLocaleString()}</span>
@@ -538,7 +540,7 @@ const CheckoutPage = () => {
                         <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
                             <div className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-slate-400" /> Secure checkout</div>
                             <div className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-slate-400" /> Data encrypted</div>
-                            <div className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-slate-400" /> Automatic billing</div>
+                            <div className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-slate-400" /> Instant activation</div>
                         </div>
                     </motion.div>
 
@@ -588,9 +590,9 @@ const CheckoutPage = () => {
 
                             {/* Payment Methods */}
                             <div className="bg-slate-950/60 border border-slate-700/50 rounded-xl p-5 mb-6">
-                                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-4">Subscription powered by Razorpay</p>
+                                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-4">Payment powered by Razorpay</p>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {['UPI Auto-pay', 'Credit Card Autopay', 'Net Banking', 'Debit Card Autopay'].map((method) => (
+                                    {['UPI Payment', 'Credit Card', 'Net Banking', 'Debit Card'].map((method) => (
                                         <div key={method} className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-2.5">
                                             <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
                                             <span className="text-xs text-slate-300 font-medium">{method}</span>
@@ -630,13 +632,13 @@ const CheckoutPage = () => {
                                     <><CheckCircle className="w-5 h-5" /> Subscribed!</>
                                 )}
                                 {(paymentState === 'idle' || paymentState === 'failed') && (
-                                    <><Lock className="w-5 h-5" /> Start Subscription</>
+                                    <><Lock className="w-5 h-5" /> Pay Now</>
                                 )}
                             </button>
 
                             <p className="text-center text-xs text-slate-500 mt-4 flex items-center justify-center gap-1.5">
                                 <Shield className="w-3.5 h-3.5" />
-                                Secure recurring payments via Razorpay • Instant access
+                                Secure one-time payment via Razorpay • Instant access
                             </p>
                         </div>
 
