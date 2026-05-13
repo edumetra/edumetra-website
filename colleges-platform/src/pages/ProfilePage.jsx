@@ -369,7 +369,7 @@ export default function ProfilePage() {
                                         Account Active
                                     </span>
                                 </div>
-                                <p className="text-sm text-slate-400">Access college predictors, AI plans, and expert reviews.</p>
+                                <p className="text-sm text-slate-400">Manage your account status and academic access.</p>
                             </div>
                         </div>
                         

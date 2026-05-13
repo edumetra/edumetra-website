@@ -197,7 +197,7 @@ const CheckoutPage = () => {
                 const gstAmount = totalAmount - taxableAmount;
 
                 doc.setFont('helvetica', 'normal');
-                doc.text(`${invoice.plan_type.toUpperCase()} Subscription`, 25, 112);
+                doc.text(`${invoice.plan_type.toUpperCase()} Plan`, 25, 112);
                 doc.text(invoice.billing_period, 100, 112);
                 doc.text(`INR ${taxableAmount.toFixed(2)}`, 165, 112);
                 

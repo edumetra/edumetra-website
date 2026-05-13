@@ -11,7 +11,6 @@ import { pushLeadToTeleCRM } from '../services/telecrm';
 import { motion } from 'framer-motion';
 
 // ── Lead Scoring helper ──────────────────────────────────────────────────────
-// Returns a stable anonymous fingerprint stored in localStorage.
 function getGuestFingerprint() {
     if (typeof window === 'undefined') return null;
     const key = 'edu_guest_id';
@@ -41,10 +40,9 @@ async function trackPricingView() {
             body: JSON.stringify({ identifier }),
         });
     } catch {
-        // silently ignore — tracking should never break the page
+        // silently ignore
     }
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 const PricingPage = () => {
     const { user } = useAuth();
@@ -55,14 +53,15 @@ const PricingPage = () => {
     }, []);
 
     const handlePlanCTA = (planName) => {
-        if (planName.toLowerCase() === 'free') {
+        const key = planName.toLowerCase() === 'plus' ? 'pro' : planName.toLowerCase();
+        if (key === 'free') {
             navigate('/signup');
             return;
         }
         if (user) {
-            navigate(`/checkout?plan=${planName.toLowerCase()}`);
+            navigate(`/checkout?plan=${key}`);
         } else {
-            navigate(`/signup?plan=${planName.toLowerCase()}`);
+            navigate(`/signup?plan=${key}`);
         }
     };
 
@@ -90,7 +89,7 @@ const PricingPage = () => {
             name: 'Premium',
             originalPrice: '₹10,000',
             price: '₹3,000',
-            period: 'per month',
+            period: 'One-time payment',
             description: 'Best for serious applicants comparing multiple colleges.',
             badge: 'Most Popular',
             features: [
@@ -108,10 +107,10 @@ const PricingPage = () => {
             popular: true,
         },
         {
-            name: 'Pro',
+            name: 'Plus',
             originalPrice: '₹50,000',
             price: '₹30,000',
-            period: 'per month',
+            period: 'One-time payment',
             description: 'For students who want expert guidance and full access.',
             features: [
                 { text: 'Everything in Premium', included: true },
@@ -123,7 +122,7 @@ const PricingPage = () => {
                 { text: 'Interview preparation resources', included: true },
                 { text: 'Scholarship discovery engine', included: true },
             ],
-            cta: 'Start Pro',
+            cta: 'Start Plus',
             variant: 'secondary',
             popular: false,
         },
@@ -131,8 +130,8 @@ const PricingPage = () => {
 
     const faqs = [
         {
-            question: 'Can I switch plans anytime?',
-            answer: 'Yes! You can upgrade or downgrade anytime. Changes take effect immediately.',
+            question: 'What happens after payment?',
+            answer: 'After a successful payment, your account is instantly upgraded. You will get immediate access to all the features included in your chosen plan.',
         },
         {
             question: 'What payment methods do you accept?',
@@ -143,12 +142,12 @@ const PricingPage = () => {
             answer: 'Our AI-powered predictions have a 98% accuracy rate based on historical validation. We use official data sources and continuously improve our algorithms.',
         },
         {
-            question: 'Can I cancel my subscription?',
-            answer: 'Absolutely. You can cancel your Premium or Pro subscription anytime from your account settings. No cancellation fees.',
+            question: 'Is this a one-time payment?',
+            answer: 'Yes, both Premium and Plus plans are one-time payments. There are no recurring monthly charges.',
         },
         {
             question: 'Do you offer student discounts?',
-            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Premium/Pro are packed with value!',
+            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Premium/Plus are packed with value!',
         },
     ];
 
@@ -159,7 +158,6 @@ const PricingPage = () => {
             <SEO page="pricing" structuredData={structuredData} />
 
             <main className="pt-20">
-                {/* Hero */}
                 <section className="section pt-32">
                     <div className="container-custom">
                         <motion.div
@@ -171,45 +169,12 @@ const PricingPage = () => {
                                 Simple, <span className="gradient-text">Transparent Pricing</span>
                             </h1>
                             <p className="text-slate-300 text-lg md:text-xl">
-                                Start free. Upgrade when you're ready to dive deeper with Premium or Pro guidance.
+                                Start free. Upgrade when you're ready to dive deeper with Premium or Plus guidance.
                             </p>
                         </motion.div>
                     </div>
                 </section>
 
-                {/* Success Stats Banner */}
-                <section className="section pt-8">
-                    <div className="container-custom">
-                        <motion.div
-                            className="card max-w-4xl mx-auto"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                        >
-                            <div className="text-center mb-4">
-                                <h3 className="text-xl font-semibold text-white mb-6">
-                                    Join 5,000+ NEET Students Who Chose Premium & Pro
-                                </h3>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                                <div>
-                                    <div className="text-3xl font-bold gradient-text mb-1">3.2x</div>
-                                    <div className="text-slate-300 text-sm">Faster admission decisions</div>
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold gradient-text mb-1">4.5+</div>
-                                    <div className="text-slate-300 text-sm">Better college options found</div>
-                                </div>
-                                <div>
-                                    <div className="text-3xl font-bold gradient-text mb-1">87%</div>
-                                    <div className="text-slate-300 text-sm">Report reduced counseling stress</div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </section>
-
-                {/* Pricing Cards */}
                 <section className="section bg-slate-900/30">
                     <div className="container-custom">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-center">
@@ -241,10 +206,10 @@ const PricingPage = () => {
                                             )}
                                             <div className="flex items-baseline justify-center gap-1">
                                                 <span className="text-5xl lg:text-6xl font-black tracking-tight gradient-text">{plan.price}</span>
-                                                <span className="text-slate-400 font-medium whitespace-nowrap">{plan.period}</span>
+                                                <span className="text-slate-400 font-medium whitespace-nowrap text-sm">{plan.period}</span>
                                             </div>
                                         </div>
-                                        <p className="text-slate-300">{plan.description}</p>
+                                        <p className="text-slate-300 text-sm">{plan.description}</p>
                                     </div>
 
                                     <ul className="space-y-4 mb-8 flex-grow">
@@ -265,7 +230,7 @@ const PricingPage = () => {
                                         <Button
                                             variant={plan.variant}
                                             size="lg"
-                                            className="w-full"
+                                            className="w-full font-bold"
                                             onClick={() => handlePlanCTA(plan.name)}
                                         >
                                             {plan.cta}
@@ -276,12 +241,12 @@ const PricingPage = () => {
                         </div>
 
                         <motion.p
-                            className="text-center text-slate-400 mt-8"
+                            className="text-center text-slate-400 mt-8 text-sm"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
-                            🔒 Secure payment via Razorpay • Cancel anytime
+                            🔒 Secure payment via Razorpay • Instant account upgrade
                         </motion.p>
                     </div>
                 </section>
@@ -322,35 +287,6 @@ const PricingPage = () => {
                                 </motion.div>
                             ))}
                         </div>
-                    </div>
-                </section>
-
-                {/* Final CTA */}
-                <section className="section bg-slate-900/30">
-                    <div className="container-custom">
-                        <motion.div
-                            className="card text-center max-w-3xl mx-auto"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                        >
-                            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                                Still Have Questions?
-                            </h2>
-                            <p className="text-slate-300 text-lg mb-6">
-                                Our support team is here to help. Reach out anytime!
-                            </p>
-                              <Button 
-                                variant="secondary" 
-                                size="lg"
-                                onClick={() => {
-                                    pushLeadToTeleCRM({}, ['Pricing: Contact Support Clicked']);
-                                    navigate('/contact');
-                                }}
-                            >
-                                Contact Support
-                            </Button>
-                        </motion.div>
                     </div>
                 </section>
             </main>
