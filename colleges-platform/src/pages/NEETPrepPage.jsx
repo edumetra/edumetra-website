@@ -542,9 +542,7 @@ export default function NEETPrepPage() {
                                 </div>
                             </div>
 
-                            <p className="text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest pt-4">
-                                AI Core: Llama 3.3 70B · Groq Acceleration · Strategy Engine v2.0
-                            </p>
+
                         </motion.div>
                     )}
                 </AnimatePresence>
