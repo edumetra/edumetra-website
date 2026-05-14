@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 import { usePremium } from '../contexts/PremiumContext';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
@@ -138,6 +139,18 @@ export default function NEETPrepPage() {
                 .update({ ai_usage_count: aiUsage + 1 })
                 .eq('id', user.id);
                 
+            pushLeadToTeleCRM(
+                {
+                    name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                    email: user.email,
+                    phone: user.user_metadata?.phone || '',
+                    neet_score: formData.score,
+                    neet_target: formData.target,
+                    status: 'Fresh'
+                },
+                ['AI Strategy Generated', 'NEET Prep Page']
+            );
+
             refreshUsage();
         } catch (e) {
             setError(e.message);

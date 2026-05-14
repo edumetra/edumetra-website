@@ -84,6 +84,7 @@ export default function WriteReviewPage() {
             {
                 name: user.user_metadata?.full_name || '',
                 email: user.email,
+                phone: user.user_metadata?.phone || '',
                 status: 'Fresh',
                 college: selectedCollege.name,
             },

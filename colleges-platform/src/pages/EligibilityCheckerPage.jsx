@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
 import { Search, GraduationCap, Brain, Target, AlertCircle, Sparkles, TrendingUp, Loader2, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSignup } from '../contexts/SignupContext';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const EXAMS = [
     { id: 'jee_main', label: 'JEE Main', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
@@ -55,6 +57,7 @@ Return ONLY a valid JSON object in the exact format below (no markdown, no other
 }
 
 export default function EligibilityCheckerPage() {
+    const { user } = useSignup();
     const [exam, setExam] = useState(EXAMS[0]);
     const [score, setScore] = useState('');
     const [result, setResult] = useState(null);
@@ -70,6 +73,20 @@ export default function EligibilityCheckerPage() {
         try {
             const aiData = await checkEligibilityWithAI(exam.label, score, exam.unit);
             setResult(aiData);
+            
+            if (user) {
+                pushLeadToTeleCRM(
+                    {
+                        name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                        email: user.email,
+                        phone: user.user_metadata?.phone || '',
+                        status: 'Fresh',
+                        exam_eligibility_checked: exam.label,
+                        exam_score: score
+                    },
+                    ['Eligibility Checker Used']
+                );
+            }
         } catch (e) {
             setError("We couldn't analyze your eligibility right now. Please try again.");
             console.error(e);

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { useSignup } from '../contexts/SignupContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { categorizePrediction, canUserPredict, recordUsage, getUsage } from '../components/predictor/predictorEngine';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const EXAMS = [
     { id: 'jee_main', label: 'JEE Main', field: 'Percentile (0–100)', min: 0, max: 100, unit: '%ile' },
@@ -17,7 +18,7 @@ const EXAMS = [
 ];
 
 export default function RankPredictorPage() {
-    const { } = useSignup();
+    const { user } = useSignup();
     const { isPremium, isPro } = usePremium();
     const [exam, setExam] = useState(EXAMS[0]);
     const [score, setScore] = useState('');
@@ -47,6 +48,21 @@ export default function RankPredictorPage() {
         recordUsage();
         setUsage(getUsage()); // Update state after recording usage
         setLoading(false);
+        
+        // Push to TeleCRM if logged in
+        if (user) {
+            pushLeadToTeleCRM(
+                {
+                    name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                    email: user.email,
+                    phone: user.user_metadata?.phone || '',
+                    status: 'Fresh',
+                    exam_predicted: exam.label,
+                    exam_score: score
+                },
+                ['Rank Predictor Used']
+            );
+        }
         
         // Save to session for Detail Page badge
         sessionStorage.setItem('last_prediction', JSON.stringify({ examId: exam.id, score }));
