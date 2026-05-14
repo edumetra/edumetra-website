@@ -25,6 +25,7 @@ import ArticleDetailPage from './pages/ArticleDetailPage';
 import ExamDetailPage from './pages/ExamDetailPage';
 import PricingPage from './pages/PricingPage';
 import CheckoutPage from './pages/CheckoutPage';
+import ContactPage from './pages/ContactPage';
 import NewsUpdatesPage from './pages/NewsUpdatesPage';
 import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
@@ -95,6 +96,7 @@ function App() {
                   <Route path="careers" element={<CareersPage />} />
                   <Route path="pricing" element={<PricingPage />} />
                   <Route path="checkout" element={<CheckoutPage />} />
+                  <Route path="contact" element={<ContactPage />} />
                   {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
                   <Route path="404" element={<NotFoundPage />} />
                   <Route path="*" element={<NotFoundPage />} />
