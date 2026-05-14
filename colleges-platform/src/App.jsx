@@ -30,7 +30,7 @@ import NewsUpdatesPage from './pages/NewsUpdatesPage';
 import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
 import { CommandPalette } from './components/ui/CommandPalette';
-import { ChatbotProvider } from './components/chatbot';
+import { ChatbotProvider } from './components/chatbot/ChatbotContext';
 import ComingSoonPage from './pages/ComingSoonPage';
 import AuthGuard from './components/auth/AuthGuard';
 import { trackTeleCRMPageView } from './services/telecrm';
@@ -38,7 +38,7 @@ import { useLocation } from 'react-router-dom';
 import './index.css';
 
 // Lazy load heavy components to prevent initialization race conditions (ReferenceError: Ke)
-const ChatbotWidget = lazy(() => import('./components/chatbot').then(m => ({ default: m.ChatbotWidget })));
+const ChatbotWidget = lazy(() => import('./components/chatbot/ChatbotWidget'));
 
 // Track page views in TeleCRM
 function RouteTracker() {
