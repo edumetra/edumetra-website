@@ -62,6 +62,19 @@ function getPageName(path) {
     if (path.startsWith('/signup')) return 'Signup Page';
     if (path.startsWith('/careers')) return 'Careers Page';
     if (path.startsWith('/news-blogs')) return 'News & Blogs';
+    if (path.startsWith('/webinars-seminars')) return 'Webinars & Seminars';
+    if (path.startsWith('/mbbs-abroad')) return 'MBBS Abroad';
+    if (path.startsWith('/about')) return 'About Us';
+    if (path.startsWith('/contact')) return 'Contact Us';
+    if (path.startsWith('/advertise')) return 'Advertise';
+    if (path.startsWith('/universities')) return 'Universities';
+    if (path.startsWith('/exams')) return 'Entrance Exams';
+    if (path.startsWith('/courses/')) return 'Course Detail';
+    if (path.startsWith('/forgot-password')) return 'Forgot Password';
+    if (path.startsWith('/reset-password')) return 'Reset Password';
+    if (path.startsWith('/invoice')) return 'Invoice Page';
+    if (path.startsWith('/privacy')) return 'Privacy Policy';
+    if (path.startsWith('/terms')) return 'Terms of Service';
     if (path.includes('tools')) return 'Admission Tools';
     
     // Default: clean up the path
@@ -76,26 +89,29 @@ export function trackTeleCRMPageView(path, title) {
     if (lastTrackedPath === path) return;
     lastTrackedPath = path;
 
-    try {
-        const user = JSON.parse(localStorage.getItem('telecrm_user') || 'null');
-        // Only track if we have a known identifier (email or phone)
-        if (!user || (!user.email && !user.phone)) return;
+    // Small delay to ensure React Helmet has updated the document.title
+    setTimeout(() => {
+        try {
+            const user = JSON.parse(localStorage.getItem('telecrm_user') || 'null');
+            // Only track if we have a known identifier (email or phone)
+            if (!user || (!user.email && !user.phone)) return;
 
-        const pageName = getPageName(path);
-        const displayName = title || pageName;
-        
-        pushLeadToTeleCRM(
-            { 
-                ...user, 
-                status: 'Fresh', 
-                last_page: displayName,
-                source: displayName // THIS will update the "Source" pill in TeleCRM
-            }, 
-            [`Visited: ${displayName}`]
-        );
-    } catch (e) {
-        // Silently fail
-    }
+            const pageName = getPageName(path);
+            const displayName = title || document.title || pageName;
+            
+            pushLeadToTeleCRM(
+                { 
+                    ...user, 
+                    status: 'Fresh', 
+                    last_page: displayName,
+                    source: displayName 
+                }, 
+                [`Visited: ${displayName}`]
+            );
+        } catch (e) {
+            // Silently fail
+        }
+    }, 100);
 }
 
 export async function pushLeadToTeleCRM(fields = {}, tags = []) {

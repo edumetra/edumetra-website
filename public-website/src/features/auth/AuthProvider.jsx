@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
                     email: currentUser.email,
                     phone: metadata.phone || '',
                     status: 'Fresh'
-                }, ['Sync: Public Website']);
+                }, ['Account Active: Sync']);
             }
         });
 
