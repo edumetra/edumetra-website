@@ -52,7 +52,10 @@ const WebinarsAndSeminarsPage = () => {
                     type: evt.type,
                     agenda: evt.agenda
                 }));
-                setUpcomingEvents([...WEBINAR_EVENTS, ...formatted]);
+                // Deduplicate by slug (prefer live database data over hardcoded constants)
+                const allEvents = [...formatted, ...WEBINAR_EVENTS];
+                const uniqueEvents = Array.from(new Map(allEvents.map(item => [item.slug, item])).values());
+                setUpcomingEvents(uniqueEvents);
             } else {
                 setUpcomingEvents(WEBINAR_EVENTS); // fallback
             }
