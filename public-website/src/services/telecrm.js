@@ -48,10 +48,31 @@ function normalisePhone(raw) {
 let lastTrackedPath = '';
 
 /**
- * Track a page view for a known user.
- * Looks for 'telecrm_user' in localStorage. If found, pushes a "Visited: [Page]" tag to TeleCRM.
+ * Map pathnames to human-readable page names for better CRM tracking.
  */
-export function trackTeleCRMPageView(path, pageName) {
+function getPageName(path) {
+    if (path === '/') return 'Home Page';
+    if (path.startsWith('/colleges/')) return 'College Detail';
+    if (path.startsWith('/find-colleges')) return 'Find Colleges';
+    if (path.startsWith('/pricing')) return 'Pricing Page';
+    if (path.startsWith('/checkout')) return 'Checkout Page';
+    if (path.startsWith('/dashboard')) return 'User Dashboard';
+    if (path.startsWith('/review')) return 'Write Review';
+    if (path.startsWith('/login')) return 'Login Page';
+    if (path.startsWith('/signup')) return 'Signup Page';
+    if (path.startsWith('/careers')) return 'Careers Page';
+    if (path.startsWith('/news-blogs')) return 'News & Blogs';
+    if (path.includes('tools')) return 'Admission Tools';
+    
+    // Default: clean up the path
+    return path.split('/').filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') || 'Home';
+}
+
+/**
+ * Track a page view for a known user.
+ * Looks for 'telecrm_user' in localStorage. If found, pushes a tag to TeleCRM.
+ */
+export function trackTeleCRMPageView(path, title) {
     if (lastTrackedPath === path) return;
     lastTrackedPath = path;
 
@@ -60,12 +81,20 @@ export function trackTeleCRMPageView(path, pageName) {
         // Only track if we have a known identifier (email or phone)
         if (!user || (!user.email && !user.phone)) return;
 
+        const pageName = getPageName(path);
+        const displayName = title || pageName;
+        
         pushLeadToTeleCRM(
-            { ...user, status: 'Fresh' }, 
-            [`Visited: ${pageName || path}`]
+            { 
+                ...user, 
+                status: 'Fresh', 
+                last_page: displayName,
+                source: displayName // THIS will update the "Source" pill in TeleCRM
+            }, 
+            [`Visited: ${displayName}`]
         );
     } catch (e) {
-        // Silently fail if localStorage parsing errors out
+        // Silently fail
     }
 }
 
@@ -81,7 +110,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         // Build the clean fields object
         const leadFields = {};
         // Standard fields that are likely native in TeleCRM fields object
-        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state']);
+        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state', 'source']);
         const extraFields = [];
         
         for (const [key, val] of Object.entries(fields)) {
@@ -94,6 +123,9 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 }
             }
         }
+
+        // Default source if not provided
+        if (!leadFields.source) leadFields.source = 'Colleges Portal';
 
         // We must have at least the unique identifier (phone or email)
         if (!leadFields.phone && !leadFields.email) return;
@@ -110,9 +142,29 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             // Ignore storage errors (e.g. incognito mode restrictions)
         }
 
-        const body = { fields: leadFields };
-        
-        // Add tags and extra fields as a beautifully formatted SYSTEM_NOTE
+        const body = { 
+            fields: {
+                ...leadFields,
+                // Add case-sensitive variations for older/strict TeleCRM versions
+                Name: leadFields.name,
+                Email: leadFields.email,
+                Phone: leadFields.phone,
+                PhoneNumber: leadFields.phone,
+                // Add specific tracking fields
+                last_page: leadFields.last_page || '',
+                touchpoint: tags.join(', ')
+            },
+            // Move unique identifiers to the top level
+            name: leadFields.name,
+            email: leadFields.email,
+            phone: leadFields.phone,
+            phoneNumber: leadFields.phone,
+            source: leadFields.source || 'Colleges Portal',
+            // ENABLE ACTUAL TAGS (The most important part)
+            tags: tags
+        };
+
+        // Add tags and extra fields as a beautifully formatted note
         if ((tags && tags.length > 0) || extraFields.length > 0) {
             const isPageVisit = tags.some(t => t.startsWith('Visited:'));
             let noteText = '';
@@ -128,13 +180,13 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
 
             body.actions = [
                 {
-                    type: "SYSTEM_NOTE",
+                    type: "note",
                     text: noteText
                 }
             ];
         }
 
-        // Fire-and-forget — no await on the caller side needed
+        // Fire-and-forget with enhanced debug logging
         fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -142,20 +194,26 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(body),
-        }).catch((err) => {
-            // Silently swallow network errors — never surface to user
+        })
+        .then(async (res) => {
             if (import.meta.env.DEV) {
-                console.warn('[TeleCRM] Push failed (non-critical):', err?.message);
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    console.debug('[TeleCRM] Success:', data);
+                } else {
+                    console.error('[TeleCRM] API Error:', res.status, data);
+                }
+            }
+        })
+        .catch((err) => {
+            if (import.meta.env.DEV) {
+                console.warn('[TeleCRM] Network error:', err?.message);
             }
         });
 
-        if (import.meta.env.DEV) {
-            console.debug('[TeleCRM] Lead pushed:', leadFields, 'tags:', tags);
-        }
     } catch (err) {
-        // Catch any synchronous errors in the builder logic
         if (import.meta.env.DEV) {
-            console.warn('[TeleCRM] Unexpected error (non-critical):', err?.message);
+            console.warn('[TeleCRM] Unexpected builder error:', err?.message);
         }
     }
 }

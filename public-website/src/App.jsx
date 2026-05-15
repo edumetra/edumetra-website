@@ -46,7 +46,7 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0);
     // Track page views in TeleCRM for returning/known users
-    trackTeleCRMPageView(pathname);
+    trackTeleCRMPageView(pathname, document.title);
   }, [pathname]);
 
   return null;
