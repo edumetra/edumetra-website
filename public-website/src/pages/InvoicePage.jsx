@@ -161,184 +161,123 @@ const InvoicePage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         id="invoice-document"
-                        className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden"
+                        className="bg-white text-slate-900 shadow-2xl rounded-sm overflow-hidden min-h-[842px] flex flex-col"
                     >
-                        {/* ── Header Band ── */}
-                        <div className="bg-gradient-to-r from-red-600 to-rose-700 px-8 py-7">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h1 className="text-white font-black text-4xl tracking-tight leading-none">
-                                        INVOICE
-                                    </h1>
-                                    <p className="text-red-100 text-sm mt-2 font-mono tracking-widest">
-                                        {invoice.invoice_number}
-                                    </p>
+                        {/* ── Header: Logo & Title ── */}
+                        <div className="p-10 border-b-4 border-red-600 flex justify-between items-start">
+                            <div>
+                                <div className="text-3xl font-black text-slate-900 flex items-center gap-2 mb-2">
+                                    <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white text-xl">E</div>
+                                    EDUMETRA
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-white font-black text-2xl flex items-center justify-end gap-2">
-                                        <Building2 className="w-6 h-6" />
-                                        Edumetra
-                                    </div>
-                                    <p className="text-red-100 text-xs mt-1">edumetra.in</p>
+                                <div className="text-xs text-slate-500 font-medium space-y-0.5">
+                                    <p>Edumetra Educational Services</p>
+                                    <p>123 Education Hub, MG Road</p>
+                                    <p>Bangalore, Karnataka - 560001</p>
+                                    <p>Email: support@edumetra.in</p>
+                                    <p>GSTIN: 29AAAAA0000A1Z5 (Sample)</p>
                                 </div>
                             </div>
-
-                            <div className="mt-5 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                                <CheckCircle className="w-4 h-4 text-white" />
-                                <span className="text-white text-xs font-bold uppercase tracking-wider">
-                                    Payment Successful
-                                </span>
+                            <div className="text-right">
+                                <h1 className="text-5xl font-black text-slate-200 leading-none mb-4">INVOICE</h1>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Invoice Number</p>
+                                    <p className="text-lg font-mono font-bold text-slate-900">{invoice.invoice_number}</p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* ── Body ── */}
-                        <div className="p-8 space-y-8">
-
-                            {/* Meta: Billed To + Invoice Details */}
-                            <div className="grid grid-cols-2 gap-8">
-                                {/* Left — Billed To */}
+                        {/* ── Billing Info ── */}
+                        <div className="px-10 py-8 grid grid-cols-2 gap-10 bg-slate-50/50">
+                            <div>
+                                <p className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em] mb-3">Billed To</p>
+                                <div className="space-y-1">
+                                    <p className="text-base font-bold text-slate-900">{invoice.user_name || 'Valued Customer'}</p>
+                                    <p className="text-sm text-slate-600">{invoice.user_email}</p>
+                                    {invoice.user_phone && <p className="text-sm text-slate-600">{invoice.user_phone}</p>}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">
-                                        Billed To
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Issue Date</p>
+                                    <p className="text-sm font-bold text-slate-900">{formatDate(invoice.issued_at)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Payment Status</p>
+                                    <p className="text-sm font-bold text-emerald-600 flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3" /> Paid
                                     </p>
-                                    <div className="flex items-start gap-2">
-                                        <Mail className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            {invoice.user_name && (
-                                                <p className="text-white font-semibold text-sm leading-tight">
-                                                    {invoice.user_name}
-                                                </p>
-                                            )}
-                                            <p className="text-slate-300 text-sm break-all">
-                                                {invoice.user_email}
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
-
-                                {/* Right — Invoice Meta */}
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2.5">
-                                        <Hash className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-slate-500 text-xs">Invoice Number</p>
-                                            <p className="text-white font-mono font-bold text-sm">
-                                                {invoice.invoice_number}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2.5">
-                                        <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-slate-500 text-xs">Issue Date</p>
-                                            <p className="text-white font-semibold text-sm">
-                                                {formatDate(invoice.issued_at)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2.5">
-                                        <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-slate-500 text-xs">Billing Period</p>
-                                            <p className="text-white font-semibold text-sm">
-                                                {invoice.billing_period}
-                                            </p>
-                                        </div>
-                                    </div>
+                                <div className="col-span-2">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Billing Period</p>
+                                    <p className="text-sm font-bold text-slate-900">{invoice.billing_period}</p>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Line Items Table */}
-                            <div className="rounded-xl overflow-hidden border border-slate-800">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="bg-slate-800/60 border-b border-slate-700">
-                                            <th className="text-left px-5 py-3 text-slate-400 font-semibold uppercase text-xs tracking-wider">
-                                                Description
-                                            </th>
-                                            <th className="text-right px-5 py-3 text-slate-400 font-semibold uppercase text-xs tracking-wider">
-                                                Amount
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-800">
-                                        {/* Base Plan */}
+                        {/* ── Items Table ── */}
+                        <div className="px-10 py-6 flex-grow">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b-2 border-slate-900">
+                                        <th className="py-4 text-left text-xs font-black text-slate-900 uppercase tracking-widest">Description</th>
+                                        <th className="py-4 text-right text-xs font-black text-slate-900 uppercase tracking-widest">Qty</th>
+                                        <th className="py-4 text-right text-xs font-black text-slate-900 uppercase tracking-widest">Price</th>
+                                        <th className="py-4 text-right text-xs font-black text-slate-900 uppercase tracking-widest">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    <tr>
+                                        <td className="py-6">
+                                            <p className="text-sm font-bold text-slate-900">{planDisplayName(invoice.plan_type)}</p>
+                                            <p className="text-xs text-slate-500 mt-1">Full access to Edumetra Premium features.</p>
+                                        </td>
+                                        <td className="py-6 text-right text-sm text-slate-600">1</td>
+                                        <td className="py-6 text-right text-sm text-slate-600">₹{formatINR(invoice.amount_inr ?? invoice.amount_paise / 100)}</td>
+                                        <td className="py-6 text-right text-sm font-bold text-slate-900">₹{formatINR(invoice.amount_inr ?? invoice.amount_paise / 100)}</td>
+                                    </tr>
+                                    
+                                    {/* Taxes / Discounts */}
+                                    {Number(invoice.discount_paise || 0) > 0 && (
                                         <tr>
-                                            <td className="px-5 py-4">
-                                                <p className="text-white font-semibold">
-                                                    {planDisplayName(invoice.plan_type)}
-                                                </p>
-                                                <p className="text-slate-500 text-xs mt-0.5">
-                                                    Monthly subscription · {invoice.billing_period}
-                                                </p>
-                                            </td>
-                                            <td className="px-5 py-4 text-right text-white font-semibold">
-                                                ₹{formatINR(invoice.amount_inr ?? invoice.amount_paise / 100)}
-                                            </td>
+                                            <td colSpan="3" className="py-3 text-right text-xs font-bold text-slate-500">Discount</td>
+                                            <td className="py-3 text-right text-sm font-bold text-emerald-600">-₹{formatINR(invoice.discount_inr ?? invoice.discount_paise / 100)}</td>
                                         </tr>
-
-                                        {/* Coupon Discount */}
-                                        {Number(invoice.discount_paise || 0) > 0 && (
-                                            <tr>
-                                                <td className="px-5 py-4 text-emerald-400">
-                                                    Coupon Discount
-                                                </td>
-                                                <td className="px-5 py-4 text-right text-emerald-400 font-semibold">
-                                                    −₹{formatINR(invoice.discount_inr ?? invoice.discount_paise / 100)}
-                                                </td>
-                                            </tr>
-                                        )}
-
-                                        {/* GST */}
-                                        {Number(invoice.tax_paise || 0) > 0 && (
-                                            <tr>
-                                                <td className="px-5 py-4 text-slate-300">GST (18%)</td>
-                                                <td className="px-5 py-4 text-right text-slate-300 font-semibold">
-                                                    ₹{formatINR(invoice.tax_inr ?? invoice.tax_paise / 100)}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr className="bg-slate-800/60 border-t border-slate-700">
-                                            <td className="px-5 py-4 text-white font-black text-base">
-                                                Total Paid
-                                            </td>
-                                            <td className="px-5 py-4 text-right text-white font-black text-xl">
-                                                ₹{formatINR(invoice.total_inr ?? invoice.total_paise / 100)}
-                                            </td>
+                                    )}
+                                    {Number(invoice.tax_paise || 0) > 0 && (
+                                        <tr>
+                                            <td colSpan="3" className="py-3 text-right text-xs font-bold text-slate-500">GST (18%)</td>
+                                            <td className="py-3 text-right text-sm font-bold text-slate-900">₹{formatINR(invoice.tax_inr ?? invoice.tax_paise / 100)}</td>
                                         </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
-                            {/* Payment Reference */}
-                            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 space-y-1.5">
-                                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
-                                    Payment Reference
-                                </p>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                    <span className="text-slate-400 text-xs">Razorpay Payment ID:</span>
-                                    <span className="text-white font-mono text-xs break-all">
-                                        {invoice.razorpay_payment_id}
-                                    </span>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                    <span className="text-slate-400 text-xs">Invoice ID:</span>
-                                    <span className="text-white font-mono text-xs break-all">
-                                        {invoice.id}
-                                    </span>
+                        {/* ── Summary & Footer ── */}
+                        <div className="mt-auto">
+                            <div className="flex justify-end px-10 py-8 bg-slate-900 text-white">
+                                <div className="w-64 space-y-4">
+                                    <div className="flex justify-between items-center text-slate-400">
+                                        <span className="text-xs uppercase font-bold tracking-widest">Total Paid</span>
+                                        <span className="text-xl font-black text-white">₹{formatINR(invoice.total_inr ?? invoice.total_paise / 100)}</span>
+                                    </div>
+                                    <div className="pt-4 border-t border-slate-700">
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Razorpay ID</p>
+                                        <p className="text-[10px] font-mono text-slate-300 break-all">{invoice.razorpay_payment_id}</p>
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Footer */}
-                            <div className="border-t border-slate-800 pt-5 text-center">
-                                <p className="text-xs text-slate-600">
-                                    This is a computer-generated invoice and does not require a signature.
-                                </p>
-                                <p className="text-xs text-slate-700 mt-1">
-                                    Edumetra © {new Date().getFullYear()} · edumetra.in · All rights reserved.
-                                </p>
+                            
+                            <div className="p-10 flex justify-between items-end border-t border-slate-100">
+                                <div className="text-[10px] text-slate-400 space-y-1">
+                                    <p className="font-bold text-slate-500">Important Note:</p>
+                                    <p>This is a computer-generated receipt and does not require a physical signature.</p>
+                                    <p>For support, please contact us at support@edumetra.in</p>
+                                </div>
+                                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                                    Thank you for your business
+                                </div>
                             </div>
                         </div>
                     </motion.div>
