@@ -72,25 +72,43 @@ const PricingPage = () => {
     };
 
     const handleSubscribe = async (tier) => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('account_type')
-                .eq('id', session.user.id)
-                .single();
-            
-            if (profile) {
-                const currentTier = profile.account_type || 'free';
+        setLoading(true);
+        try {
+            // Safety timeout of 1.2 seconds for the database queries
+            const fetchPromise = (async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select('account_type')
+                        .eq('id', session.user.id)
+                        .single();
+                    return { session, profile };
+                }
+                return { session: null, profile: null };
+            })();
+
+            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('timeout'), 1200));
+
+            const result = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (result !== 'timeout' && result.profile) {
+                const currentTier = result.profile.account_type || 'free';
                 if (currentTier === 'pro') {
-                    toast.error('You already have the Plus plan (highest).');
+                    toast.error('You are already on the highest plan (Plus) and cannot purchase more.');
+                    setLoading(false);
                     return;
                 }
                 if (currentTier === 'premium' && tier === 'premium') {
-                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
+                    toast.error('You already have the Premium plan. You can upgrade to Plus.');
+                    setLoading(false);
                     return;
                 }
             }
+        } catch (err) {
+            console.warn("Pricing subscription check failed or timed out, navigating directly:", err);
+        } finally {
+            setLoading(false);
         }
         navigate(`/checkout?plan=${tier}`);
     };

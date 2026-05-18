@@ -62,23 +62,32 @@ const PricingPage = () => {
         }
 
         if (user) {
-            // Check eligibility pre-emptively
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('account_type')
-                .eq('id', user.id)
-                .single();
-            
-            if (profile) {
-                const currentTier = profile.account_type || 'free';
-                if (currentTier === 'pro') {
-                    toast.error('You already have the Plus plan (highest).');
-                    return;
+            try {
+                // Safety timeout of 1.2 seconds for the database query
+                const fetchPromise = supabase
+                    .from('user_profiles')
+                    .select('account_type')
+                    .eq('id', user.id)
+                    .single();
+
+                const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('timeout'), 1200));
+
+                const result = await Promise.race([fetchPromise, timeoutPromise]);
+
+                if (result !== 'timeout' && result.data) {
+                    const profile = result.data;
+                    const currentTier = profile.account_type || 'free';
+                    if (currentTier === 'pro') {
+                        toast.error('You are already on the highest plan (Plus) and cannot purchase more.');
+                        return;
+                    }
+                    if (currentTier === 'premium' && key === 'premium') {
+                        toast.error('You already have the Premium plan. You can upgrade to Plus.');
+                        return;
+                    }
                 }
-                if (currentTier === 'premium' && key === 'premium') {
-                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
-                    return;
-                }
+            } catch (err) {
+                console.warn("Pricing subscription check failed or timed out, navigating directly:", err);
             }
             navigate(`/checkout?plan=${key}`);
         } else {
