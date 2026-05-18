@@ -53,8 +53,8 @@ export default async function handler(req, res) {
         const gstAmount = Math.floor(taxableAmount * 0.18);
         const totalAmount = taxableAmount + gstAmount;
 
-        console.log('[DEBUG] Creating order for amount:', totalAmount, 'paise:', totalAmount * 100);
         
+
         let order;
         try {
             order = await rzp.orders.create({

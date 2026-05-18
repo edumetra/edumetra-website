@@ -96,16 +96,16 @@ const CheckoutPage = () => {
             setUser(session.user);
 
             // Fetch profile for eligibility check
-            const { data: profile } = await supabase
+            const { data: profileData } = await supabase
                 .from('user_profiles')
-                .select('account_type')
+                .select('account_type, phone_number')
                 .eq('id', session.user.id)
                 .single();
             
-            setProfile(profile);
+            setProfile(profileData);
 
-            if (profile) {
-                const currentTier = profile.account_type || 'free';
+            if (profileData) {
+                const currentTier = profileData.account_type || 'free';
                 
                 // Eligibility Checks
                 if (currentTier === 'pro') {
@@ -367,8 +367,6 @@ const CheckoutPage = () => {
             });
 
             const orderData = await orderRes.json();
-            console.log('[DEBUG] Order created:', orderData); // Debugging order prefix
-
             if (!orderRes.ok || !orderData.orderId) {
                 throw new Error(orderData.error || 'Failed to initialize checkout.');
             }
@@ -388,6 +386,7 @@ const CheckoutPage = () => {
                 prefill: {
                     email: user.email,
                     name: user.user_metadata?.full_name || '',
+                    contact: profile?.phone_number || user.phone || '',
                 },
                 theme: { color: '#ef4444' },
                 modal: {
