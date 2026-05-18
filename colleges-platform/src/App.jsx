@@ -12,6 +12,7 @@ import HomePage from './pages/HomePage';
 import CollegeListPage from './pages/CollegeListPage';
 import CollegeDetailPage from './pages/CollegeDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import InvoicePage from './pages/InvoicePage';
 import WriteReviewPage from './pages/WriteReviewPage';
 import ComparePage from './pages/ComparePage';
 import RankingsPage from './pages/RankingsPage';
@@ -86,6 +87,7 @@ function App() {
                   <Route path="colleges" element={<CollegeListPage />} />
                   <Route path="colleges/:slug" element={<CollegeDetailPage />} />
                   <Route path="profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
+                  <Route path="invoice" element={<AuthGuard><InvoicePage /></AuthGuard>} />
                   <Route path="review" element={<WriteReviewPage />} />
                   <Route path="compare" element={<ComparePage />} />
                   <Route path="rankings" element={<RankingsPage />} />

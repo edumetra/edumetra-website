@@ -3,10 +3,9 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Download, FileText, CheckCircle,
-    Loader2, AlertCircle, Building2, Mail, Calendar, Hash
+    Loader2, AlertCircle
 } from 'lucide-react';
-import { useAuth } from '../features/auth/AuthProvider';
-import SEO from '../components/SEO';
+import { useSignup } from '../contexts/SignupContext';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://edumetra-website.vercel.app';
 
@@ -42,7 +41,7 @@ async function downloadAsPDF(elementId, filename) {
 const InvoicePage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user } = useSignup();
 
     const invoiceId = searchParams.get('id');
     const paymentId = searchParams.get('payment_id');
@@ -54,8 +53,8 @@ const InvoicePage = () => {
     const invoiceRef = useRef(null);
 
     useEffect(() => {
-        if (!user) { navigate('/login'); return; }
-        if (!invoiceId && !paymentId) { navigate('/dashboard'); return; }
+        if (!user) { navigate('/profile'); return; }
+        if (!invoiceId && !paymentId) { navigate('/profile'); return; }
         fetchInvoice();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, invoiceId, paymentId]);
@@ -122,8 +121,8 @@ const InvoicePage = () => {
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 px-4">
                 <AlertCircle className="w-12 h-12 text-white" />
                 <h2 className="text-white font-bold text-xl">{error}</h2>
-                <Link to="/dashboard" className="text-red-400 hover:text-red-300 underline text-sm">
-                    Back to Dashboard
+                <Link to="/profile" className="text-red-400 hover:text-red-300 underline text-sm">
+                    Back to Profile
                 </Link>
             </div>
         );
@@ -132,18 +131,16 @@ const InvoicePage = () => {
     // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
-            <SEO page="invoice" />
-
-            <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
+            <div className="min-h-screen bg-[#070c1a] pt-32 pb-20 px-4">
                 <div className="max-w-2xl mx-auto">
 
                     {/* Action Bar */}
                     <div className="flex items-center justify-between mb-8 print:hidden">
                         <Link
-                            to="/dashboard"
+                            to="/profile"
                             className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
                         >
-                            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+                            <ArrowLeft className="w-4 h-4" /> Back to Profile
                         </Link>
 
                         <button

@@ -33,28 +33,13 @@ const ProfilePage = () => {
         }
         
         const fetchProfile = async () => {
-            const controller = new AbortController();
-            const timer = setTimeout(() => {
-                controller.abort();
-                console.warn("Profile fetch timed out, falling back to local metadata.");
-                setProfile(prev => ({ 
-                    ...prev, 
-                    full_name: user.user_metadata?.full_name || '',
-                    email: user.email || '',
-                    phone_number: user.phone || ''
-                }));
-                setLoading(false);
-            }, 3000);
-
+            setLoading(true);
             try {
                 const { data, error } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', user.id)
-                    .single()
-                    .abortSignal(controller.signal);
-                
-                clearTimeout(timer);
+                    .single();
                 
                 if (error && error.code !== 'PGRST116') throw error;
 
@@ -79,11 +64,8 @@ const ProfilePage = () => {
                     }));
                 }
             } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error("Error fetching profile:", error);
-                }
+                console.error("Error fetching profile:", error);
             } finally {
-                clearTimeout(timer);
                 setLoading(false);
             }
         };
@@ -233,14 +215,12 @@ const ProfilePage = () => {
                                 <h2 className="text-xl font-bold text-white">Subscription & Billing</h2>
                             </div>
                             {profile.account_type !== 'free' && (
-                                <a 
-                                    href="https://www.edumetraglobal.com/invoice?payment_id=latest" 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link 
+                                    to="/invoice?payment_id=latest" 
                                     className="text-xs text-red-400 hover:text-red-300 font-bold underline"
                                 >
                                     View All Invoices
-                                </a>
+                                </Link>
                             )}
                         </div>
 
@@ -270,14 +250,12 @@ const ProfilePage = () => {
                                         <p className="text-xs text-slate-400">One-time payment • Lifetime Access</p>
                                     </div>
                                 </div>
-                                <a 
-                                    href="https://www.edumetraglobal.com/invoice?payment_id=latest" 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link 
+                                    to="/invoice?payment_id=latest" 
                                     className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
                                 >
                                     <FileText className="w-4 h-4" /> Download Receipt
-                                </a>
+                                </Link>
                             </div>
                         )}
                     </div>
