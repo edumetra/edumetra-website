@@ -33,6 +33,23 @@ const ProfilePage = () => {
             return;
         }
         
+        let isMounted = true;
+        
+        // Safety Fail-safe: if Supabase takes too long (e.g. adblocker blocking request),
+        // we stop the spinner and fallback to local profile metadata from the user session.
+        const safetyTimer = setTimeout(() => {
+            if (isMounted) {
+                console.warn("Supabase fetch took too long (possible adblocker). Falling back.");
+                setProfile(prev => ({ 
+                    ...prev, 
+                    full_name: user.user_metadata?.full_name || '',
+                    email: user.email || '',
+                    phone_number: user.phone || ''
+                }));
+                setLoading(false);
+            }
+        }, 3000);
+        
         const fetchProfile = async () => {
             try {
                 const { data } = await supabase
@@ -41,34 +58,45 @@ const ProfilePage = () => {
                     .eq('id', user.id)
                     .single();
                 
-                if (data) {
-                    setProfile({
-                        full_name: data.full_name || user.user_metadata?.full_name || '',
-                        email: user.email || '',
-                        phone_number: user.phone || data.phone_number || '',
-                        state: data.state || '',
-                        city: data.city || '',
-                        gender: data.gender || '',
-                        dob: data.dob || '',
-                        stream: data.stream || '',
-                        account_type: data.account_type || 'free'
-                    });
-                } else {
-                    setProfile(prev => ({ 
-                        ...prev, 
-                        full_name: user.user_metadata?.full_name || '',
-                        email: user.email || '',
-                        phone_number: user.phone || ''
-                    }));
+                if (isMounted) {
+                    clearTimeout(safetyTimer);
+                    if (data) {
+                        setProfile({
+                            full_name: data.full_name || user.user_metadata?.full_name || '',
+                            email: user.email || '',
+                            phone_number: user.phone || data.phone_number || '',
+                            state: data.state || '',
+                            city: data.city || '',
+                            gender: data.gender || '',
+                            dob: data.dob || '',
+                            stream: data.stream || '',
+                            account_type: data.account_type || 'free'
+                        });
+                    } else {
+                        setProfile(prev => ({ 
+                            ...prev, 
+                            full_name: user.user_metadata?.full_name || '',
+                            email: user.email || '',
+                            phone_number: user.phone || ''
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching profile:", error);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    clearTimeout(safetyTimer);
+                    setLoading(false);
+                }
             }
         };
         
         fetchProfile();
+        
+        return () => {
+            isMounted = false;
+            clearTimeout(safetyTimer);
+        };
     }, [user, navigate]);
 
     const handleSave = async (e) => {
