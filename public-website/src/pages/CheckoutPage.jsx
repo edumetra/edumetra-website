@@ -78,6 +78,7 @@ const CheckoutPage = () => {
     const planKey = searchParams.get('plan') || 'premium';
     const plan = PLANS[planKey] || PLANS.premium;
 
+    const [userPhone, setUserPhone] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [validating, setValidating] = useState(false);
@@ -98,13 +99,16 @@ const CheckoutPage = () => {
             // Fetch profile for eligibility check
             const { data: profile } = await supabase
                 .from('user_profiles')
-                .select('account_type')
+                .select('account_type, phone_number')
                 .eq('id', user.id)
                 .single();
             
             if (profile) {
                 const currentTier = profile.account_type || 'free';
-                
+
+                // Store phone for Razorpay UPI prefill
+                if (profile.phone_number) setUserPhone(profile.phone_number);
+
                 // Eligibility Checks
                 if (currentTier === 'pro') {
                     toast.error('You already have the Plus plan (highest).');
@@ -385,6 +389,7 @@ const CheckoutPage = () => {
                 prefill: {
                     email: user.email,
                     name: user.user_metadata?.full_name || '',
+                    contact: userPhone || user.phone || '',
                 },
                 theme: { color: '#ef4444' },
                 modal: {
