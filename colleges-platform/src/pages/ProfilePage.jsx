@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase';
 import { 
     User, Mail, LogOut, ArrowLeft, Star, 
     BookmarkX, Pencil, Trash2, Bookmark, 
-    ChevronRight, Save, Brain, Target, Sparkles, X, ShieldCheck, Zap
+    ChevronRight, Save, Brain, Target, Sparkles, X, ShieldCheck, Zap,
+    CheckCircle, FileText
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Calculator, Trophy, Lock, Search, AlertCircle, Loader2 } from 'lucide-react';
@@ -76,6 +77,7 @@ export default function ProfilePage() {
 
     const role = isPro ? 'pro' : isPremium ? 'premium' : 'free';
     const isGated = !isPremium && !isPro;
+    const tierName = role === 'pro' ? 'Plus' : role.charAt(0).toUpperCase() + role.slice(1);
 
     const fetchProfile = useCallback(async () => {
         const controller = new AbortController();
@@ -346,7 +348,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* ── Subscription Section ── */}
+                              {/* ── Account Status Card ── */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -356,33 +358,97 @@ export default function ProfilePage() {
                     <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-slate-900 via-slate-900 to-red-950/20">
                         <div className="flex items-center gap-4">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                                profileData.account_type === 'pro' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
-                                profileData.account_type === 'premium' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
+                                role === 'pro' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
+                                role === 'premium' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
                                 'bg-slate-800 text-slate-400 border border-slate-700'
                             }`}>
-                                <Sparkles className="w-7 h-7" />
+                                {role === 'free' ? <User className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-bold text-white">Your {profileData.account_type === 'pro' ? 'PLUS' : profileData.account_type?.toUpperCase()} Plan</h2>
+                                    <h2 className="text-xl font-bold text-white">{tierName} Account</h2>
                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                         Account Active
                                     </span>
                                 </div>
-                                <p className="text-sm text-slate-400">Manage your account status and academic access.</p>
+                                <p className="text-sm text-slate-400">
+                                    {role === 'free' ? 'Upgrade to unlock premium features.' : 'One-time payment lifetime access active.'}
+                                </p>
                             </div>
                         </div>
                         
-                        <div className="flex flex-wrap items-center gap-3">
-                            {profileData.account_type !== 'pro' && (
-                                <Link 
-                                    to="/pricing" 
-                                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap flex items-center justify-center"
+                        {role !== 'pro' && (
+                            <Link 
+                                to="/pricing" 
+                                className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
+                            >
+                                {role === 'free' ? 'Upgrade Now' : 'Upgrade to Plus'}
+                            </Link>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* ── Subscription & Billing Card (Direct twin of Public Website Dashboard) ── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
+                >
+                    <div className="p-6 md:p-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-red-500" />
+                                <h2 className="text-xl font-bold text-white">Subscription & Billing</h2>
+                            </div>
+                            {role !== 'free' && (
+                                <a 
+                                    href="https://www.edumetraglobal.com/invoice?payment_id=latest" 
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-red-400 hover:text-red-300 font-bold underline"
                                 >
-                                    Upgrade Plan
-                                </Link>
+                                    View All Invoices
+                                </a>
                             )}
                         </div>
+
+                        {role === 'free' ? (
+                            <div className="bg-slate-950/50 border border-dashed border-slate-800 rounded-2xl p-8 text-center">
+                                <Sparkles className="w-10 h-10 text-slate-600 mx-auto mb-4" />
+                                <h3 className="text-white font-bold mb-2">No active subscription</h3>
+                                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">
+                                    Unlock full access to college predictions, placement stats, and expert counselling.
+                                </p>
+                                <Link 
+                                    to="/pricing" 
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-xl transition-all"
+                                >
+                                    View Pricing Plans
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
+                                        <CheckCircle className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Plan</p>
+                                        <p className="text-white font-black text-lg">Edumetra {tierName}</p>
+                                        <p className="text-xs text-slate-400">One-time payment • Lifetime Access</p>
+                                    </div>
+                                </div>
+                                <a 
+                                    href="https://www.edumetraglobal.com/invoice?payment_id=latest" 
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    <FileText className="w-4 h-4" /> Download Receipt
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
 

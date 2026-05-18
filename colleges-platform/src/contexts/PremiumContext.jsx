@@ -12,20 +12,23 @@ const LIMITS = {
 };
 
 export function PremiumProvider({ children }) {
-    const { user } = useSignup();
+    const { user, profile } = useSignup();
     const [tier, setTier] = useState('free');
     const [visibilityTier, setVisibilityTier] = useState('free');
     const [aiUsage, setAiUsage] = useState(0);
     const [loadingTier, setLoadingTier] = useState(false);
 
     useEffect(() => {
-        if (user) {
+        if (profile?.account_type) {
+            setTier(profile.account_type);
+            setVisibilityTier(profile.account_type);
+        } else if (user) {
             fetchTier();
         } else {
             setTier('free');
             setVisibilityTier('free');
         }
-    }, [user]);
+    }, [user, profile]);
 
     const fetchTier = async () => {
         setLoadingTier(true);
