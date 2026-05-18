@@ -7,7 +7,10 @@ import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ProfilePage = () => {
-    const { user, logout } = useSignup();
+    // Pull both user AND the profile that SignupContext already fetched on auth.
+    // profile.account_type is reliable here because SignupContext runs its own
+    // fetch BEFORE children are mounted (line 202: `{!loading && children}`).
+    const { user, profile: ctxProfile, logout } = useSignup();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -23,7 +26,9 @@ const ProfilePage = () => {
         gender: '',
         dob: '',
         stream: '',
-        account_type: 'free'
+        // Seed account_type directly from context profile — this is already loaded
+        // before the page mounts, so it's always accurate (no race condition).
+        account_type: ctxProfile?.account_type || 'free'
     });
 
     useEffect(() => {
@@ -40,9 +45,11 @@ const ProfilePage = () => {
                 console.warn("Profile fetch timed out, falling back to local metadata.");
                 setProfile(prev => ({ 
                     ...prev, 
-                    full_name: user.user_metadata?.full_name || '',
-                    email: user.email || '',
-                    phone_number: user.phone || ''
+                    full_name: user.user_metadata?.full_name || prev.full_name,
+                    email: user.email || prev.email,
+                    phone_number: user.phone || prev.phone_number,
+                    // CRITICAL: Preserve the tier from ctxProfile — never fall back to 'free' on timeout
+                    account_type: ctxProfile?.account_type || prev.account_type
                 }));
                 setLoading(false);
             }, 8000);
@@ -69,14 +76,17 @@ const ProfilePage = () => {
                         gender: data.gender || '',
                         dob: data.dob || '',
                         stream: data.stream || '',
-                        account_type: data.account_type || 'free'
+                        // Always prefer ctxProfile tier (fetched by SignupContext) over raw DB value
+                        // because ctxProfile is the authoritative source already loaded before mount.
+                        account_type: ctxProfile?.account_type || data.account_type || 'free'
                     });
                 } else {
                     setProfile(prev => ({ 
                         ...prev, 
                         full_name: user.user_metadata?.full_name || '',
                         email: user.email || '',
-                        phone_number: user.phone || ''
+                        phone_number: user.phone || '',
+                        account_type: ctxProfile?.account_type || prev.account_type
                     }));
                 }
             } catch (error) {
@@ -90,7 +100,7 @@ const ProfilePage = () => {
         };
         
         fetchProfile();
-    }, [user, navigate]);
+    }, [user, navigate, ctxProfile]);
 
     const handleSave = async (e) => {
         e.preventDefault();
