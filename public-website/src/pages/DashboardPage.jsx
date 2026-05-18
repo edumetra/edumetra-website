@@ -63,7 +63,6 @@ const DashboardPage = () => {
                     } catch (e) {
                         console.warn("Failed to set shared account type cookie:", e);
                     }
-                }
                 } else {
                     setProfile(prev => ({ 
                         ...prev, 
