@@ -34,12 +34,28 @@ const ProfilePage = () => {
         
         const fetchProfile = async () => {
             setLoading(true);
+            const controller = new AbortController();
+            const timer = setTimeout(() => {
+                controller.abort();
+                console.warn("Profile fetch timed out, falling back to local metadata.");
+                setProfile(prev => ({ 
+                    ...prev, 
+                    full_name: user.user_metadata?.full_name || '',
+                    email: user.email || '',
+                    phone_number: user.phone || ''
+                }));
+                setLoading(false);
+            }, 8000);
+
             try {
                 const { data, error } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', user.id)
-                    .single();
+                    .single()
+                    .abortSignal(controller.signal);
+                
+                clearTimeout(timer);
                 
                 if (error && error.code !== 'PGRST116') throw error;
 
@@ -64,8 +80,11 @@ const ProfilePage = () => {
                     }));
                 }
             } catch (error) {
-                console.error("Error fetching profile:", error);
+                if (error.name !== 'AbortError') {
+                    console.error("Error fetching profile:", error);
+                }
             } finally {
+                clearTimeout(timer);
                 setLoading(false);
             }
         };
