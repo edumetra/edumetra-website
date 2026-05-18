@@ -5,9 +5,28 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Check if credentials are configured
-const isConfigured = supabaseUrl && supabaseAnonKey &&
+export const isConfigured = !!supabaseUrl && 
+    !!supabaseAnonKey &&
     supabaseUrl !== 'YOUR_SUPABASE_URL' &&
-    supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY';
+    supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY' &&
+    supabaseUrl.trim() !== '' &&
+    supabaseAnonKey.trim() !== '';
+
+// Recursive Proxy-based dummy client query builder to prevent crashes when chaining methods (e.g. .select().eq().in())
+const createDummyQueryBuilder = () => {
+    const builder = {
+        then: (onfulfilled) => Promise.resolve({ data: [], count: 0, error: null }).then(onfulfilled),
+        catch: (onrejected) => Promise.resolve({ data: [], count: 0, error: null }).catch(onrejected)
+    };
+    return new Proxy(builder, {
+        get: (target, prop) => {
+            if (prop === 'then' || prop === 'catch') {
+                return target[prop];
+            }
+            return () => createDummyQueryBuilder();
+        }
+    });
+};
 
 export const supabase = isConfigured
     ? createClient(supabaseUrl, supabaseAnonKey, {
@@ -19,6 +38,8 @@ export const supabase = isConfigured
         }
     })
     : {
+        from: () => createDummyQueryBuilder(),
+        rpc: () => Promise.resolve({ data: null, error: null }),
         auth: {
             getSession: async () => ({ data: { session: null }, error: null }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
@@ -38,3 +59,4 @@ if (!isConfigured && import.meta.env.DEV) {
         'See SUPABASE_SETUP.md for instructions.'
     );
 }
+

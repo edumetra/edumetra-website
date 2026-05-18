@@ -200,7 +200,7 @@ const PricingPage = () => {
                     </motion.div>
 
                     {/* Pricing Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
                         {plans.map((plan, index) => (
                             <motion.div
                                 key={plan.id}
@@ -230,13 +230,13 @@ const PricingPage = () => {
                                                 {plan.originalPrice}
                                             </span>
                                         )}
-                                        <div className="flex items-baseline justify-center gap-1">
+                                        <div className="flex flex-col items-center justify-center gap-1">
                                             <span className="text-5xl lg:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
                                                 {appliedCoupon && plan.id !== 'free' 
                                                     ? `₹${Math.floor(parseInt(plan.price.replace('₹', '').replace(/,/g, '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
                                                     : plan.price}
                                             </span>
-                                            <span className="text-slate-500 font-medium whitespace-nowrap">{plan.period}</span>
+                                            <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px] mt-1">{plan.period}</span>
                                         </div>
                                     </div>
                                     {appliedCoupon && plan.id !== 'free' && (

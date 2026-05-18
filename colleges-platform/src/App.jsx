@@ -29,6 +29,7 @@ import ContactPage from './pages/ContactPage';
 import NewsUpdatesPage from './pages/NewsUpdatesPage';
 import CareersPage from './pages/CareersPage';
 import SiteNotice from './components/ui/SiteNotice';
+import CredentialsWarningBanner from './components/ui/CredentialsWarningBanner';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { ChatbotProvider } from './components/chatbot/ChatbotContext';
 import ComingSoonPage from './pages/ComingSoonPage';
@@ -73,6 +74,8 @@ function App() {
                   }} 
               />
               <SiteNotice />
+              <CredentialsWarningBanner />
+
               <Suspense fallback={null}>
                 <ChatbotWidget />
               </Suspense>
