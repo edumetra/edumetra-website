@@ -3,14 +3,12 @@ import { useSignup } from '../contexts/SignupContext';
 import { supabase } from '../lib/supabase';
 import { User, Mail, Save, Pencil, LogOut, ArrowLeft, ShieldCheck, Loader2, Sparkles, Zap, ChevronRight, CheckCircle, FileText } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ProfilePage = () => {
-    // Pull both user AND the profile that SignupContext already fetched on auth.
-    // profile.account_type is reliable here because SignupContext runs its own
-    // fetch BEFORE children are mounted (line 202: `{!loading && children}`).
-    const { user, profile: ctxProfile, logout } = useSignup();
+    const { user, logout } = useSignup();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -29,18 +27,6 @@ const ProfilePage = () => {
         account_type: 'free'
     });
 
-    // ── Reactive tier patch ───────────────────────────────────────────────────
-    // SignupContext fetches account_type asynchronously. Its 3-second safety timer
-    // may mount this page BEFORE the fetch completes (ctxProfile is null at first).
-    // This effect listens for when ctxProfile finally arrives and immediately patches
-    // the local account_type — no race condition possible.
-    useEffect(() => {
-        if (ctxProfile?.account_type) {
-            setProfile(prev => ({ ...prev, account_type: ctxProfile.account_type }));
-        }
-    }, [ctxProfile]);
-
-    // ── Main profile data fetch ───────────────────────────────────────────────
     useEffect(() => {
         if (!user) {
             navigate('/');
@@ -48,34 +34,15 @@ const ProfilePage = () => {
         }
         
         const fetchProfile = async () => {
-            setLoading(true);
-            const controller = new AbortController();
-            const timer = setTimeout(() => {
-                controller.abort();
-                console.warn("Profile fetch timed out, using session fallback.");
-                setProfile(prev => ({ 
-                    ...prev, 
-                    full_name: user.user_metadata?.full_name || prev.full_name,
-                    email: user.email || prev.email,
-                    phone_number: user.phone || prev.phone_number,
-                }));
-                setLoading(false);
-            }, 8000);
-
             try {
-                const { data, error } = await supabase
+                const { data } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', user.id)
-                    .single()
-                    .abortSignal(controller.signal);
+                    .single();
                 
-                clearTimeout(timer);
-                
-                if (error && error.code !== 'PGRST116') throw error;
-
                 if (data) {
-                    setProfile(prev => ({
+                    setProfile({
                         full_name: data.full_name || user.user_metadata?.full_name || '',
                         email: user.email || '',
                         phone_number: user.phone || data.phone_number || '',
@@ -84,31 +51,24 @@ const ProfilePage = () => {
                         gender: data.gender || '',
                         dob: data.dob || '',
                         stream: data.stream || '',
-                        // Use DB value but KEEP ctxProfile tier if it arrived already
-                        account_type: prev.account_type !== 'free'
-                            ? prev.account_type
-                            : (data.account_type || 'free')
-                    }));
+                        account_type: data.account_type || 'free'
+                    });
                 } else {
                     setProfile(prev => ({ 
                         ...prev, 
                         full_name: user.user_metadata?.full_name || '',
                         email: user.email || '',
-                        phone_number: user.phone || '',
+                        phone_number: user.phone || ''
                     }));
                 }
             } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error("Error fetching profile:", error);
-                }
+                console.error("Error fetching profile:", error);
             } finally {
-                clearTimeout(timer);
                 setLoading(false);
             }
         };
         
         fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, navigate]);
 
     const handleSave = async (e) => {
@@ -149,7 +109,7 @@ const ProfilePage = () => {
                     city: profile.city,
                     state: profile.state,
                     status: 'Fresh'
-                }, ['Profile Updated (Colleges Portal)']);
+                }, ['Profile Updated']);
             } catch (e) {}
             
             setIsEditing(false);
@@ -177,305 +137,287 @@ const ProfilePage = () => {
     const tierName = profile.account_type === 'pro' ? 'Plus' : profile.account_type.charAt(0).toUpperCase() + profile.account_type.slice(1);
 
     return (
-        <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
-            <div className="max-w-3xl mx-auto">
-                <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
-                    <ArrowLeft className="w-4 h-4" /> Back to Home
-                </Link>
+        <>
+            <SEO page="dashboard" />
+            <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
+                <div className="max-w-3xl mx-auto">
+                    <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
+                        <ArrowLeft className="w-4 h-4" /> Back to Home
+                    </Link>
 
-                <div className="flex items-center gap-5 mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-rose-700 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-red-900/30">
-                        {user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8 text-white/50" />}
-                    </div>
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-white">{profile.full_name || 'Student Profile'}</h1>
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-slate-400 flex items-center gap-2">
-                                <Mail className="w-4 h-4" /> {user?.email}
-                            </span>
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                                profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
-                                'bg-slate-800 text-slate-300 border border-slate-700'
-                            }`}>
-                                {tierName}
-                            </span>
+                    <div className="flex items-center gap-5 mb-8">
+                        <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-rose-700 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-red-900/30">
+                            {user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8 text-white/50" />}
                         </div>
-                    </div>
-                </div>
-
-                {/* ── Account Status Card ── */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
-                >
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-slate-900 via-slate-900 to-red-950/20">
-                        <div className="flex items-center gap-4">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                                profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
-                                profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
-                                'bg-slate-800 text-slate-400 border border-slate-700'
-                            }`}>
-                                {profile.account_type === 'free' ? <User className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-white">{tierName} Account</h2>
-                                <p className="text-sm text-slate-400">
-                                    {profile.account_type === 'free' ? 'Upgrade to unlock premium features.' : 'One-time payment lifetime access active.'}
-                                </p>
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-black text-white">{profile.full_name || 'Student Profile'}</h1>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span className="text-slate-400 flex items-center gap-2">
+                                    <Mail className="w-4 h-4" /> {user?.email}
+                                </span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                    profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+                                    'bg-slate-800 text-slate-300 border border-slate-700'
+                                }`}>
+                                    {tierName}
+                                </span>
                             </div>
                         </div>
-                        
-                        {profile.account_type !== 'pro' && (
-                            <Link 
-                                to="/pricing" 
-                                className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
-                            >
-                                {profile.account_type === 'free' ? 'Upgrade Now' : 'Upgrade to Plus'}
-                            </Link>
-                        )}
                     </div>
-                </motion.div>
 
-                {/* ── Subscription & Billing ── */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
-                >
-                    <div className="p-6 md:p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-5 h-5 text-red-500" />
-                                <h2 className="text-xl font-bold text-white">Subscription & Billing</h2>
+                    {/* ── Account Status Card ── */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
+                    >
+                        <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-slate-900 via-slate-900 to-red-950/20">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                                    profile.account_type === 'pro' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
+                                    profile.account_type === 'premium' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
+                                    'bg-slate-800 text-slate-400 border border-slate-700'
+                                }`}>
+                                    {profile.account_type === 'free' ? <User className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">{tierName} Account</h2>
+                                    <p className="text-sm text-slate-400">
+                                        {profile.account_type === 'free' ? 'Upgrade to unlock premium features.' : 'One-time payment lifetime access active.'}
+                                    </p>
+                                </div>
                             </div>
-                            {profile.account_type !== 'free' && (
-                                <Link 
-                                    to="/invoice?payment_id=latest" 
-                                    className="text-xs text-red-400 hover:text-red-300 font-bold underline"
-                                >
-                                    View All Invoices
-                                </Link>
-                            )}
-                        </div>
-
-                        {profile.account_type === 'free' ? (
-                            <div className="bg-slate-950/50 border border-dashed border-slate-800 rounded-2xl p-8 text-center">
-                                <Sparkles className="w-10 h-10 text-slate-600 mx-auto mb-4" />
-                                <h3 className="text-white font-bold mb-2">No active subscription</h3>
-                                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">
-                                    Unlock full access to college predictions, placement stats, and expert counselling.
-                                </p>
+                            
+                            {profile.account_type !== 'pro' && (
                                 <Link 
                                     to="/pricing" 
-                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-xl transition-all"
+                                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
                                 >
-                                    View Pricing Plans
+                                    {profile.account_type === 'free' ? 'Upgrade Now' : 'Upgrade to Plus'}
                                 </Link>
-                            </div>
-                        ) : (
-                            <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                                        <CheckCircle className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Plan</p>
-                                        <p className="text-white font-black text-lg">Edumetra {tierName}</p>
-                                        <p className="text-xs text-slate-400">One-time payment • Lifetime Access</p>
-                                    </div>
-                                </div>
-                                <Link 
-                                    to="/invoice?payment_id=latest" 
-                                    className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
-                                >
-                                    <FileText className="w-4 h-4" /> Download Receipt
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* ── Personal Info Section ── */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl"
-                >
-                    <div className="p-6 md:p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                        <div>
-                            <h2 className="text-xl font-bold text-white">Personal Information</h2>
-                            <p className="text-sm text-slate-400">Update your student profile details.</p>
+                            )}
                         </div>
-                        {!isEditing ? (
-                            <button 
-                                onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors"
-                            >
-                                <Pencil className="w-4 h-4" /> Edit Profile
-                            </button>
-                        ) : (
-                            <button 
-                                onClick={() => setIsEditing(false)}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 hover:text-white text-sm font-semibold rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        )}
-                    </div>
+                    </motion.div>
 
-                    <div className="p-6 md:p-8">
-                        {message && (
-                            <div className={`mb-6 p-4 rounded-xl text-sm font-semibold flex items-center gap-2 ${message.includes('Error') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
-                                {message}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Full Name</label>
-                                {isEditing ? (
-                                    <input 
-                                        value={profile.full_name} 
-                                        onChange={e => setProfile({...profile, full_name: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
-                                        required
-                                    />
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.full_name || 'Not provided'}</div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Email Address</label>
-                                {isEditing ? (
-                                    <input 
-                                        type="email"
-                                        value={profile.email} 
-                                        onChange={e => setProfile({...profile, email: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
-                                        required
-                                    />
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.email || 'Not provided'}</div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number</label>
-                                <div className="px-4 py-2.5 bg-slate-950/50 rounded-xl text-slate-400 border border-transparent cursor-not-allowed">
-                                    {profile.phone_number || 'Not provided'}
+                    {/* ── Subscription & Billing ── */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl mb-8"
+                    >
+                        <div className="p-6 md:p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-5 h-5 text-red-500" />
+                                    <h2 className="text-xl font-bold text-white">Subscription & Billing</h2>
                                 </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Gender</label>
-                                {isEditing ? (
-                                    <select 
-                                        value={profile.gender} 
-                                        onChange={e => setProfile({...profile, gender: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                                {profile.account_type !== 'free' && (
+                                    <Link 
+                                        to="/invoice?payment_id=latest" 
+                                        className="text-xs text-red-400 hover:text-red-300 font-bold underline"
                                     >
-                                        <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.gender || 'Not provided'}</div>
+                                        View All Invoices
+                                    </Link>
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">City</label>
-                                {isEditing ? (
-                                    <input 
-                                        value={profile.city} 
-                                        onChange={e => setProfile({...profile, city: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
-                                        placeholder="e.g. Mumbai"
-                                    />
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.city || 'Not provided'}</div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">State</label>
-                                {isEditing ? (
-                                    <select 
-                                        value={profile.state} 
-                                        onChange={e => setProfile({...profile, state: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            {profile.account_type === 'free' ? (
+                                <div className="bg-slate-950/50 border border-dashed border-slate-800 rounded-2xl p-8 text-center">
+                                    <Sparkles className="w-10 h-10 text-slate-600 mx-auto mb-4" />
+                                    <h3 className="text-white font-bold mb-2">No active subscription</h3>
+                                    <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">
+                                        Unlock full access to college predictions, placement stats, and expert counselling.
+                                    </p>
+                                    <Link 
+                                        to="/pricing" 
+                                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-xl transition-all"
                                     >
-                                        <option value="">Select State</option>
-                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                        <option value="Delhi">Delhi</option>
-                                        <option value="Maharashtra">Maharashtra</option>
-                                        <option value="Karnataka">Karnataka</option>
-                                        <option value="Tamil Nadu">Tamil Nadu</option>
-                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.state || 'Not provided'}</div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Target Stream</label>
-                                {isEditing ? (
-                                    <select 
-                                        value={profile.stream} 
-                                        onChange={e => setProfile({...profile, stream: e.target.value})} 
-                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                                        View Pricing Plans
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
+                                            <CheckCircle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Plan</p>
+                                            <p className="text-white font-black text-lg">Edumetra {tierName}</p>
+                                            <p className="text-xs text-slate-400">One-time payment • Lifetime Access</p>
+                                        </div>
+                                    </div>
+                                    <Link 
+                                        to="/invoice?payment_id=latest" 
+                                        className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
                                     >
-                                        <option value="">Select Stream</option>
-                                        <option value="Engineering">Engineering</option>
-                                        <option value="Medical">Medical</option>
-                                        <option value="Management">Management</option>
-                                        <option value="Arts">Arts</option>
-                                        <option value="Commerce">Commerce</option>
-                                        <option value="Law">Law</option>
-                                    </select>
-                                ) : (
-                                    <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.stream || 'Not provided'}</div>
-                                )}
-                            </div>
-
-                            {isEditing && (
-                                <div className="md:col-span-2 pt-4 border-t border-slate-800 flex justify-end">
-                                    <button 
-                                        type="submit" 
-                                        disabled={saving}
-                                        className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-900/20 disabled:opacity-50"
-                                    >
-                                        {saving ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <><Save className="w-5 h-5" /> Save Changes</>
-                                        )}
-                                    </button>
+                                        <FileText className="w-4 h-4" /> Download Receipt
+                                    </Link>
                                 </div>
                             )}
-                        </form>
-                    </div>
-                </motion.div>
+                        </div>
+                    </motion.div>
 
-                <div className="mt-6 flex justify-end">
-                    <button 
-                        onClick={handleSignOut}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-red-400 font-semibold rounded-xl transition-all"
+                    {/* ── Personal Info Section ── */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl"
                     >
-                        Sign Out
-                    </button>
+                        <div className="p-6 md:p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                            <div>
+                                <h2 className="text-xl font-bold text-white">Personal Information</h2>
+                                <p className="text-sm text-slate-400">Update your student profile details.</p>
+                            </div>
+                            {!isEditing ? (
+                                <button 
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                                >
+                                    <Pencil className="w-4 h-4" /> Edit Profile
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={() => setIsEditing(false)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 hover:text-white text-sm font-semibold rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="p-6 md:p-8">
+                            {message && (
+                                <div className={`mb-6 p-4 rounded-xl text-sm font-semibold flex items-center gap-2 ${message.includes('Error') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Full Name</label>
+                                    {isEditing ? (
+                                        <input 
+                                            value={profile.full_name} 
+                                            onChange={e => setProfile({...profile, full_name: e.target.value})} 
+                                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
+                                            required
+                                        />
+                                    ) : (
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.full_name || 'Not provided'}</div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Email Address</label>
+                                    {isEditing ? (
+                                        <input 
+                                            type="email"
+                                            value={profile.email} 
+                                            onChange={e => setProfile({...profile, email: e.target.value})} 
+                                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
+                                            required
+                                        />
+                                    ) : (
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.email || 'Not provided'}</div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Phone Number</label>
+                                    <div className="px-4 py-2.5 bg-slate-950/50 rounded-xl text-slate-400 border border-transparent cursor-not-allowed">
+                                        {profile.phone_number || 'Not provided'}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Gender</label>
+                                    {isEditing ? (
+                                        <select 
+                                            value={profile.gender} 
+                                            onChange={e => setProfile({...profile, gender: e.target.value})} 
+                                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    ) : (
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.gender || 'Not provided'}</div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">City</label>
+                                    {isEditing ? (
+                                        <input 
+                                            value={profile.city} 
+                                            onChange={e => setProfile({...profile, city: e.target.value})} 
+                                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors" 
+                                            placeholder="e.g. Mumbai"
+                                        />
+                                    ) : (
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.city || 'Not provided'}</div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs text-slate-500 uppercase tracking-wider font-bold">State</label>
+                                    {isEditing ? (
+                                        <select 
+                                            value={profile.state} 
+                                            onChange={e => setProfile({...profile, state: e.target.value})} 
+                                            className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                                        >
+                                            <option value="">Select State</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    ) : (
+                                        <div className="px-4 py-2.5 bg-slate-950 rounded-xl text-slate-300 border border-transparent">{profile.state || 'Not provided'}</div>
+                                    )}
+                                </div>
+
+                                {isEditing && (
+                                    <div className="md:col-span-2 pt-4 border-t border-slate-800 flex justify-end">
+                                        <button 
+                                            type="submit" 
+                                            disabled={saving}
+                                            className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-900/20 disabled:opacity-50"
+                                        >
+                                            {saving ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <><Save className="w-5 h-5" /> Save Changes</>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
+                    </motion.div>
+
+                    <div className="mt-6 flex justify-end">
+                        <button 
+                            onClick={handleSignOut}
+                            className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-red-400 font-semibold rounded-xl transition-all"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
