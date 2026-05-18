@@ -60,7 +60,7 @@ export function getWelcomeFlow(user, role) {
     const premiumNote = role === 'premium' ? '\n\n✨ As a Premium member, you have full access including cutoff predictions.' : '';
 
     return {
-        content: `${greeting} I'm Edu 🎓 — your personal admission guide.\n\nI can help you find colleges, check cutoffs, compare plans, or book a counselling call.${premiumNote}\n\nWhat are you looking for?`,
+        content: `${greeting} I'm Edumetra Global 🎓 — your personal admission guide.\n\nI can help you find colleges, check cutoffs, compare plans, or book a counselling call.${premiumNote}\n\nWhat are you looking for?`,
         chips: [
             {
                 label: 'Find Colleges',

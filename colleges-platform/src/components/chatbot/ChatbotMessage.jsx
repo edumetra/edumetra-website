@@ -18,8 +18,8 @@ function MessageBubble({ msg, isLatest }) {
             className={`flex gap-2 ${isBot ? 'items-start' : 'items-end justify-end'}`}
         >
             {isBot && (
-                <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow-md mt-0.5">
-                    E
+                <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow-md mt-0.5" title="Edumetra Global">
+                    EG
                 </div>
             )}
 
@@ -86,6 +86,22 @@ export function QuickReplies({ chips }) {
         setUsed(true);
         incrementGuestTurn();
         addMessage({ role: 'user', content: chip.label });
+
+        // Intercept chip click if phone number is not captured yet!
+        const hasPhone = user?.phone || user?.user_metadata?.phone || sessionStorage.getItem('edu_chatbot_phone');
+        if (!hasPhone && chip.label !== '← Main Menu' && chip.label !== 'Try again') {
+            setFlowData(prev => ({
+                ...prev,
+                pendingAction: { type: 'chip', label: chip.label }
+            }));
+            setFlow('get_phone_initial');
+            botSay("Welcome! Before we proceed, could you please share your 10-digit phone number? 📱\nThis helps us save your admission progress and send updates.", {
+                delay: 400,
+                inputMode: 'text'
+            });
+            return;
+        }
+
         chip.action?.({ botSay, setFlow, setFlowData, flowData, role, isSignedUp, openSignUp });
     };
 
@@ -305,8 +321,8 @@ export function PremiumGateCard() {
 export function TypingIndicator() {
     return (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 items-start">
-            <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow-md">
-                E
+            <div className="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow-md" title="Edumetra Global">
+                EG
             </div>
             <div className="bg-[#1e2a42] border border-slate-700/40 rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1 items-center h-4">

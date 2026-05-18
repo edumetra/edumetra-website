@@ -4,6 +4,7 @@ import { X, Send, RotateCcw, GraduationCap, Crown, Sparkles } from 'lucide-react
 import { useChatbot, GUEST_TURN_LIMIT } from './ChatbotContext';
 import MessageBubble, { TypingIndicator } from './ChatbotMessage';
 import { getWelcomeFlow, handleTextInput } from './flows/index';
+import { pushLeadToTeleCRM } from '../../services/telecrm';
 
 const GREETED_KEY = 'edu_greeted';
 
@@ -22,10 +23,13 @@ function ChatWindow({ onClose }) {
     const bottomRef = useRef(null);
     const inputRef = useRef(null);
 
+    const welcomeTriggered = useRef(false);
+
     // Send welcome on first open
     useEffect(() => {
         if (!initialized) return;
-        if (messages.length === 0) {
+        if (messages.length === 0 && !welcomeTriggered.current) {
+            welcomeTriggered.current = true;
             const w = getWelcomeFlow(user, role);
             botSay(w.content, { delay: 400, chips: w.chips });
             setFlow('welcome');
@@ -36,7 +40,7 @@ function ChatWindow({ onClose }) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
-    const textFlows = ['cutoff_search', 'counsellor_name', 'counsellor_phone'];
+    const textFlows = ['cutoff_search', 'counsellor_name', 'counsellor_phone', 'get_phone_initial'];
     useEffect(() => {
         if (textFlows.includes(flow)) setTimeout(() => inputRef.current?.focus(), 200);
     }, [flow]); // eslint-disable-line
@@ -44,6 +48,98 @@ function ChatWindow({ onClose }) {
     const handleSend = async () => {
         const trimmed = text.trim();
         if (!trimmed) return;
+
+        // If they are in the get_phone_initial flow, capture their phone number!
+        if (flow === 'get_phone_initial') {
+            const phone = trimmed.replace(/\D/g, '');
+            if (phone.length < 10) {
+                addMessage({ role: 'user', content: trimmed });
+                setText('');
+                botSay("That doesn't look like a valid phone number. Please enter a valid 10-digit number:", {
+                    delay: 400,
+                    inputMode: 'text'
+                });
+                return;
+            }
+
+            // Save phone
+            sessionStorage.setItem('edu_chatbot_phone', phone);
+            setFlowData(prev => ({ ...prev, phone }));
+
+            addMessage({ role: 'user', content: trimmed });
+            setText('');
+
+            // Push lead to TeleCRM immediately!
+            try {
+                await pushLeadToTeleCRM({
+                    name: user?.user_metadata?.full_name || 'Chatbot Lead',
+                    phone: phone,
+                    email: user?.email || '',
+                    notes: `Source: Chatbot Initial Lead\nFirst Action: ${flowData.pendingAction?.text || flowData.pendingAction?.label || 'None'}`,
+                    status: 'Fresh'
+                }, ['Chatbot Initial Lead']);
+            } catch (e) {
+                console.error("TeleCRM push error:", e);
+            }
+
+            botSay("Thank you! Your phone number is saved. Let's continue! 👍", { delay: 400 });
+
+            // Resume the pending action!
+            const pending = flowData.pendingAction;
+            if (pending) {
+                // Clear pending action
+                setFlowData(prev => {
+                    const next = { ...prev };
+                    delete next.pendingAction;
+                    return next;
+                });
+
+                if (pending.type === 'text') {
+                    setTimeout(async () => {
+                        await handleTextInput({
+                            text: pending.text,
+                            flow: null, // Reset flow so it handles it as general NLP search/intent
+                            flowData: {},
+                            setFlow, setFlowData,
+                            botSay, role, isSignedUp, user
+                        });
+                    }, 1000);
+                } else if (pending.type === 'chip') {
+                    setTimeout(async () => {
+                        const welcome = getWelcomeFlow(user, role);
+                        const chip = welcome.chips.find(c => c.label === pending.label);
+                        if (chip) {
+                            chip.action({ botSay, setFlow, setFlowData, flowData: {}, role, isSignedUp, openSignUp });
+                        } else {
+                            reloadWelcome({ botSay, setFlow, user, role });
+                        }
+                    }, 1000);
+                }
+            } else {
+                setTimeout(() => {
+                    reloadWelcome({ botSay, setFlow, user, role });
+                }, 1000);
+            }
+            return;
+        }
+
+        // Check if phone number is captured first!
+        const hasPhone = user?.phone || user?.user_metadata?.phone || sessionStorage.getItem('edu_chatbot_phone');
+        if (!hasPhone) {
+            // Save the action as a pending action
+            setFlowData(prev => ({
+                ...prev,
+                pendingAction: { type: 'text', text: trimmed }
+            }));
+            setFlow('get_phone_initial');
+            addMessage({ role: 'user', content: trimmed });
+            setText('');
+            botSay("Welcome! Before we proceed, could you please share your 10-digit phone number? 📱\nThis helps us save your admission progress and send updates.", {
+                delay: 400,
+                inputMode: 'text'
+            });
+            return;
+        }
 
         if (!canContinue()) {
             addMessage({ role: 'user', content: trimmed });
@@ -70,12 +166,12 @@ function ChatWindow({ onClose }) {
     };
 
     const showInput = textFlows.includes(flow) ||
-        ['welcome', 'results', 'pricing', 'counsellor_done', null].includes(flow);
+        ['welcome', 'results', 'pricing', 'counsellor_done', 'get_phone_initial', null].includes(flow);
 
     const placeholder =
         flow === 'cutoff_search' ? 'Type college name...' :
         flow === 'counsellor_name' ? 'Your name...' :
-        flow === 'counsellor_phone' ? 'Phone number...' :
+        flow === 'counsellor_phone' || flow === 'get_phone_initial' ? 'Phone number...' :
         'Ask anything — colleges, cutoffs, streams...';
 
     const displayName = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || null;
@@ -98,7 +194,7 @@ function ChatWindow({ onClose }) {
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <p className="text-white font-bold text-sm">Edu</p>
+                            <p className="text-white font-bold text-sm">Edumetra Global</p>
                             {role === 'premium' && (
                                 <span className="flex items-center gap-0.5 text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.5 rounded-full">
                                     <Crown className="w-2.5 h-2.5" /> PREMIUM
@@ -187,7 +283,7 @@ function ChatWindow({ onClose }) {
                 ) : (
                     <p className="text-center text-slate-700 text-[10px] py-1">Select an option above ↑</p>
                 )}
-                <p className="text-center text-slate-800 text-[9px] mt-1.5">Edu · Edumetra Admission Guide</p>
+                <p className="text-center text-slate-800 text-[9px] mt-1.5">Edumetra Global · Edumetra Admission Guide</p>
             </div>
         </motion.div>
     );
@@ -261,8 +357,8 @@ export default function ChatbotWidget() {
                         style={{ boxShadow: '0 16px 40px rgba(0,0,0,0.55)' }}
                     >
                         <div className="flex items-center gap-2 mb-3">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow">E</div>
-                            <span className="text-white text-xs font-bold flex-1">Edu</span>
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-[11px] font-black text-white shadow">EG</div>
+                            <span className="text-white text-xs font-bold flex-1">Edumetra Global</span>
                             <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                             <button onClick={handleGreetingDismiss} className="text-slate-600 hover:text-slate-400 transition-colors rounded p-0.5 ml-1">
                                 <X className="w-3 h-3" />
