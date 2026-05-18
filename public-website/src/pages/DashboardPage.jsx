@@ -14,6 +14,7 @@ const DashboardPage = () => {
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [message, setMessage] = useState('');
+    const [showTopTierPopup, setShowTopTierPopup] = useState(false);
     
     const [profile, setProfile] = useState({
         full_name: '',
@@ -149,6 +150,24 @@ const DashboardPage = () => {
     return (
         <>
             <SEO page="dashboard" />
+
+            {/* ── Top Tier Popup Toast ── */}
+            {showTopTierPopup && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50">
+                    <motion.div
+                        initial={{ opacity: 0, y: -16, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -16, scale: 0.95 }}
+                        className="flex items-center gap-3 px-6 py-4 bg-purple-900/90 backdrop-blur-md border border-purple-500/40 rounded-2xl shadow-2xl shadow-purple-900/40"
+                    >
+                        <Zap className="w-5 h-5 text-purple-300 flex-shrink-0" />
+                        <div>
+                            <p className="text-white font-bold text-sm">You&apos;re already on the highest tier!</p>
+                            <p className="text-purple-300 text-xs mt-0.5">Enjoy all premium features — no upgrade needed.</p>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
             <div className="min-h-screen bg-slate-950 pt-32 pb-20 px-4">
                 <div className="max-w-3xl mx-auto">
                     <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
@@ -201,12 +220,24 @@ const DashboardPage = () => {
                             </div>
                             
                             {profile.account_type !== 'pro' && (
-                                <Link 
-                                    to="/pricing" 
-                                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
-                                >
-                                    {profile.account_type === 'free' ? 'Upgrade Now' : 'Upgrade to Plus'}
-                                </Link>
+                                profile.account_type === 'premium' ? (
+                                    <button
+                                        onClick={() => {
+                                            setShowTopTierPopup(true);
+                                            setTimeout(() => setShowTopTierPopup(false), 3000);
+                                        }}
+                                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-purple-900/20 whitespace-nowrap text-center cursor-default"
+                                    >
+                                        Highest Plan Active
+                                    </button>
+                                ) : (
+                                    <Link 
+                                        to="/pricing" 
+                                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
+                                    >
+                                        Upgrade Now
+                                    </Link>
+                                )
                             )}
                         </div>
                     </motion.div>
