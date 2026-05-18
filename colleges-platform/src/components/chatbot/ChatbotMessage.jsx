@@ -258,9 +258,9 @@ function PredictionsCard({ predictions }) {
 // ── Pricing card ─────────────────────────────────────────────────────────────
 function PricingCard() {
     const plans = [
-        { name: 'Free', price: '₹0', icon: '🆓', features: ['5 college views/day', 'Basic filters', 'Student reviews'] },
-        { name: 'Premium', price: '₹499/mo', icon: '⚡', features: ['Unlimited views', 'Cutoff predictions', 'Priority counselling'], highlight: true },
-        { name: 'Pro', price: '₹999/mo', icon: '👑', features: ['All Premium', 'AI recommendations', '1:1 Expert sessions'] },
+        { name: 'Free', price: '₹0', icon: '🆓', features: ['5 college views/day', 'Basic search', 'Student reviews'] },
+        { name: 'Plus Plan', price: '₹3,000', icon: '⚡', features: ['Admission Predictor', 'Full cutoff lists', 'Shortlist & AI strategies'], highlight: true },
+        { name: 'Counselling', price: '₹30,000', icon: '👑', features: ['Everything in Plus Plan', '1:1 Expert counsellors', 'Document validation & support'] },
     ];
     return (
         <div className="space-y-2 w-full">
@@ -293,7 +293,7 @@ export function PremiumGateCard() {
             className="bg-amber-950/30 border border-amber-500/25 rounded-xl p-4 text-center w-full">
             <Crown className="w-5 h-5 text-amber-400 mx-auto mb-2" />
             <p className="text-white text-xs font-bold mb-1">Premium Feature</p>
-            <p className="text-slate-400 text-[10px] mb-3">Admission predictions need Premium or Pro</p>
+            <p className="text-slate-400 text-[10px] mb-3">Admission predictions requires Plus or Counselling plan</p>
             <Link to="/pricing" className="block w-full py-2 bg-amber-500 text-amber-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition-all">
                 Upgrade Now →
             </Link>

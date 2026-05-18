@@ -56,7 +56,7 @@ export function detectIntent(text) {
 // ── Personalised greeting ─────────────────────────────────────────────────────
 export function getWelcomeFlow(user, role) {
     const firstName = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || null;
-    const greeting = firstName ? `Hey ${firstName}! 👋` : 'Hi there! 👋';
+    const greeting = firstName ? `Hi ${firstName}! How are you doing? 👋` : 'Hi there! How are you doing? 👋';
     const premiumNote = role === 'premium' ? '\n\n✨ As a Premium member, you have full access including cutoff predictions.' : '';
 
     return {
@@ -106,7 +106,7 @@ export function getWelcomeFlow(user, role) {
                                 {
                                     label: "What's included?",
                                     action: ({ botSay }) => botSay(
-                                        '⚡ Premium gives you:\n• Unlimited college views\n• Full cutoff data\n• Admission predictions\n• Priority counselling\n\nAll from ₹499/month.',
+                                        '⚡ Plus Plan (₹3,000 one-time) gives you:\n• Admission Predictor (Safe/Mod/Risky)\n• Full cutoff lists & unlimited views\n• AI preparation strategies & study plans\n\n👑 Counselling Plan (₹30,000 one-time) adds:\n• 1-on-1 personal expert counselling support\n• Complete choice-filling assistance\n• Document validation & verification support',
                                         { delay: 500 }
                                     )
                                 },

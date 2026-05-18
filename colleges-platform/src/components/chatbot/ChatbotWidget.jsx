@@ -201,6 +201,18 @@ export default function ChatbotWidget() {
     const hasMessages = messages.length > 0;
 
     useEffect(() => {
+        // Auto-open chatbot window after 4 seconds if not already auto-opened/interacted in this session
+        const autoOpened = sessionStorage.getItem('edu_chatbot_auto_opened');
+        if (!autoOpened && !isOpen && !hasMessages) {
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+                sessionStorage.setItem('edu_chatbot_auto_opened', '1');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen, setIsOpen, hasMessages]);
+
+    useEffect(() => {
         if (localStorage.getItem(GREETED_KEY)) return;
         const timer = setTimeout(() => setShowGreeting(true), 6000);
         return () => clearTimeout(timer);
@@ -208,6 +220,7 @@ export default function ChatbotWidget() {
 
     const handleGreetingClick = () => {
         localStorage.setItem(GREETED_KEY, '1');
+        sessionStorage.setItem('edu_chatbot_auto_opened', '1');
         setShowGreeting(false);
         setIsOpen(true);
     };
@@ -215,12 +228,14 @@ export default function ChatbotWidget() {
     const handleGreetingDismiss = (e) => {
         e.stopPropagation();
         localStorage.setItem(GREETED_KEY, '1');
+        sessionStorage.setItem('edu_chatbot_auto_opened', '1');
         setShowGreeting(false);
     };
 
     useEffect(() => {
         if (isOpen) {
             localStorage.setItem(GREETED_KEY, '1');
+            sessionStorage.setItem('edu_chatbot_auto_opened', '1');
             setShowGreeting(false);
         }
     }, [isOpen]);
