@@ -102,12 +102,13 @@ export function SignupProvider({ children }) {
 
         // SAFETY FAIL-SAFE:
         // In strict privacy browsers (like Ulaa), Supabase might be blocked entirely.
-        // We force loading to false after 3 seconds to ensure the app shell mounts regardless.
+        // We wait 8 seconds to give the profile fetch enough time to return the
+        // correct account_type before forcing the app shell to mount with a null profile.
         const safetyTimer = setTimeout(() => {
             if (isMounted) {
                 setLoading(false);
             }
-        }, 3000);
+        }, 8000);
 
         return () => {
             isMounted = false;

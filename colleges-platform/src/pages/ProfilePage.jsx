@@ -26,11 +26,21 @@ const ProfilePage = () => {
         gender: '',
         dob: '',
         stream: '',
-        // Seed account_type directly from context profile — this is already loaded
-        // before the page mounts, so it's always accurate (no race condition).
-        account_type: ctxProfile?.account_type || 'free'
+        account_type: 'free'
     });
 
+    // ── Reactive tier patch ───────────────────────────────────────────────────
+    // SignupContext fetches account_type asynchronously. Its 3-second safety timer
+    // may mount this page BEFORE the fetch completes (ctxProfile is null at first).
+    // This effect listens for when ctxProfile finally arrives and immediately patches
+    // the local account_type — no race condition possible.
+    useEffect(() => {
+        if (ctxProfile?.account_type) {
+            setProfile(prev => ({ ...prev, account_type: ctxProfile.account_type }));
+        }
+    }, [ctxProfile]);
+
+    // ── Main profile data fetch ───────────────────────────────────────────────
     useEffect(() => {
         if (!user) {
             navigate('/');
@@ -42,14 +52,12 @@ const ProfilePage = () => {
             const controller = new AbortController();
             const timer = setTimeout(() => {
                 controller.abort();
-                console.warn("Profile fetch timed out, falling back to local metadata.");
+                console.warn("Profile fetch timed out, using session fallback.");
                 setProfile(prev => ({ 
                     ...prev, 
                     full_name: user.user_metadata?.full_name || prev.full_name,
                     email: user.email || prev.email,
                     phone_number: user.phone || prev.phone_number,
-                    // CRITICAL: Preserve the tier from ctxProfile — never fall back to 'free' on timeout
-                    account_type: ctxProfile?.account_type || prev.account_type
                 }));
                 setLoading(false);
             }, 8000);
@@ -67,7 +75,7 @@ const ProfilePage = () => {
                 if (error && error.code !== 'PGRST116') throw error;
 
                 if (data) {
-                    setProfile({
+                    setProfile(prev => ({
                         full_name: data.full_name || user.user_metadata?.full_name || '',
                         email: user.email || '',
                         phone_number: user.phone || data.phone_number || '',
@@ -76,17 +84,17 @@ const ProfilePage = () => {
                         gender: data.gender || '',
                         dob: data.dob || '',
                         stream: data.stream || '',
-                        // Always prefer ctxProfile tier (fetched by SignupContext) over raw DB value
-                        // because ctxProfile is the authoritative source already loaded before mount.
-                        account_type: ctxProfile?.account_type || data.account_type || 'free'
-                    });
+                        // Use DB value but KEEP ctxProfile tier if it arrived already
+                        account_type: prev.account_type !== 'free'
+                            ? prev.account_type
+                            : (data.account_type || 'free')
+                    }));
                 } else {
                     setProfile(prev => ({ 
                         ...prev, 
                         full_name: user.user_metadata?.full_name || '',
                         email: user.email || '',
                         phone_number: user.phone || '',
-                        account_type: ctxProfile?.account_type || prev.account_type
                     }));
                 }
             } catch (error) {
@@ -100,7 +108,8 @@ const ProfilePage = () => {
         };
         
         fetchProfile();
-    }, [user, navigate, ctxProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, navigate]);
 
     const handleSave = async (e) => {
         e.preventDefault();
