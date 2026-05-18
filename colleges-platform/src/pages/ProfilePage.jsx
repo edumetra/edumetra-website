@@ -7,6 +7,22 @@ import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
+const getSharedAccountType = () => {
+    try {
+        const name = "edumetra_account_type=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return null;
+};
+
 const ProfilePage = () => {
     const { user, logout } = useSignup();
     const navigate = useNavigate();
@@ -24,7 +40,7 @@ const ProfilePage = () => {
         gender: '',
         dob: '',
         stream: '',
-        account_type: 'free'
+        account_type: getSharedAccountType() || 'free'
     });
 
     useEffect(() => {
@@ -40,11 +56,13 @@ const ProfilePage = () => {
         const safetyTimer = setTimeout(() => {
             if (isMounted) {
                 console.warn("Supabase fetch took too long (possible adblocker). Falling back.");
+                const sharedType = getSharedAccountType();
                 setProfile(prev => ({ 
                     ...prev, 
                     full_name: user.user_metadata?.full_name || '',
                     email: user.email || '',
-                    phone_number: user.phone || ''
+                    phone_number: user.phone || '',
+                    account_type: sharedType || prev.account_type || 'free'
                 }));
                 setLoading(false);
             }
@@ -81,12 +99,22 @@ const ProfilePage = () => {
                             stream: data.stream || '',
                             account_type: data.account_type || 'free'
                         });
+                        
+                        // Keep our local shared cookie fresh
+                        try {
+                            const rootDomain = window.location.hostname.split('.').slice(-2).join('.');
+                            if (rootDomain && (rootDomain.includes('edumetra') || rootDomain.includes('edumetraglobal'))) {
+                                document.cookie = `edumetra_account_type=${data.account_type || 'free'}; domain=.${rootDomain}; path=/; max-age=31536000; SameSite=Lax; Secure`;
+                            }
+                        } catch (e) {}
                     } else {
+                        const sharedType = getSharedAccountType();
                         setProfile(prev => ({ 
                             ...prev, 
                             full_name: user.user_metadata?.full_name || '',
                             email: user.email || '',
-                            phone_number: user.phone || ''
+                            phone_number: user.phone || '',
+                            account_type: sharedType || 'free'
                         }));
                     }
                 }

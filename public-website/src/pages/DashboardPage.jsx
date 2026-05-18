@@ -53,6 +53,17 @@ const DashboardPage = () => {
                         stream: data.stream || '',
                         account_type: data.account_type || 'free'
                     });
+                    
+                    // Share account type across subdomains via a shared cookie
+                    try {
+                        const rootDomain = window.location.hostname.split('.').slice(-2).join('.');
+                        if (rootDomain && (rootDomain.includes('edumetra') || rootDomain.includes('edumetraglobal'))) {
+                            document.cookie = `edumetra_account_type=${data.account_type || 'free'}; domain=.${rootDomain}; path=/; max-age=31536000; SameSite=Lax; Secure`;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to set shared account type cookie:", e);
+                    }
+                }
                 } else {
                     setProfile(prev => ({ 
                         ...prev, 
