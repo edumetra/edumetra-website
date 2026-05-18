@@ -99,8 +99,12 @@ const InvoicePage = () => {
     const formatINR = (val) =>
         Number(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const formatDate = (iso) =>
-        new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    const formatDate = (iso) => {
+        const date = new Date(iso);
+        const dateStr = date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        return `${dateStr} at ${timeStr}`;
+    };
 
     // ── Loading ───────────────────────────────────────────────────────────────
     if (loading) {
@@ -170,12 +174,10 @@ const InvoicePage = () => {
                                     <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white text-xl">E</div>
                                     EDUMETRA
                                 </div>
-                                <div className="text-xs text-slate-500 font-medium space-y-0.5">
+                                <div className="text-xs text-black font-semibold space-y-0.5">
                                     <p>Edumetra Educational Services</p>
                                     <p>123 Education Hub, MG Road</p>
                                     <p>Bangalore, Karnataka - 560001</p>
-                                    <p>Email: support@edumetra.in</p>
-                                    <p>GSTIN: 29AAAAA0000A1Z5 (Sample)</p>
                                 </div>
                             </div>
                             <div className="text-right">
@@ -187,30 +189,29 @@ const InvoicePage = () => {
                             </div>
                         </div>
 
-                        {/* ── Billing Info ── */}
                         <div className="px-10 py-8 grid grid-cols-2 gap-10 bg-slate-50/50">
                             <div>
-                                <p className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em] mb-3">Billed To</p>
+                                <p className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-3">Billed To</p>
                                 <div className="space-y-1">
-                                    <p className="text-base font-bold text-slate-900">{invoice.user_name || 'Valued Customer'}</p>
-                                    <p className="text-sm text-slate-600">{invoice.user_email}</p>
-                                    {invoice.user_phone && <p className="text-sm text-slate-600">{invoice.user_phone}</p>}
+                                    <p className="text-base font-bold text-black">{invoice.user_name || 'Valued Customer'}</p>
+                                    <p className="text-sm text-slate-900">{invoice.user_email}</p>
+                                    {invoice.user_phone && <p className="text-sm text-slate-900">{invoice.user_phone}</p>}
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Issue Date</p>
-                                    <p className="text-sm font-bold text-slate-900">{formatDate(invoice.issued_at)}</p>
+                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">Issue Date</p>
+                                    <p className="text-sm font-bold text-black">{formatDate(invoice.issued_at)}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Payment Status</p>
-                                    <p className="text-sm font-bold text-emerald-600 flex items-center gap-1">
-                                        <CheckCircle className="w-3 h-3" /> Paid
+                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">Payment Status</p>
+                                    <p className="text-sm font-bold text-black flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3 text-black" /> Paid
                                     </p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Billing Period</p>
-                                    <p className="text-sm font-bold text-slate-900">{invoice.billing_period}</p>
+                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">Billing Period</p>
+                                    <p className="text-sm font-bold text-black">{invoice.billing_period}</p>
                                 </div>
                             </div>
                         </div>
@@ -268,14 +269,12 @@ const InvoicePage = () => {
                                     </div>
                                 </div>
                             </div>
-                            
                             <div className="p-10 flex justify-between items-end border-t border-slate-100">
-                                <div className="text-[10px] text-slate-400 space-y-1">
-                                    <p className="font-bold text-slate-500">Important Note:</p>
+                                <div className="text-[10px] text-black space-y-1">
+                                    <p className="font-bold text-black">Important Note:</p>
                                     <p>This is a computer-generated receipt and does not require a physical signature.</p>
-                                    <p>For support, please contact us at support@edumetra.in</p>
                                 </div>
-                                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                                <div className="text-[10px] font-bold text-black uppercase tracking-widest">
                                     Thank you for your business
                                 </div>
                             </div>
