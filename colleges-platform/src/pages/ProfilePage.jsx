@@ -51,12 +51,21 @@ const ProfilePage = () => {
         }, 3000);
         
         const fetchProfile = async () => {
+            console.log("⚡ DIAGNOSTIC: Initiating Supabase Profile Query for user ID:", user.id);
+            console.log("⚡ DIAGNOSTIC: VITE_SUPABASE_URL is currently:", import.meta.env.VITE_SUPABASE_URL);
+            
             try {
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', user.id)
                     .single();
+                
+                if (error) {
+                    console.error("❌ DIAGNOSTIC: Supabase Query returned an error:", error);
+                } else {
+                    console.log("✅ DIAGNOSTIC: Supabase Query succeeded. Data returned:", data);
+                }
                 
                 if (isMounted) {
                     clearTimeout(safetyTimer);
@@ -82,7 +91,7 @@ const ProfilePage = () => {
                     }
                 }
             } catch (error) {
-                console.error("Error fetching profile:", error);
+                console.error("❌ DIAGNOSTIC: Catastrophic exception during Profile Fetch:", error);
             } finally {
                 if (isMounted) {
                     clearTimeout(safetyTimer);
