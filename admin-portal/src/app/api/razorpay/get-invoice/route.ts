@@ -38,8 +38,10 @@ export async function GET(req: NextRequest) {
 
         if (invoiceId) {
             query = query.eq('id', invoiceId);
-        } else if (paymentId) {
+        } else if (paymentId && paymentId !== 'latest') {
             query = query.eq('razorpay_payment_id', paymentId);
+        } else if (paymentId === 'latest') {
+            query = query.order('issued_at', { ascending: false }).limit(1);
         }
 
         const { data: invoice, error } = await query.single();

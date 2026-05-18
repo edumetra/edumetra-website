@@ -77,14 +77,6 @@ export default function ProfilePage() {
     const role = isPro ? 'pro' : isPremium ? 'premium' : 'free';
     const isGated = !isPremium && !isPro;
 
-    useEffect(() => {
-        if (!user) return;
-        if (activeTab === 'Account Settings' || activeTab === 'Dashboard') fetchProfile();
-        if (activeTab === 'My Reviews') fetchReviews();
-        if (activeTab === 'Saved Colleges' || activeTab === 'Dashboard') fetchSaved();
-        if (activeTab === 'AI Strategies') fetchNeetPlans();
-    }, [activeTab, user, fetchProfile, fetchReviews, fetchSaved, fetchNeetPlans]);
-
     const fetchProfile = useCallback(async () => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
@@ -169,6 +161,14 @@ export default function ProfilePage() {
         setNeetPlans(data || []);
         setLoadingAI(false);
     }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+        if (activeTab === 'Account Settings' || activeTab === 'Dashboard') fetchProfile();
+        if (activeTab === 'My Reviews') fetchReviews();
+        if (activeTab === 'Saved Colleges' || activeTab === 'Dashboard') fetchSaved();
+        if (activeTab === 'AI Strategies') fetchNeetPlans();
+    }, [activeTab, user, fetchProfile, fetchReviews, fetchSaved, fetchNeetPlans]);
 
     const handleEditSave = async (reviewId) => {
         await supabase.from('reviews').update({ title: editTitle, review_text: editText, moderation_status: 'pending' }).eq('id', reviewId);
