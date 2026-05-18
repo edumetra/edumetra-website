@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Server, ArrowRight, X, Sparkles, RefreshCw } from 'lucide-react';
-import { isConfigured } from '../../lib/supabase';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const isConfigured = !!supabaseUrl && 
+    !!supabaseAnonKey && 
+    supabaseUrl !== 'YOUR_SUPABASE_URL' && 
+    supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY' &&
+    supabaseUrl.trim() !== '' &&
+    supabaseAnonKey.trim() !== '';
+
 
 const DISMISS_KEY = 'edumetra_supabase_warning_dismissed';
 
