@@ -1,15 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { cookieStorage } from '../shared/utils/cookieStorage';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const isBrowser = typeof window !== 'undefined';
+const supabaseUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
 
 // Check if credentials are configured
-export const isConfigured = !!supabaseUrl && 
+export const isConfigured = !!rawUrl && 
     !!supabaseAnonKey &&
-    supabaseUrl !== 'YOUR_SUPABASE_URL' &&
+    rawUrl !== 'YOUR_SUPABASE_URL' &&
     supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY' &&
-    supabaseUrl.trim() !== '' &&
+    rawUrl.trim() !== '' &&
     supabaseAnonKey.trim() !== '';
 
 // Recursive Proxy-based dummy client query builder to prevent crashes when chaining methods (e.g. .select().eq().in())

@@ -22,8 +22,11 @@ import { pushLeadToTeleCRM } from '../../services/telecrm';
 import ScrollingNewsTicker from '../../shared/ui/ScrollingNewsTicker';
 import ParticleBackground from '../../shared/ui/ParticleBackground';
 import { useCounselling } from '../../features/counselling/CounsellingContext';
+import { useAuth } from '../../features/auth/AuthProvider';
+import { getAuthedPortalUrl } from '../../shared/utils/authRedirect';
 
 const NewHeroSection = () => {
+    const { session } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [location] = useState("India");
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -77,10 +80,8 @@ const NewHeroSection = () => {
         e.preventDefault();
         analytics.trackCTAClick('Hero Search', 'Hero Section', 'search');
         pushLeadToTeleCRM({}, ['Hero Search: ' + searchQuery]);
-        const portalUrl = 'https://colleges.edumetraglobal.com';
-        const finalUrl = searchQuery.trim()
-            ? `${portalUrl}/colleges?q=${encodeURIComponent(searchQuery.trim())}`
-            : `${portalUrl}/colleges`;
+        const baseUrl = 'https://colleges.edumetraglobal.com/colleges';
+        const finalUrl = getAuthedPortalUrl(baseUrl, session, searchQuery.trim() ? { q: searchQuery.trim() } : {});
         window.location.href = finalUrl;
     };
 

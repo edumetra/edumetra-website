@@ -5,9 +5,10 @@ import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settin
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { useCounselling } from '../../../features/counselling/CounsellingContext';
 import { pushLeadToTeleCRM } from '../../../services/telecrm';
+import { getAuthedPortalUrl } from '../../../shared/utils/authRedirect';
 
 const Header = () => {
-    const { user, signOut } = useAuth();
+    const { user, session, signOut } = useAuth();
     const { openModal } = useCounselling();
     const location = useLocation();
     const navigate = useNavigate();
@@ -18,7 +19,11 @@ const Header = () => {
 
     const mainNavLinks = [
         { name: 'Home', path: '/' },
-        { name: 'Find Colleges', path: 'https://colleges.edumetraglobal.com', external: true },
+        { 
+            name: 'Find Colleges', 
+            path: getAuthedPortalUrl('https://colleges.edumetraglobal.com', session), 
+            external: true 
+        },
         { name: 'Features', path: '/features' },
         { name: 'Pricing', path: '/pricing' },
         { name: 'Webinars', path: '/webinars-seminars' },

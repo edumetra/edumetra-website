@@ -1,17 +1,20 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useAuth } from '../features/auth/AuthProvider';
+import { getAuthedPortalUrl } from '../shared/utils/authRedirect';
 
 const FindCollegesPage = () => {
+    const { session } = useAuth();
+
     useEffect(() => {
         // Handle search query if present
         const params = new URLSearchParams(window.location.search);
         const q = params.get('q');
-        const target = q 
-            ? `https://colleges.edumetraglobal.com/colleges?q=${encodeURIComponent(q)}`
-            : 'https://colleges.edumetraglobal.com/colleges';
+        const baseUrl = 'https://colleges.edumetraglobal.com/colleges';
+        const target = getAuthedPortalUrl(baseUrl, session, q ? { q } : {});
             
         window.location.replace(target);
-    }, []);
+    }, [session]);
 
     return (
         <>

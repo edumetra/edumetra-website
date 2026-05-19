@@ -369,7 +369,6 @@ const CheckoutPage = () => {
             });
 
             const orderData = await orderRes.json();
-            console.log('[DEBUG] Order Data:', orderData);
             if (!orderRes.ok || !orderData.orderId) {
                 throw new Error(orderData.error || 'Failed to initialize checkout.');
             }

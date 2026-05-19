@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM } from '../../../services/telecrm';
+import { useAuth } from '../../../features/auth/AuthProvider';
+import { getAuthedPortalUrl } from '../../../shared/utils/authRedirect';
 
 const Footer = () => {
+    const { session } = useAuth();
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -182,16 +185,20 @@ const Footer = () => {
                                 { name: '#Best_Universities', path: 'https://colleges.edumetraglobal.com/colleges' },
                                 { name: '#Best_Courses', path: '/' },
                                 { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
-                            ].map((tag, index) => (
-                                <a
-                                    key={index}
-                                    href={tag.path}
-                                    onClick={() => pushLeadToTeleCRM({}, ['Footer Tag: ' + tag.name])}
-                                    className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 hover:bg-primary-100 transition-colors"
-                                >
-                                    {tag.name}
-                                </a>
-                            ))}
+                            ].map((tag, index) => {
+                                const isExternal = tag.path.startsWith('http');
+                                const targetUrl = isExternal ? getAuthedPortalUrl(tag.path, session) : tag.path;
+                                return (
+                                    <a
+                                        key={index}
+                                        href={targetUrl}
+                                        onClick={() => pushLeadToTeleCRM({}, ['Footer Tag: ' + tag.name])}
+                                        className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 hover:bg-primary-100 transition-colors"
+                                    >
+                                        {tag.name}
+                                    </a>
+                                );
+                            })}
                         </div>
 
                         {/* Status */}

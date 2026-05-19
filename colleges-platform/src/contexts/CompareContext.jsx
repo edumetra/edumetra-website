@@ -13,7 +13,11 @@ export function CompareProvider({ children }) {
     });
 
     useEffect(() => {
-        localStorage.setItem('compareList', JSON.stringify(compareList));
+        try {
+            localStorage.setItem('compareList', JSON.stringify(compareList));
+        } catch (e) {
+            console.warn('localStorage compareList setItem blocked:', e);
+        }
     }, [compareList]);
 
     // Hardcode to 3 max as per new user requirements
