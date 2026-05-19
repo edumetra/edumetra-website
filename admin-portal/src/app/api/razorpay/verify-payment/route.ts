@@ -171,10 +171,27 @@ export async function POST(req: NextRequest) {
 
         // ── 10. Increment coupon usage ─────────────────────────────────────────
         if (couponCode) {
-            await supabaseAdmin
-                .from('coupons')
-                .update({ used_count: supabaseAdmin.rpc('increment_coupon_usage', { p_code: couponCode }) })
-                .eq('code', couponCode.toUpperCase());
+            try {
+                const { error: rpcError } = await supabaseAdmin.rpc('increment_coupon_usage', { p_code: couponCode });
+                if (rpcError) {
+                    console.warn('[Verify Payment] RPC increment_coupon_usage failed or not found, falling back to manual increment:', rpcError);
+                    
+                    const { data: couponData } = await supabaseAdmin
+                        .from('coupons')
+                        .select('used_count')
+                        .eq('code', couponCode.toUpperCase())
+                        .single();
+                    
+                    if (couponData) {
+                        await supabaseAdmin
+                            .from('coupons')
+                            .update({ used_count: (couponData.used_count || 0) + 1 })
+                            .eq('code', couponCode.toUpperCase());
+                    }
+                }
+            } catch (err) {
+                console.error('[Verify Payment] Failed to increment coupon usage:', err);
+            }
         }
 
         return NextResponse.json({ success: true, invoice });
