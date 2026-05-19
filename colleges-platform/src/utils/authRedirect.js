@@ -33,9 +33,15 @@ export const getAuthedPortalUrl = (baseUrl, session, queryParams = {}) => {
             }
         });
 
-        // Append access and refresh tokens to the hash fragment if signed in
-        if (session && session.access_token && session.refresh_token) {
-            url.hash = `access_token=${encodeURIComponent(session.access_token)}&refresh_token=${encodeURIComponent(session.refresh_token)}&type=signup`;
+        // Append session tokens to hash for localhost / first cross-app visit
+        if (session?.access_token && session?.refresh_token) {
+            const hashParams = new URLSearchParams({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token,
+                token_type: 'bearer',
+                expires_in: String(session.expires_in ?? 3600),
+            });
+            url.hash = hashParams.toString();
         }
         
         return url.toString();

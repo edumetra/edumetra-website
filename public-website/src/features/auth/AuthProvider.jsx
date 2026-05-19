@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { pushLeadToTeleCRM } from '../../services/telecrm';
+import { bootstrapCrossDomainSession, clearSharedAuthCookies, hasAuthTokensInUrl } from '../../shared/utils/crossDomainAuth';
 
 const AuthContext = createContext({});
 
@@ -22,24 +23,21 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         let isMounted = true;
 
-        const checkSession = async (retries = 3) => {
+        const checkSession = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                
+                const session = await bootstrapCrossDomainSession(supabase, {
+                    maxRetries: hasAuthTokensInUrl() ? 5 : 1,
+                });
+
                 if (!isMounted) return;
 
                 if (session) {
                     setSession(session);
                     setUser(session.user);
-                    setLoading(false);
-                } else if (window.location.hash.includes('access_token') && retries > 0) {
-                    // Token is in URL but not parsed yet, retry in 500ms
-                    setTimeout(() => checkSession(retries - 1), 500);
-                } else {
-                    setLoading(false);
                 }
             } catch (err) {
                 console.warn('Auth session check failed:', err);
+            } finally {
                 if (isMounted) setLoading(false);
             }
         };
@@ -60,11 +58,11 @@ export const AuthProvider = ({ children }) => {
             if (currentUser) {
                 const metadata = currentUser.user_metadata || {};
                 pushLeadToTeleCRM({
-                    name: metadata.full_name || '',
+                    name: metadata.full_name || metadata.name || '',
                     email: currentUser.email,
-                    phone: metadata.phone || '',
-                    status: 'Fresh'
-                }, ['Account Active: Sync']);
+                    phone: metadata.phone || currentUser.phone || '',
+                    status: 'Fresh',
+                }, ['Public Website: Signed In']);
             }
         });
 
@@ -130,6 +128,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
+            clearSharedAuthCookies();
             return { error: null };
         } catch (error) {
             return { error: error.message };

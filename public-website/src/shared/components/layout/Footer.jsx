@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { pushLeadToTeleCRM } from '../../../services/telecrm';
+import { pushLeadToTeleCRM, trackTeleCRMTouchpoint } from '../../../services/telecrm';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { getAuthedPortalUrl } from '../../../shared/utils/authRedirect';
 
@@ -192,7 +192,7 @@ const Footer = () => {
                                     <a
                                         key={index}
                                         href={targetUrl}
-                                        onClick={() => pushLeadToTeleCRM({}, ['Footer Tag: ' + tag.name])}
+                                        onClick={() => trackTeleCRMTouchpoint(['Footer Tag: ' + tag.name])}
                                         className="px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded border border-primary-200 hover:bg-primary-100 transition-colors"
                                     >
                                         {tag.name}

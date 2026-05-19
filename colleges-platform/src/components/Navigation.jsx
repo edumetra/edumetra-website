@@ -5,7 +5,7 @@ import {
     GraduationCap, Menu, X, LogOut, User, ChevronDown, Search,
     Home, Trophy, BookOpen, IndianRupee, PenSquare, Wrench, ChevronRight, ExternalLink
 } from 'lucide-react';
-import { pushLeadToTeleCRM } from '../services/telecrm';
+import { trackTeleCRMTouchpoint } from '../services/telecrm';
 import { useSignup } from '../contexts/SignupContext';
 import { getAuthedPortalUrl } from '../utils/authRedirect';
 
@@ -188,7 +188,7 @@ const Navigation = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={() => {
-                                            pushLeadToTeleCRM({}, ['Header: Visited Main Site']);
+                                            trackTeleCRMTouchpoint(['Header: Visited Main Site']);
                                         }}
                                         className="px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
                                     >
@@ -328,7 +328,7 @@ const Navigation = () => {
                                         <a key={label} href={to} 
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            onClick={() => { setMobileMenuOpen(false); pushLeadToTeleCRM({}, ['Header: Visited Main Site']); }}
+                                            onClick={() => { setMobileMenuOpen(false); trackTeleCRMTouchpoint(['Header: Visited Main Site (Mobile)']); }}
                                             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/6 transition-all">
                                             {Icon && <Icon className="w-4 h-4 shrink-0 text-slate-500" />}
                                             {label}

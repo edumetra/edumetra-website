@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import { analytics } from '../../shared/utils/analytics';
-import { pushLeadToTeleCRM } from '../../services/telecrm';
+import { trackTeleCRMTouchpoint } from '../../services/telecrm';
 import ScrollingNewsTicker from '../../shared/ui/ScrollingNewsTicker';
 import ParticleBackground from '../../shared/ui/ParticleBackground';
 import { useCounselling } from '../../features/counselling/CounsellingContext';
@@ -79,7 +79,7 @@ const NewHeroSection = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         analytics.trackCTAClick('Hero Search', 'Hero Section', 'search');
-        pushLeadToTeleCRM({}, ['Hero Search: ' + searchQuery]);
+        trackTeleCRMTouchpoint(['Hero Search'], { query: searchQuery.trim() });
         const baseUrl = 'https://colleges.edumetraglobal.com/colleges';
         const finalUrl = getAuthedPortalUrl(baseUrl, session, searchQuery.trim() ? { q: searchQuery.trim() } : {});
         window.location.href = finalUrl;

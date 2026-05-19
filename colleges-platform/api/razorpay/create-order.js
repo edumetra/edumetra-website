@@ -20,6 +20,13 @@ export default async function handler(req, res) {
 
         const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
         const keySecret = process.env.RAZORPAY_KEY_SECRET || process.env.VITE_RAZORPAY_KEY_SECRET;
+
+        if (!keyId || !keySecret) {
+            return res.status(500).json({
+                error: 'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in server environment variables.',
+            });
+        }
+
         const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
 
@@ -93,9 +100,10 @@ export default async function handler(req, res) {
         return res.status(200).json({
             success: true,
             orderId: order.id,
+            keyId,
             amount: totalAmount * 100,
             taxableAmount: taxableAmount * 100,
-            gstAmount: gstAmount * 100
+            gstAmount: gstAmount * 100,
         });
 
     } catch (err) {

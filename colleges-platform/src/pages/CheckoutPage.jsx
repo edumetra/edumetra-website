@@ -2,13 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft, Check, Shield, Lock, CreditCard,
+    ArrowLeft, Check, Shield, Lock, CreditCard, Phone,
     Zap, Sparkles, Tag, Ticket, ChevronRight,
     FileText, Download, CheckCircle, AlertCircle, Loader2, X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import { formatPhoneForRazorpay, isValidIndianMobile } from '../utils/phone';
+import { assertRazorpayKey, buildRazorpayCheckoutOptions } from '../utils/razorpayCheckout';
 
 const ORDER_API = '/api/razorpay/create-order';
 
@@ -76,6 +78,8 @@ const CheckoutPage = () => {
     const planKey = searchParams.get('plan') || 'premium';
     const plan = PLANS[planKey] || PLANS.premium;
 
+    const [checkoutPhone, setCheckoutPhone] = useState('');
+    const [phoneError, setPhoneError] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [validating, setValidating] = useState(false);
@@ -104,6 +108,11 @@ const CheckoutPage = () => {
             
             setProfile(profileData);
 
+            const resolvedPhone = formatPhoneForRazorpay(
+                profileData?.phone_number || session.user.user_metadata?.phone || session.user.phone || ''
+            );
+            if (resolvedPhone) setCheckoutPhone(resolvedPhone);
+
             if (profileData) {
                 const currentTier = profileData.account_type || 'free';
                 
@@ -128,14 +137,21 @@ const CheckoutPage = () => {
         ? Math.floor(plan.price * (1 - appliedCoupon.discount_percentage / 100))
         : plan.price;
 
+    const buildCheckoutLead = (status = 'Fresh') => ({
+        name: user?.user_metadata?.full_name || '',
+        email: user?.email,
+        phone: formatPhoneForRazorpay(checkoutPhone),
+        status,
+        plan: plan.name,
+    });
+
     useEffect(() => {
-        if (user?.email) {
-            pushLeadToTeleCRM(
-                { email: user.email, status: 'Fresh' },
-                ['Colleges Checkout Intent', `Plan: ${plan.name}`]
-            );
-        }
-    }, [user, plan.name]);
+        if (!user?.email) return;
+        pushLeadToTeleCRM(
+            buildCheckoutLead('Fresh'),
+            ['Colleges Platform: Checkout Intent', `Plan: ${plan.name}`]
+        );
+    }, [user?.email, plan.name, checkoutPhone]);
 
     const savings = plan.originalPrice - discountedPrice;
 
@@ -345,10 +361,27 @@ const CheckoutPage = () => {
     // ── Razorpay Payment Flow (One-time Order) ──────────────────────────────────
     const handlePayment = useCallback(async () => {
         if (!user) return;
+
+        const contact = formatPhoneForRazorpay(checkoutPhone);
+        if (!isValidIndianMobile(contact)) {
+            setPhoneError('Enter a valid 10-digit mobile number (required for UPI).');
+            return;
+        }
+        setPhoneError('');
+
         setPaymentState('loading');
         setPaymentError('');
 
         try {
+            try {
+                await supabase
+                    .from('user_profiles')
+                    .update({ phone_number: contact })
+                    .eq('id', user.id);
+            } catch (profileErr) {
+                console.warn('[Checkout] Could not save phone to profile (non-blocking):', profileErr);
+            }
+
             // 1. Load SDK
             const sdkLoaded = await loadRazorpaySDK();
             if (!sdkLoaded) {
@@ -368,92 +401,100 @@ const CheckoutPage = () => {
 
             const orderData = await orderRes.json();
             if (!orderRes.ok || !orderData.orderId) {
-                throw new Error(orderData.error || 'Failed to initialize checkout.');
+                throw new Error(orderData.error || orderData.details || 'Failed to initialize checkout.');
             }
 
-            // 3. Open Razorpay checkout
+            const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
+            assertRazorpayKey(razorpayKey);
+
             setPaymentState('processing');
 
-            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-            const options = {
-                key: razorpayKey,
-                amount: orderData.amount,
-                currency: 'INR',
-                name: 'Edumetra',
-                description: `${plan.name} Plan — One-time Payment`,
-                order_id: orderData.orderId,
-                prefill: {
-                    email: user.email,
-                    name: user.user_metadata?.full_name || '',
-                    contact: profile?.phone_number || user.phone || '',
-                },
-                theme: { color: '#ef4444' },
-                modal: {
-                    ondismiss: () => {
-                        setPaymentState('idle');
-                        setPaymentError('Payment cancelled. You can try again.');
-                        pushLeadToTeleCRM(
-                            { email: user.email, status: 'Fresh' },
-                            ['Colleges Payment Modal Cancelled', `Plan: ${plan.name}`]
-                        );
-                    },
-                },
-                handler: async (response) => {
-                    console.log('Payment Successful', response);
-                    setPaymentState('processing');
-                    
-                    try {
-                        const verifyRes = await fetch('/api/razorpay/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_order_id: response.razorpay_order_id, // Sent as order_id
-                                razorpay_signature: response.razorpay_signature,
-                                userId: user.id,
-                                planType: plan.id
-                            }),
-                        });
-
-                        const verifyData = await verifyRes.json();
-                        if (verifyRes.ok && verifyData.success) {
-                            setInvoice(verifyData.invoice);
-                            setPaymentState('success');
-                            setShowInvoice(true);
-                            toast.success('Payment verified! Invoice generated.');
-                            
-                            // TeleCRM conversion tracking
-                            pushLeadToTeleCRM(
-                                { email: user.email, status: 'Won' },
-                                [`Colleges Payment Success: ${plan.name}`, `Invoice: ${verifyData.invoice.invoice_number}`]
-                            );
-                        } else {
-                            throw new Error(verifyData.error || 'Payment verification failed.');
-                        }
-                    } catch (err) {
-                        setPaymentState('failed');
-                        setPaymentError('Payment was successful but we couldn\'t generate your invoice. Please contact support with your Payment ID: ' + response.razorpay_payment_id);
-                    }
-                    
-                    if (typeof window !== 'undefined' && window.fbq) {
-                        window.fbq('track', 'Purchase', {
-                            currency: 'INR',
-                            value: plan.price,
-                            content_name: `${plan.name.toUpperCase()} Payment`
-                        });
-                    }
-                    // Removed auto-redirect to allow user to download invoice manually
-                },
+            const onDismiss = () => {
+                setPaymentState('idle');
+                setPaymentError('Payment cancelled. You can try again.');
+                pushLeadToTeleCRM(
+                    buildCheckoutLead('Fresh'),
+                    ['Colleges Platform: Payment Cancelled', `Plan: ${plan.name}`]
+                );
             };
+
+            const onSuccess = async (response) => {
+                setPaymentState('processing');
+
+                try {
+                    const verifyRes = await fetch('/api/razorpay/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            userId: user.id,
+                            planType: plan.id,
+                        }),
+                    });
+
+                    const verifyData = await verifyRes.json();
+                    if (verifyRes.ok && verifyData.success) {
+                        setInvoice(verifyData.invoice);
+                        setPaymentState('success');
+                        setShowInvoice(true);
+                        toast.success('Payment verified! Invoice generated.');
+
+                        pushLeadToTeleCRM(
+                            buildCheckoutLead('Won'),
+                            [
+                                'Colleges Platform: Payment Success',
+                                `Plan: ${plan.name}`,
+                                `Invoice: ${verifyData.invoice.invoice_number}`,
+                            ]
+                        );
+                    } else {
+                        throw new Error(verifyData.error || 'Payment verification failed.');
+                    }
+                } catch {
+                    setPaymentState('failed');
+                    setPaymentError(
+                        'Payment was successful but we could not generate your invoice. Please contact support with Payment ID: '
+                        + response.razorpay_payment_id
+                    );
+                }
+
+                if (typeof window !== 'undefined' && window.fbq) {
+                    window.fbq('track', 'Purchase', {
+                        currency: 'INR',
+                        value: plan.price,
+                        content_name: `${plan.name.toUpperCase()} Payment`,
+                    });
+                }
+            };
+
+            const options = buildRazorpayCheckoutOptions({
+                keyId: razorpayKey,
+                orderId: orderData.orderId,
+                amountPaise: orderData.amount,
+                user,
+                contactTenDigit: contact,
+                planName: plan.name,
+                onDismiss,
+                onSuccess,
+            });
 
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', (resp) => {
                 setPaymentState('failed');
-                setPaymentError(resp.error?.description || 'Payment failed. Please try again.');
+                const reason = resp.error?.description || resp.error?.reason || 'Payment failed. Please try again.';
+                setPaymentError(reason);
+                if (import.meta.env.DEV) {
+                    console.error('[Razorpay] payment.failed:', resp);
+                }
                 pushLeadToTeleCRM(
-                    { email: user.email, status: 'Fresh' },
-                    ['Colleges Payment Failed', `Plan: ${plan.name}`, `Error: ${resp.error?.description || 'Unknown'}`]
+                    buildCheckoutLead('Fresh'),
+                    [
+                        'Colleges Platform: Payment Failed',
+                        `Plan: ${plan.name}`,
+                        `Error: ${reason}`,
+                    ]
                 );
             });
             rzp.open();
@@ -462,7 +503,7 @@ const CheckoutPage = () => {
             setPaymentState('failed');
             setPaymentError(err.message || 'Something went wrong. Please try again.');
         }
-    }, [user, plan, appliedCoupon, navigate]);
+    }, [user, plan, appliedCoupon, checkoutPhone, profile]);
 
     const PlanIcon = plan.icon;
 
@@ -607,6 +648,32 @@ const CheckoutPage = () => {
                             <div className="flex items-center gap-2 mb-6">
                                 <CreditCard className="w-5 h-5 text-red-400" />
                                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Payment</h3>
+                            </div>
+
+                            <div className="mb-6">
+                                <label htmlFor="checkout-phone" className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider mb-2">
+                                    <Phone className="w-4 h-4 text-red-400" />
+                                    Mobile number <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                    id="checkout-phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    autoComplete="tel"
+                                    maxLength={10}
+                                    value={checkoutPhone}
+                                    onChange={(e) => {
+                                        const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setCheckoutPhone(digits);
+                                        if (phoneError) setPhoneError('');
+                                    }}
+                                    placeholder="10-digit number for UPI"
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-red-500 transition-colors"
+                                />
+                                <p className="text-xs text-slate-500 mt-2">
+                                    Required for UPI. On mobile, Razorpay opens your UPI app (GPay, PhonePe, etc.). On desktop, scan the UPI QR code shown in checkout.
+                                </p>
+                                {phoneError && <p className="text-xs text-red-400 mt-1">{phoneError}</p>}
                             </div>
 
                             {/* Payment Methods */}

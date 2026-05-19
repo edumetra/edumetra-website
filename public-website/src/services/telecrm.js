@@ -13,6 +13,7 @@
 
 const ENTERPRISE_ID = import.meta.env.VITE_TELECRM_ENTERPRISE_ID;
 const TOKEN = import.meta.env.VITE_TELECRM_TOKEN;
+const PLATFORM_SOURCE = 'Public Website';
 
 /**
  * Normalise a phone number to include the Indian country code (91).
@@ -46,6 +47,27 @@ function normalisePhone(raw) {
  */
 
 let lastTrackedPath = '';
+
+export function getStoredTeleCRMUser() {
+    try {
+        return JSON.parse(localStorage.getItem('telecrm_user') || 'null');
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Track navigation / CTA for leads already identified in TeleCRM.
+ * Use for header clicks, footer tags, etc. (no anonymous empty pushes).
+ */
+export function trackTeleCRMTouchpoint(tags, extraFields = {}) {
+    const stored = getStoredTeleCRMUser();
+    if (!stored?.email && !stored?.phone) return;
+    pushLeadToTeleCRM(
+        { ...stored, ...extraFields, status: extraFields.status || 'Fresh' },
+        tags
+    );
+}
 
 /**
  * Map pathnames to human-readable page names for better CRM tracking.
@@ -92,20 +114,19 @@ export function trackTeleCRMPageView(path, title) {
     // Small delay to ensure React Helmet has updated the document.title
     setTimeout(() => {
         try {
-            const user = JSON.parse(localStorage.getItem('telecrm_user') || 'null');
-            // Only track if we have a known identifier (email or phone)
-            if (!user || (!user.email && !user.phone)) return;
+            const user = getStoredTeleCRMUser();
+            if (!user?.email && !user?.phone) return;
 
             const pageName = getPageName(path);
             const displayName = title || document.title || pageName;
-            
+
             pushLeadToTeleCRM(
-                { 
-                    ...user, 
-                    status: 'Fresh', 
+                {
+                    ...user,
+                    status: 'Fresh',
                     last_page: displayName,
-                    source: displayName 
-                }, 
+                    source: PLATFORM_SOURCE,
+                },
                 [`Visited: ${displayName}`]
             );
         } catch (e) {
@@ -126,7 +147,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         // Build the clean fields object
         const leadFields = {};
         // Standard fields that are likely native in TeleCRM fields object
-        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state', 'source']);
+        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state', 'source', 'last_page']);
         const extraFields = [];
         
         for (const [key, val] of Object.entries(fields)) {
@@ -140,15 +161,14 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             }
         }
 
-        // Default source if not provided
-        if (!leadFields.source) leadFields.source = 'Colleges Portal';
+        if (!leadFields.source) leadFields.source = PLATFORM_SOURCE;
 
         // We must have at least the unique identifier (phone or email)
         if (!leadFields.phone && !leadFields.email) return;
 
         // Save identity locally so we can track subsequent page views automatically
         try {
-            const currentUser = JSON.parse(localStorage.getItem('telecrm_user') || '{}');
+            const currentUser = getStoredTeleCRMUser() || {};
             const updatedUser = { ...currentUser };
             if (leadFields.name) updatedUser.name = leadFields.name;
             if (leadFields.email) updatedUser.email = leadFields.email;
@@ -175,7 +195,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             email: leadFields.email,
             phone: leadFields.phone,
             phoneNumber: leadFields.phone,
-            source: leadFields.source || 'Colleges Portal',
+            source: leadFields.source || PLATFORM_SOURCE,
             // ENABLE ACTUAL TAGS (The most important part)
             tags: tags
         };

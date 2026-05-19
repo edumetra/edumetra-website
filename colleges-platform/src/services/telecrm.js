@@ -1,140 +1,152 @@
 /**
- * TeleCRM Async API Integration
- *
- * Central service for pushing lead data to TeleCRM.
- * All calls are fire-and-forget — they never block the UI or surface errors to users.
- *
- * Usage:
- *   import { pushLeadToTeleCRM } from '../services/telecrm';
- *   pushLeadToTeleCRM({ name: 'Jane', phone: '9999999999', email: 'jane@example.com' }, ['Signup']);
- *
+ * TeleCRM Async API Integration — Colleges Platform
  * Docs: https://next-api.telecrm.in
  */
 
 const ENTERPRISE_ID = import.meta.env.VITE_TELECRM_ENTERPRISE_ID;
 const TOKEN = import.meta.env.VITE_TELECRM_TOKEN;
-
-/**
- * Normalise a phone number to include the Indian country code (91).
- * Accepts:
- *  - "9876543210"    → "919876543210"
- *  - "+919876543210" → "919876543210"
- *  - "919876543210"  → "919876543210"  (unchanged)
- * Returns null when the input is empty / undefined.
- */
-function normalisePhone(raw) {
-    if (!raw) return null;
-    // Strip all non-digits
-    const digits = String(raw).replace(/\D/g, '');
-    if (!digits) return null;
-
-    // Already has country code (12 digits starting with 91)
-    if (digits.length === 12 && digits.startsWith('91')) return digits;
-    // 10-digit local number → prepend 91
-    if (digits.length === 10) return `91${digits}`;
-    // Any other format — return as-is (may include other country codes)
-    return digits;
-}
-
-/**
- * Push a lead to TeleCRM asynchronously.
- *
- * @param {Object} fields  - Lead fields. Keys must match TeleCRM API names.
- *                           Common: { name, phone, email, status, city, neet_marks }
- * @param {string[]} tags  - Optional array of tag strings to label this lead's source.
- * @returns {Promise<void>} - Always resolves; never throws.
- */
+const PLATFORM_SOURCE = 'Colleges Platform';
 
 let lastTrackedPath = '';
 
-/**
- * Track a page view for a known user.
- * Looks for 'telecrm_user' in localStorage. If found, pushes a "Visited: [Page]" tag to TeleCRM.
- */
-export function trackTeleCRMPageView(path, pageName) {
-    if (lastTrackedPath === path) return;
-    lastTrackedPath = path;
+function normalisePhone(raw) {
+    if (!raw) return null;
+    const digits = String(raw).replace(/\D/g, '');
+    if (!digits) return null;
+    if (digits.length === 12 && digits.startsWith('91')) return digits;
+    if (digits.length === 10) return `91${digits}`;
+    return digits;
+}
 
+function getPageName(path) {
+    if (path === '/') return 'Colleges Home';
+    if (path.startsWith('/colleges/')) return 'College Detail';
+    if (path === '/colleges') return 'College Search';
+    if (path.startsWith('/pricing')) return 'Pricing Page';
+    if (path.startsWith('/checkout')) return 'Checkout Page';
+    if (path.startsWith('/profile')) return 'User Profile';
+    if (path.startsWith('/rankings')) return 'Rankings';
+    if (path.startsWith('/eligibility')) return 'Eligibility Checker';
+    if (path.startsWith('/rank-predictor')) return 'Rank Predictor';
+    if (path.startsWith('/neet-prep')) return 'NEET Prep';
+    if (path.startsWith('/compare')) return 'Compare Colleges';
+    if (path.startsWith('/review')) return 'Write Review';
+    if (path.startsWith('/articles')) return 'Articles';
+    if (path.startsWith('/contact')) return 'Contact';
+    if (path.startsWith('/careers')) return 'Careers';
+    if (path.startsWith('/invoice')) return 'Invoice';
+    return path.split('/').filter(Boolean).map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') || 'Colleges Home';
+}
+
+export function getStoredTeleCRMUser() {
     try {
-        const user = JSON.parse(localStorage.getItem('telecrm_user') || 'null');
-        // Only track if we have a known identifier (email or phone)
-        if (!user || (!user.email && !user.phone)) return;
-
-        pushLeadToTeleCRM(
-            { ...user, status: 'Fresh' }, 
-            [`Visited: ${pageName || path}`]
-        );
-    } catch (e) {
-        // Silently fail if localStorage parsing errors out
+        return JSON.parse(localStorage.getItem('telecrm_user') || 'null');
+    } catch {
+        return null;
     }
 }
 
+/** Track navigation / CTA for leads already identified in TeleCRM. */
+export function trackTeleCRMTouchpoint(tags, extraFields = {}) {
+    const stored = getStoredTeleCRMUser();
+    if (!stored?.email && !stored?.phone) return;
+    pushLeadToTeleCRM(
+        { ...stored, ...extraFields, status: extraFields.status || 'Fresh' },
+        tags
+    );
+}
+
+export function trackTeleCRMPageView(path, title) {
+    if (lastTrackedPath === path) return;
+    lastTrackedPath = path;
+
+    setTimeout(() => {
+        const user = getStoredTeleCRMUser();
+        if (!user?.email && !user?.phone) return;
+
+        const pageName = getPageName(path);
+        const displayName = title || document.title || pageName;
+
+        pushLeadToTeleCRM(
+            {
+                ...user,
+                status: 'Fresh',
+                last_page: displayName,
+                source: PLATFORM_SOURCE,
+            },
+            [`Visited: ${displayName}`]
+        );
+    }, 100);
+}
+
 export async function pushLeadToTeleCRM(fields = {}, tags = []) {
-    // Silently skip if credentials aren't configured yet
     if (!ENTERPRISE_ID || ENTERPRISE_ID === 'your_enterprise_id_here') return;
     if (!TOKEN || TOKEN === 'your_async_bearer_token_here') return;
 
-    // Build API URL lazily (only after credential guards pass)
     const API_URL = `https://next-api.telecrm.in/enterprise/${ENTERPRISE_ID}/autoupdatelead`;
 
     try {
-        // Build the clean fields object
         const leadFields = {};
-        // Standard fields that are likely native in TeleCRM fields object
-        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state']);
+        const standardFields = new Set(['name', 'email', 'phone', 'city', 'status', 'state', 'source', 'last_page']);
         const extraFields = [];
-        
+
         for (const [key, val] of Object.entries(fields)) {
             if (val !== undefined && val !== null && val !== '') {
                 if (standardFields.has(key)) {
-                    leadFields[key] = (key === 'phone') ? normalisePhone(val) : val;
+                    leadFields[key] = key === 'phone' ? normalisePhone(val) : val;
                 } else {
-                    // Collect unknown fields to put in a note
                     extraFields.push(`${key.replace(/_/g, ' ').toUpperCase()}: ${val}`);
                 }
             }
         }
 
-        // We must have at least the unique identifier (phone or email)
+        if (!leadFields.source) leadFields.source = PLATFORM_SOURCE;
         if (!leadFields.phone && !leadFields.email) return;
 
-        // Save identity locally so we can track subsequent page views automatically
         try {
-            const currentUser = JSON.parse(localStorage.getItem('telecrm_user') || '{}');
+            const currentUser = getStoredTeleCRMUser() || {};
             const updatedUser = { ...currentUser };
             if (leadFields.name) updatedUser.name = leadFields.name;
             if (leadFields.email) updatedUser.email = leadFields.email;
             if (leadFields.phone) updatedUser.phone = leadFields.phone;
             localStorage.setItem('telecrm_user', JSON.stringify(updatedUser));
-        } catch (e) {
-            // Ignore storage errors (e.g. incognito mode restrictions)
+        } catch {
+            // ignore storage errors
         }
 
-        const body = { fields: leadFields };
-        
-        // Add tags and extra fields as a beautifully formatted SYSTEM_NOTE
-        if ((tags && tags.length > 0) || extraFields.length > 0) {
-            const isPageVisit = tags.some(t => t.startsWith('Visited:'));
+        const body = {
+            fields: {
+                ...leadFields,
+                Name: leadFields.name,
+                Email: leadFields.email,
+                Phone: leadFields.phone,
+                PhoneNumber: leadFields.phone,
+                last_page: leadFields.last_page || '',
+                touchpoint: tags.join(', '),
+            },
+            name: leadFields.name,
+            email: leadFields.email,
+            phone: leadFields.phone,
+            phoneNumber: leadFields.phone,
+            source: leadFields.source,
+            tags,
+        };
+
+        if ((tags?.length > 0) || extraFields.length > 0) {
+            const isPageVisit = tags.some((t) => t.startsWith('Visited:'));
             let noteText = '';
-            
+
             if (isPageVisit) {
-                const path = tags[0].replace('Visited: ', '');
-                noteText = `🌐 PAGE VISIT: ${path}`;
+                noteText = `🌐 PAGE VISIT: ${tags[0].replace('Visited: ', '')}`;
             } else {
                 const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
                 const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
                 noteText = [tagStr, extraStr].filter(Boolean).join('\n\n');
             }
 
-            body.actions = [
-                {
-                    type: "SYSTEM_NOTE",
-                    text: noteText
-                }
-            ];
+            body.actions = [{ type: 'note', text: noteText }];
         }
 
-        // Fire-and-forget — no await on the caller side needed
         fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -142,20 +154,18 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(body),
-        }).catch((err) => {
-            // Silently swallow network errors — never surface to user
-            if (import.meta.env.DEV) {
-                console.warn('[TeleCRM] Push failed (non-critical):', err?.message);
-            }
-        });
-
-        if (import.meta.env.DEV) {
-            console.debug('[TeleCRM] Lead pushed:', leadFields, 'tags:', tags);
-        }
+        })
+            .then(async (res) => {
+                if (import.meta.env.DEV) {
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) console.debug('[TeleCRM] Success:', data);
+                    else console.error('[TeleCRM] API Error:', res.status, data);
+                }
+            })
+            .catch((err) => {
+                if (import.meta.env.DEV) console.warn('[TeleCRM] Network error:', err?.message);
+            });
     } catch (err) {
-        // Catch any synchronous errors in the builder logic
-        if (import.meta.env.DEV) {
-            console.warn('[TeleCRM] Unexpected error (non-critical):', err?.message);
-        }
+        if (import.meta.env.DEV) console.warn('[TeleCRM] Unexpected builder error:', err?.message);
     }
 }

@@ -4,7 +4,7 @@ import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linke
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
-import { pushLeadToTeleCRM } from '../services/telecrm';
+import { pushLeadToTeleCRM, trackTeleCRMTouchpoint } from '../services/telecrm';
 import { useSignup } from '../contexts/SignupContext';
 import { getAuthedPortalUrl } from '../utils/authRedirect';
 
@@ -183,7 +183,7 @@ export default function Footer() {
                                     <a
                                         key={index}
                                         href={targetUrl}
-                                        onClick={() => pushLeadToTeleCRM({}, ['Portal Footer Tag: ' + tag.name])}
+                                        onClick={() => trackTeleCRMTouchpoint(['Portal Footer Tag: ' + tag.name])}
                                         className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20 hover:bg-red-500/20 transition-colors"
                                     >
                                         {tag.name}
@@ -260,7 +260,7 @@ export default function Footer() {
                                         href={getAuthedPortalUrl(link.path, session)}
                                         onClick={() => {
                                             if (link.path.includes('edumetraglobal.com')) {
-                                                pushLeadToTeleCRM({}, ['Portal Footer: Visited Main Site - ' + link.name]);
+                                                trackTeleCRMTouchpoint(['Portal Footer: Visited Main Site - ' + link.name]);
                                             }
                                         }}
                                         className="text-sm text-slate-400 hover:text-red-400 transition-colors"

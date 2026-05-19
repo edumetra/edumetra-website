@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, ArrowRight, Search, BookOpen, GraduationCap, MapPin } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { pushLeadToTeleCRM } from '../services/telecrm';
+import { getAuthedPortalUrl } from '../shared/utils/authRedirect';
+import { trackTeleCRMTouchpoint } from '../services/telecrm';
+import { useAuth } from '../features/auth/AuthProvider';
 
 const NotFoundPage = () => {
+  const { session } = useAuth();
+
   const quickLinks = [
-    { label: 'Find Colleges', to: 'https://colleges.edumetraglobal.com', icon: Search, desc: 'Search for your dream college', external: true },
+    { label: 'Find Colleges', to: getAuthedPortalUrl('https://colleges.edumetraglobal.com', session), icon: Search, desc: 'Search for your dream college', external: true },
     { label: 'Explore Courses', to: '/', icon: BookOpen, desc: 'Browse our extensive course catalog' },
     { label: 'Go Home', to: '/', icon: Home, desc: 'Back to the Edumetra homepage' },
   ];
@@ -93,7 +97,7 @@ const NotFoundPage = () => {
               <a
                 key={link.to}
                 href={link.to}
-                onClick={() => pushLeadToTeleCRM({}, ['404: Visited Colleges Portal'])}
+                onClick={() => trackTeleCRMTouchpoint(['404: Visited Colleges Portal'])}
                 className="group p-6 bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 rounded-2xl flex items-center justify-center mb-4 transition-colors">

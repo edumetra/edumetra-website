@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import { bootstrapCrossDomainSession, clearSharedAuthCookies, hasAuthTokensInUrl } from '../utils/crossDomainAuth';
 
 const SignupContext = createContext();
 
@@ -71,19 +72,19 @@ export function SignupProvider({ children }) {
                 pushLeadToTeleCRM({
                     name: metadata.full_name || metadata.name || '',
                     email: currentUser.email,
-                    phone: metadata.phone || '',
-                    status: 'Fresh'
-                }, ['Sync: Colleges Platform']);
+                    phone: metadata.phone || currentUser.phone || '',
+                    status: 'Fresh',
+                }, ['Colleges Platform: Signed In']);
             }
         });
 
-        // Fallback & Recovery: Catch sessions that standard listeners might miss
+        // Bootstrap shared cookies + URL hash handoff from public website
         const checkInitialSession = async () => {
             try {
-                // Use a non-aborting session check
-                const { data: { session }, error } = await supabase.auth.getSession();
-                
-                if (error) throw error;
+                const session = await bootstrapCrossDomainSession(supabase, {
+                    maxRetries: hasAuthTokensInUrl() ? 5 : 2,
+                });
+
                 if (!isMounted) return;
 
                 if (session?.user) {
@@ -92,7 +93,6 @@ export function SignupProvider({ children }) {
                     await fetchProfile(session.user.id);
                 }
             } catch (err) {
-                // Ignore AbortError and other non-critical session errors
                 if (err.name !== 'AbortError') {
                     console.warn('Initial session check failed:', err.message);
                 }
@@ -103,15 +103,10 @@ export function SignupProvider({ children }) {
 
         checkInitialSession();
 
-        // SAFETY FAIL-SAFE:
-        // In strict privacy browsers (like Ulaa), Supabase might be blocked entirely.
-        // We wait 3 seconds to give the profile fetch enough time to return the
-        // correct account_type before forcing the app shell to mount with a null profile.
+        const safetyDelayMs = hasAuthTokensInUrl() ? 6000 : 3000;
         const safetyTimer = setTimeout(() => {
-            if (isMounted) {
-                setLoading(false);
-            }
-        }, 3000);
+            if (isMounted) setLoading(false);
+        }, safetyDelayMs);
 
         return () => {
             isMounted = false;
@@ -170,15 +165,7 @@ export function SignupProvider({ children }) {
         setSession(null);
         setProfile(null);
         
-        if (typeof document !== 'undefined') {
-            document.cookie.split(';').forEach(c => {
-                const name = c.split('=')[0].trim();
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.edumetraglobal.com;`;
-            });
-            localStorage.clear();
-            sessionStorage.clear();
-        }
+        clearSharedAuthCookies();
     };
 
     const openAuth = (mode = 'signup') => {

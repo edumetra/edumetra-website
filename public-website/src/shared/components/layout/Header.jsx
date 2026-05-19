@@ -4,7 +4,7 @@ import { motion,  AnimatePresence  } from 'framer-motion';
 import { Search, GraduationCap, Star, Menu, X, ChevronDown, User, LogOut, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { useCounselling } from '../../../features/counselling/CounsellingContext';
-import { pushLeadToTeleCRM } from '../../../services/telecrm';
+import { trackTeleCRMTouchpoint } from '../../../services/telecrm';
 import { getAuthedPortalUrl } from '../../../shared/utils/authRedirect';
 
 const Header = () => {
@@ -72,7 +72,7 @@ const Header = () => {
                                     href={link.path}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    onClick={() => pushLeadToTeleCRM({}, ['Header: Visited Colleges Portal'])}
+                                    onClick={() => trackTeleCRMTouchpoint(['Header: Visited Colleges Portal'])}
                                     className="relative px-1 py-2 text-sm font-medium transition-all duration-300 rounded-lg group whitespace-nowrap text-slate-300 hover:text-white"
                                 >
                                     {link.name}
@@ -291,7 +291,7 @@ const Header = () => {
                                                 className="block px-4 py-2.5 rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white"
                                                 onClick={() => {
                                                     setMobileMenuOpen(false);
-                                                    pushLeadToTeleCRM({}, ['Header: Visited Colleges Portal (Mobile)']);
+                                                    trackTeleCRMTouchpoint(['Header: Visited Colleges Portal (Mobile)']);
                                                 }}
                                             >
                                                 {link.name}

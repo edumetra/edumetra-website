@@ -97,7 +97,12 @@ export default function SignupModal({ isOpen, onClose }) {
 
                 // Push login event to TeleCRM (fire-and-forget)
                 pushLeadToTeleCRM(
-                    { email: finalEmail, status: 'Fresh' },
+                    {
+                        email: finalEmail,
+                        phone: formData.phone || undefined,
+                        name: formData.name || undefined,
+                        status: 'Fresh',
+                    },
                     ['Colleges Platform Login']
                 );
 

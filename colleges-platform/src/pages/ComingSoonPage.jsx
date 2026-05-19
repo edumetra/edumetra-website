@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Rocket, Mail, Globe, Sparkles, ArrowRight } from 'lucide-react';
-import { pushLeadToTeleCRM } from '../services/telecrm';
+import { pushLeadToTeleCRM, trackTeleCRMTouchpoint } from '../services/telecrm';
+import { useSignup } from '../contexts/SignupContext';
+import { getAuthedPortalUrl } from '../utils/authRedirect';
 
 const ComingSoonPage = () => {
+    const { session } = useSignup();
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -100,8 +103,8 @@ const ComingSoonPage = () => {
                     </div>
                     
                     <a 
-                        href="https://edumetraglobal.com" 
-                        onClick={() => pushLeadToTeleCRM({}, ['Coming Soon: Visit Main Site'])}
+                        href={getAuthedPortalUrl('https://www.edumetraglobal.com', session)} 
+                        onClick={() => trackTeleCRMTouchpoint(['Coming Soon: Visit Main Site'])}
                         className="group flex items-center gap-3 px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-slate-400 hover:text-white transition-all text-sm font-bold"
                     >
                         <Sparkles className="w-4 h-4 text-red-500" />
