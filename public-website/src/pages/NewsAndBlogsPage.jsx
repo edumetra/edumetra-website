@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-
     Calendar,
     Clock,
     User,
@@ -18,6 +18,7 @@ import {
 import SEO from '../components/SEO';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
+import { featuredArticle, articles } from '../data/articlesData';
 
 const NewsAndBlogsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -35,118 +36,6 @@ const NewsAndBlogsPage = () => {
         'College Reviews',
         'Abroad Education',
         'Career Guidance'
-    ];
-
-    const featuredArticle = {
-        title: 'NEET 2025: Complete Guide to Counseling Process and Important Dates',
-        excerpt: 'Everything you need to know about NEET 2025 counseling rounds, important dates, document requirements, and college selection strategy.',
-        category: 'NEET Updates',
-        author: 'Dr. Rajesh Kumar',
-        date: '2025-02-05',
-        readTime: '8 min read',
-        image: '📚',
-        views: '5.2K',
-        comments: 47,
-        tags: ['NEET 2025', 'Counseling', 'Admission']
-    };
-
-    const articles = [
-        {
-            title: 'Top 10 Medical Colleges in India 2025: NIRF Rankings and Cutoffs',
-            excerpt: 'Comprehensive analysis of India\'s best medical colleges based on NIRF rankings, infrastructure, faculty, and placement records.',
-            category: 'College Reviews',
-            author: 'Dr. Priya Sharma',
-            date: '2025-02-03',
-            readTime: '10 min read',
-            image: '🎓',
-            views: '3.8K',
-            comments: 34,
-            tags: ['Rankings', 'Medical Colleges', 'AIIMS']
-        },
-        {
-            title: 'How to Score 650+ in NEET 2025: Strategy from Toppers',
-            excerpt: 'Proven strategies, study schedules, and preparation tips from NEET toppers who scored above 650 marks.',
-            category: 'Study Tips',
-            author: 'Anjali Patel',
-            date: '2025-02-01',
-            readTime: '12 min read',
-            image: '📖',
-            views: '4.5K',
-            comments: 56,
-            tags: ['NEET Preparation', 'Study Strategy', 'Toppers Tips']
-        },
-        {
-            title: 'MBBS in Russia vs China: Complete Cost and Quality Comparison',
-            excerpt: 'Detailed comparison of studying MBBS in Russia vs China including fees, living costs, university rankings, and career prospects.',
-            category: 'Ab road Education',
-            author: 'Vikram Singh',
-            date: '2025-01-29',
-            readTime: '15 min read',
-            image: '🌍',
-            views: '2.9K',
-            comments: 28,
-            tags: ['Russia', 'China', 'MBBS Abroad']
-        },
-        {
-            title: 'Government vs Private Medical Colleges: Making the Right Choice',
-            excerpt: 'In-depth analysis of government and private medical colleges - fees, quality, placements, and long-term ROI.',
-            category: 'Career Guidance',
-            author: 'Dr. Meenakshi Iyer',
-            date: '2025-01-27',
-            readTime: '9 min read',
-            image: '🏥',
-            views: '3.1K',
-            comments: 42,
-            tags: ['Government Colleges', 'Private Colleges', 'Decision Guide']
-        },
-        {
-            title: 'NMC Guidelines 2025: What Changed for Medical Students?',
-            excerpt: 'Latest updates from National Medical Commission affecting MBBS curriculum, internships, and licensing exams.',
-            category: 'NEET Updates',
-            author: 'Rahul Desai',
-            date: '2025-01-25',
-            readTime: '7 min read',
-            image: '📋',
-            views: '2.4K',
-            comments: 19,
-            tags: ['NMC', 'Guidelines', 'Regulations']
-        },
-        {
-            title: 'Deemed Universities for MBBS: Complete List and Analysis 2025',
-            excerpt: 'Comprehensive guide to deemed medical universities in India, their unique advantages, and admission process.',
-            category: 'Admission News',
-            author: 'Kavita Menon',
-            date: '2025-01-23',
-            readTime: '11 min read',
-            image: '🏛️',
-            views: '2.7K',
-            comments: 31,
-            tags: ['Deemed Universities', 'MBBS Admission', 'Private Colleges']
-        },
-        {
-            title: 'From NEET to Doctor: Complete Timeline and Milestones',
-            excerpt: 'Complete roadmap of medical education in India from NEET preparation to becoming a practicing doctor.',
-            category: 'Career Guidance',
-            author: 'Dr. Suresh Reddy',
-            date: '2025-01-20',
-            readTime: '13 min read',
-            image: '🎯',
-            views: '4.1K',
-            comments: 38,
-            tags: ['Medical Career', 'Timeline', 'Career Path']
-        },
-        {
-            title: 'State Quota vs All India Quota: Everything You Need to Know',
-            excerpt: 'Detailed explanation of state quota and AIQ seats, eligibility criteria, and which option is better for you.',
-            category: 'NEET Updates',
-            author: 'Akash Gupta',
-            date: '2025-01-18',
-            readTime: '8 min read',
-            image: '📍',
-            views: '3.3K',
-            comments: 25,
-            tags: ['State Quota', 'AIQ', 'Counseling']
-        }
     ];
 
     const filteredArticles = articles.filter(article => {
@@ -266,10 +155,10 @@ const NewsAndBlogsPage = () => {
                                         </div>
                                     </div>
 
-                                    <button className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center gap-2">
+                                    <Link to={`/news-blogs/${featuredArticle.slug}`} className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all flex items-center gap-2 w-fit">
                                         Read Full Article
                                         <ArrowRight className="w-4 h-4" />
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </motion.div>
@@ -290,59 +179,68 @@ const NewsAndBlogsPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredArticles.map((article, index) => (
-                                <motion.div
+                                <Link
                                     key={index}
-                                    className="card group hover:shadow-2xl transition-all cursor-pointer"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 }}
+                                    to={`/news-blogs/${article.slug}`}
+                                    className="block group"
                                 >
-                                    <div className="flex items-center justify-center bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-xl p-8 mb-4">
-                                        <div className="text-6xl">{article.image}</div>
-                                    </div>
-
-                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-800 text-red-400 rounded text-xs font-semibold mb-3">
-                                        <Tag className="w-3 h-3" />
-                                        {article.category}
-                                    </div>
-
-                                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-red-400 transition-colors line-clamp-2">
-                                        {article.title}
-                                    </h3>
-
-                                    <p className="text-slate-300 text-sm mb-4 line-clamp-3">
-                                        {article.excerpt}
-                                    </p>
-
-                                    <div className="flex items-center gap-3 text-xs text-slate-400 mb-4">
-                                        <div className="flex items-center gap-1">
-                                            <User className="w-3 h-3" />
-                                            {article.author}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            {article.readTime}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-                                        <div className="flex items-center gap-4 text-xs text-slate-400">
-                                            <div className="flex items-center gap-1">
-                                                <Eye className="w-3 h-3" />
-                                                {article.views}
+                                    <motion.div
+                                        className="card group hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col justify-between"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: index * 0.1 }}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-center bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-xl p-8 mb-4">
+                                                <div className="text-6xl">{article.image}</div>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <MessageCircle className="w-3 h-3" />
-                                                {article.comments}
+
+                                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-800 text-red-400 rounded text-xs font-semibold mb-3">
+                                                <Tag className="w-3 h-3" />
+                                                {article.category}
+                                            </div>
+
+                                            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-red-400 transition-colors line-clamp-2">
+                                                {article.title}
+                                            </h3>
+
+                                            <p className="text-slate-300 text-sm mb-4 line-clamp-3">
+                                                {article.excerpt}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center gap-3 text-xs text-slate-400 mb-4">
+                                                <div className="flex items-center gap-1">
+                                                    <User className="w-3 h-3" />
+                                                    {article.author}
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {article.readTime}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+                                                <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                    <div className="flex items-center gap-1">
+                                                        <Eye className="w-3 h-3" />
+                                                        {article.views}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <MessageCircle className="w-3 h-3" />
+                                                        {article.comments}
+                                                    </div>
+                                                </div>
+                                                <span className="text-red-400 group-hover:text-red-300 transition-colors flex items-center gap-1 text-sm font-semibold">
+                                                    Read More
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </span>
                                             </div>
                                         </div>
-                                        <button className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 text-sm font-semibold">
-                                            Read More
-                                            <ArrowRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </motion.div>
+                                    </motion.div>
+                                </Link>
                             ))}
                         </div>
 

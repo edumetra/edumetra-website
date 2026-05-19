@@ -22,6 +22,7 @@ import SignupPage from './pages/SignupPage';
 import WebinarsAndSeminarsPage from './pages/WebinarsAndSeminarsPage';
 import MBBSAbroadPage from './pages/MBBSAbroadPage';
 import NewsAndBlogsPage from './pages/NewsAndBlogsPage';
+import ArticleDetailPage from './pages/ArticleDetailPage';
 import CoursePage from './pages/CoursePage';
 import CollegeDetailPage from './pages/CollegeDetailPage';
 import EventDetailPage from './pages/EventDetailPage';
@@ -79,6 +80,7 @@ function App() {
                   <Route path="/review" element={<WriteReviewPage />} />
                   <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
                   <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
+                  <Route path="/news-blogs/:slug" element={<ArticleDetailPage />} />
                   <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
                   <Route path="/webinars-seminars/:slug" element={<EventDetailPage />} />
                   <Route path="/find-colleges" element={<FindCollegesPage />} />
