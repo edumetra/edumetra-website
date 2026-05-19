@@ -11,7 +11,20 @@
  */
 export const getAuthedPortalUrl = (baseUrl, session, queryParams = {}) => {
     try {
-        const url = new URL(baseUrl);
+        let finalBaseUrl = baseUrl;
+
+        // Auto-detect local development environment
+        if (typeof window !== 'undefined') {
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocal) {
+                if (baseUrl.includes('colleges.edumetraglobal.com') || baseUrl.includes('edumetraglobal.com')) {
+                    // Replace production domain with local colleges portal port (3002)
+                    finalBaseUrl = baseUrl.replace(/https:\/\/(colleges\.)?edumetraglobal\.com/g, 'http://localhost:3002');
+                }
+            }
+        }
+
+        const url = new URL(finalBaseUrl);
         
         // Add query parameters
         Object.entries(queryParams).forEach(([key, val]) => {
