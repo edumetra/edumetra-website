@@ -43,6 +43,43 @@ export async function updatePremiumLocks(
     }
 }
 
+export async function getGlobalPremiumLocks() {
+    try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(cookieStore);
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) return { error: "Unauthorized — please sign in again" };
+
+        const { data, error } = await (supabase.from("college_details") as any)
+            .select("visible_in_free, visible_in_signed_up, visible_in_pro, visible_in_premium")
+            .limit(1)
+            .maybeSingle();
+
+        if (error) return { error: error.message };
+
+        const defaults = {
+            visible_in_free: [] as string[],
+            visible_in_signed_up: [] as string[],
+            visible_in_pro: [] as string[],
+            visible_in_premium: ["cutoffs", "rankings", "reviews", "gallery", "courses", "contact", "admissions", "qna", "faq"],
+        };
+
+        if (!data) return { config: defaults };
+
+        return {
+            config: {
+                visible_in_free: data.visible_in_free ?? defaults.visible_in_free,
+                visible_in_signed_up: data.visible_in_signed_up ?? defaults.visible_in_signed_up,
+                visible_in_pro: data.visible_in_pro ?? defaults.visible_in_pro,
+                visible_in_premium: data.visible_in_premium ?? defaults.visible_in_premium,
+            },
+        };
+    } catch (err: unknown) {
+        return { error: (err as Error).message || "Failed to load global locks" };
+    }
+}
+
 export async function updateGlobalPremiumLocks(
     visibilityConfig: {
         visible_in_free: string[];

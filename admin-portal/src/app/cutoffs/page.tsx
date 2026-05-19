@@ -8,6 +8,7 @@ import {
     Filter, ChevronDown, BarChart2,
 } from "lucide-react";
 import Papa from "papaparse";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type Cutoff = {
     id: string;
@@ -51,6 +52,7 @@ export default function CutoffsManager() {
     const [collegesList, setCollegesList] = useState<{ id: string; name: string }[]>([]);
     const [coursesList, setCoursesList] = useState<{ id: string; name: string }[]>([]);
     const [saving, setSaving] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     useEffect(() => { fetchData(); fetchColleges(); }, []);// eslint-disable-line
 
@@ -63,7 +65,13 @@ export default function CutoffsManager() {
             .order("year", { ascending: false })
             .order("closing_rank", { ascending: true })
             .limit(500);
-        if (!error) setCutoffs(data || []);
+        if (error) {
+            setFetchError(error.message);
+            setCutoffs([]);
+        } else {
+            setFetchError(null);
+            setCutoffs(data || []);
+        }
         setLoading(false);
     };
 
@@ -247,6 +255,10 @@ export default function CutoffsManager() {
                     </button>
                 </div>
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetchData} />
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">

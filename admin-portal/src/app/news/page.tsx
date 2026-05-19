@@ -116,7 +116,7 @@ export default function NewsPage() {
                 .select()
                 .single();
                 
-            if (updateErr) setError(updateErr.message);
+            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
             else {
                 setNewsItems(prev => prev.map(n => n.id === data.id ? data : n).sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);
@@ -128,7 +128,7 @@ export default function NewsPage() {
                 .select()
                 .single();
                 
-            if (insertErr) setError(insertErr.message);
+            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
             else {
                 setNewsItems(prev => [data, ...prev].sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);

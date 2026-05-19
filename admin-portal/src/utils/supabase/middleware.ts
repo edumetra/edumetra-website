@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabasePublicEnv } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/api/auth", "/api/webhooks"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/denied", "/api/webhooks"];
 
 export async function updateSession(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -13,9 +14,17 @@ export async function updateSession(request: NextRequest) {
 
     let response = NextResponse.next({ request: { headers: request.headers } });
 
+    let supabaseUrl: string;
+    let supabaseAnonKey: string;
+    try {
+        ({ url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabasePublicEnv());
+    } catch {
+        return NextResponse.redirect(new URL("/login?error=config", request.url));
+    }
+
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabaseUrl,
+        supabaseAnonKey,
         {
             cookies: {
                 getAll() {
@@ -84,6 +93,12 @@ export async function updateSession(request: NextRequest) {
         "/cutoffs": "cutoffs",
         "/rankings": "rankings",
         "/premium-locks": "premium_locks",
+        "/hot-leads": "hot_leads",
+        "/news": "news",
+        "/events": "events",
+        "/newsletter": "newsletter",
+        "/counselling": "counselling",
+        "/coupons": "coupons",
     };
 
     for (const [path, key] of Object.entries(PERMISSION_MAP)) {

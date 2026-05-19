@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Star, Eye, EyeOff, Clock, Search, ChevronLeft, ChevronRight, MessageSquare, CheckCircle2 } from "lucide-react";
 import ReviewReplyModal from "@/components/ReviewReplyModal";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type ModerationStatus = "visible" | "hidden" | "pending";
 
@@ -64,6 +65,7 @@ export default function ReviewsPage() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [replyTarget, setReplyTarget] = useState<Review | null>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const fetchReviews = async () => {
         setLoading(true);
@@ -71,7 +73,13 @@ export default function ReviewsPage() {
             .from("reviews")
             .select("*, colleges(name)")
             .order("created_at", { ascending: false });
-        if (!error) setReviews((data ?? []) as unknown as Review[]);
+        if (error) {
+            setFetchError(error.message);
+            setReviews([]);
+        } else {
+            setFetchError(null);
+            setReviews((data ?? []) as unknown as Review[]);
+        }
         setLoading(false);
     };
 
@@ -130,6 +138,10 @@ export default function ReviewsPage() {
                     <h1 className="text-3xl font-bold text-white mb-1">Review Moderation</h1>
                     <p className="text-slate-400 text-sm">Review all user-submitted content and control what is publicly visible.</p>
                 </div>
+
+                {fetchError && (
+                    <FetchErrorBanner message={fetchError} onRetry={fetchReviews} />
+                )}
 
                 {/* Stats / filter tabs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

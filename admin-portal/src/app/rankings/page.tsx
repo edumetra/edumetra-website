@@ -8,6 +8,7 @@ import {
     ChevronDown, Filter, Medal,
 } from "lucide-react";
 import Papa from "papaparse";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type Ranking = {
     id: string;
@@ -58,6 +59,7 @@ export default function RankingsManager() {
     const [formData, setFormData] = useState({ college_id: "", provider: "NIRF", year: CURRENT_YEAR, rank: "", category: "" });
     const [collegesList, setCollegesList] = useState<{ id: string; name: string }[]>([]);
     const [saving, setSaving] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     useEffect(() => { fetchData(); fetchColleges(); }, []); // eslint-disable-line
 
@@ -70,7 +72,13 @@ export default function RankingsManager() {
             .order("year", { ascending: false })
             .order("rank", { ascending: true })
             .limit(500);
-        if (!error) setRankings(data || []);
+        if (error) {
+            setFetchError(error.message);
+            setRankings([]);
+        } else {
+            setFetchError(null);
+            setRankings(data || []);
+        }
         setLoading(false);
     };
 
@@ -229,6 +237,10 @@ export default function RankingsManager() {
                     </button>
                 </div>
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetchData} />
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

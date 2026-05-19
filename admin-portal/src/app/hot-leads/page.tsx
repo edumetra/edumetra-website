@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Flame, User, Mail, Eye, Clock, RefreshCw } from "lucide-react";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type Lead = {
     identifier: string;
@@ -28,6 +29,7 @@ export default function HotLeadsPage() {
     const supabase = createClient();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const [filter, setFilter] = useState<"hot" | "all">("hot");
     const [search, setSearch] = useState("");
 
@@ -39,11 +41,19 @@ export default function HotLeadsPage() {
             .order("pricing_views", { ascending: false })
             .limit(200);
 
-        if (!error && data) setLeads(data);
+        if (error) {
+            setFetchError(error.message);
+            setLeads([]);
+        } else {
+            setFetchError(null);
+            setLeads(data || []);
+        }
         setLoading(false);
     };
 
-    useEffect(() => { fetchLeads(); }, []);
+    useEffect(() => {
+        fetchLeads();
+    }, []);
 
     const visible = leads.filter((l) => {
         if (filter === "hot" && l.pricing_views < HOT_THRESHOLD) return false;
@@ -84,6 +94,10 @@ export default function HotLeadsPage() {
                     Refresh
                 </button>
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetchLeads} />
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

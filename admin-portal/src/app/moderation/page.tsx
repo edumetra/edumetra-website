@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Star, Flag, Eye, EyeOff, AlertTriangle, Clock, Shield, Search, CheckCheck } from "lucide-react";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type Review = {
     id: string;
@@ -47,14 +48,21 @@ export default function ModerationPage() {
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [bulkLoading, setBulkLoading] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const fetchReviews = async () => {
         setLoading(true);
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from("reviews")
             .select("*, colleges(name)")
             .order("created_at", { ascending: false });
-        setReviews((data ?? []) as unknown as Review[]);
+        if (error) {
+            setFetchError(error.message);
+            setReviews([]);
+        } else {
+            setFetchError(null);
+            setReviews((data ?? []) as unknown as Review[]);
+        }
         setLoading(false);
     };
 
@@ -146,6 +154,10 @@ export default function ModerationPage() {
                     </button>
                 )}
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetchReviews} />
+            )}
 
             {/* Stat cards */}
             <div className="grid grid-cols-3 gap-4 mb-6">

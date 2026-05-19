@@ -21,10 +21,6 @@ export default function NewsletterPage() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        fetchSubscribers();
-    }, []);
-
     const fetchSubscribers = async () => {
         setLoading(true);
         const { data, error } = await supabase
@@ -39,6 +35,10 @@ export default function NewsletterPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchSubscribers();
+    }, []);
 
     const handleCopyEmails = () => {
         const emails = filterSubscribers().map(s => s.email).join(", ");

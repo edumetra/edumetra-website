@@ -95,7 +95,7 @@ export default function ArticlesPage() {
                 .eq("id", editingArticle.id)
                 .select()
                 .single();
-            if (updateErr) setError(updateErr.message);
+            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
             else {
                 setArticles(prev => prev.map(a => a.id === data.id ? data : a));
                 setIsModalOpen(false);
@@ -106,7 +106,7 @@ export default function ArticlesPage() {
                 .insert([payload])
                 .select()
                 .single();
-            if (insertErr) setError(insertErr.message);
+            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
             else {
                 setArticles(prev => [data, ...prev]);
                 setIsModalOpen(false);

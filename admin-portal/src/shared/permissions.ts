@@ -15,7 +15,8 @@ export type PermissionKey =
     | "news"
     | "newsletter"
     | "coupons"
-    | "events";
+    | "events"
+    | "hot_leads";
 
 export type AdminPermissions = Partial<Record<PermissionKey, boolean>>;
 
@@ -35,6 +36,7 @@ export const ALL_PERMISSIONS: { key: PermissionKey; label: string; description: 
     { key: "events", label: "Events (Webinars)", description: "Manage webinars and view registrations" },
     { key: "newsletter", label: "Newsletter Subscribers", description: "View and export newsletter subscriptions" },
     { key: "coupons", label: "Coupons", description: "Manage discount codes and Razorpay offers" },
+    { key: "hot_leads", label: "Hot Leads", description: "View high-intent pricing visitors" },
     { key: "audit_logs", label: "Audit Logs", description: "View admin audit trail (read-only)" },
 ];
 
@@ -65,4 +67,5 @@ export const DEFAULT_MINI_ADMIN_PERMISSIONS: AdminPermissions = {
     events: false,
     newsletter: false,
     coupons: false,
+    hot_leads: false,
 };

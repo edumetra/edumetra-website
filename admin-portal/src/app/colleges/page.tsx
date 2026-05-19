@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import BulkUploadModal from "@/features/colleges/components/BulkUploadModal";
 import { deleteColleges, updateCollegeVisibility } from "@/app/actions/colleges";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type Visibility = "public" | "draft" | "hidden";
 type SortKey = "name" | "rank" | "rating" | "created_at";
@@ -88,14 +89,21 @@ export default function CollegesPage() {
     const [bulkLoading, setBulkLoading] = useState(false);
     const [view, setView] = useState<"table" | "grid">("table");
     const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const fetch = useCallback(async () => {
         setLoading(true);
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from("colleges")
             .select("id, name, slug, image, location_city, location_state, type, visibility, rank, rating, fees, review_count, created_at")
             .order("created_at", { ascending: false });
-        setColleges((data ?? []) as College[]);
+        if (error) {
+            setFetchError(error.message);
+            setColleges([]);
+        } else {
+            setFetchError(null);
+            setColleges((data ?? []) as College[]);
+        }
         setLoading(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -229,6 +237,10 @@ export default function CollegesPage() {
                     </Link>
                 </div>
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetch} />
+            )}
 
             {/* Stat cards / vis filter */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

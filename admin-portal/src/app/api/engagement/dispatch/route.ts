@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 const validateCron = (req: NextRequest) => {
     const expected = process.env.ENGAGEMENT_CRON_SECRET;
-    if (!expected) return true;
+    if (!expected) return false;
     const actual = req.headers.get("x-cron-secret");
     return actual === expected;
 };

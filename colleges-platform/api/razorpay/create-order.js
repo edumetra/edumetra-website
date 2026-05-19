@@ -97,10 +97,16 @@ export default async function handler(req, res) {
                 status: 'created'
             });
 
+        const mode = keyId.startsWith('rzp_live_') ? 'live' : keyId.startsWith('rzp_test_') ? 'test' : 'unknown';
+        if (mode === 'test') {
+            console.warn('[Razorpay] TEST mode — payments are simulated; use rzp_live_ keys for real charges.');
+        }
+
         return res.status(200).json({
             success: true,
             orderId: order.id,
             keyId,
+            mode,
             amount: totalAmount * 100,
             taxableAmount: taxableAmount * 100,
             gstAmount: gstAmount * 100,

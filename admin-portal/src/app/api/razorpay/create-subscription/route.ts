@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceEnv } from '@/lib/env';
+import { assertRazorpayConfigured, getRazorpayCredentials } from '@/lib/razorpay';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +27,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing userId or planType' }, { status: 400 });
         }
 
-        // Fetch user from DB to verify user and maybe get existing customer_id
-        const supabaseAdmin = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-        );
+        assertRazorpayConfigured();
+        const { keyId, keySecret } = getRazorpayCredentials();
+        const { url, serviceKey } = getSupabaseServiceEnv();
+        const supabaseAdmin = createClient(url, serviceKey);
 
         let razorpayPlanId = '';
         if (planType === 'pro') {
@@ -46,8 +47,8 @@ export async function POST(req: NextRequest) {
         }
 
         const razorpay = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID || '',
-            key_secret: process.env.RAZORPAY_KEY_SECRET || '',
+            key_id: keyId,
+            key_secret: keySecret,
         });
 
         // Create the recurring subscription

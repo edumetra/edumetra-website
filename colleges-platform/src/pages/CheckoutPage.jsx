@@ -11,6 +11,11 @@ import toast from 'react-hot-toast';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { formatPhoneForRazorpay, isValidIndianMobile } from '../utils/phone';
 import { assertRazorpayKey, buildRazorpayCheckoutOptions } from '../utils/razorpayCheckout';
+import {
+    assertLivePaymentsOnProduction,
+    getRazorpayKeyMode,
+    getTestModeBannerMessage,
+} from '../utils/razorpayMode';
 
 const ORDER_API = '/api/razorpay/create-order';
 
@@ -86,6 +91,7 @@ const CheckoutPage = () => {
     const [couponError, setCouponError] = useState('');
     const [paymentState, setPaymentState] = useState('idle'); // idle | loading | processing | success | failed
     const [paymentError, setPaymentError] = useState('');
+    const [razorpayMode, setRazorpayMode] = useState(null);
     const [invoice, setInvoice] = useState(null);
     const [showInvoice, setShowInvoice] = useState(false);
 
@@ -407,6 +413,10 @@ const CheckoutPage = () => {
             const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
             assertRazorpayKey(razorpayKey);
 
+            const mode = orderData.mode || getRazorpayKeyMode(razorpayKey);
+            setRazorpayMode(mode);
+            assertLivePaymentsOnProduction(razorpayKey);
+
             setPaymentState('processing');
 
             const onDismiss = () => {
@@ -612,6 +622,12 @@ const CheckoutPage = () => {
                         animate={{ opacity: 1, x: 0 }}
                         className="lg:col-span-3 space-y-6"
                     >
+                        {getTestModeBannerMessage(razorpayMode) && (
+                            <div className="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 text-sm text-amber-200">
+                                <strong className="font-bold">Test mode:</strong>{' '}
+                                {getTestModeBannerMessage(razorpayMode)}
+                            </div>
+                        )}
                         {/* Coupon */}
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                             <div className="flex items-center gap-2 mb-4">

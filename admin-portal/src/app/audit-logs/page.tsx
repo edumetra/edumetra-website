@@ -8,6 +8,7 @@ import {
     Clock, Database, Plus, Edit2, Trash2, Settings, UserCog
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 type ActionType = "CREATE" | "UPDATE" | "DELETE" | "BULK_UPDATE" | "OTHER";
 
@@ -36,6 +37,7 @@ export default function AuditLogsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [actionFilter, setActionFilter] = useState<ActionType | "ALL">("ALL");
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -47,10 +49,12 @@ export default function AuditLogsPage() {
             .order("created_at", { ascending: false })
             .limit(500);
 
-        if (!error && data) {
-            setLogs(data as AuditLog[]);
+        if (error) {
+            setFetchError(error.message);
+            setLogs([]);
         } else {
-            console.error("Failed to load audit logs:", error);
+            setFetchError(null);
+            setLogs((data ?? []) as AuditLog[]);
         }
         setLoading(false);
     }, [supabase]);
@@ -91,6 +95,10 @@ export default function AuditLogsPage() {
                     <Clock className="w-4 h-4" /> Refresh Trail
                 </button>
             </div>
+
+            {fetchError && (
+                <FetchErrorBanner message={fetchError} onRetry={fetchLogs} />
+            )}
 
             <div className="flex flex-col md:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                 <div className="relative flex-1">

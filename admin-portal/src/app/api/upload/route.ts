@@ -1,7 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { requireAdminApiAuth } from "@/lib/auth-api";
+import { getSupabaseServiceEnv } from "@/lib/env";
 
 export async function POST(request: Request) {
+    const authError = await requireAdminApiAuth();
+    if (authError) return authError;
+
     try {
         const formData = await request.formData();
         const file = formData.get("file") as File | null;
@@ -15,22 +20,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-        if (!supabaseUrl || !supabaseKey || supabaseKey === "undefined" || supabaseKey === "null") {
-            console.error("Upload API Error: Supabase configuration is missing or invalid.", {
-                urlExists: !!supabaseUrl,
-                keyExists: !!supabaseKey,
-                keyType: typeof supabaseKey
-            });
-            return NextResponse.json(
-                { error: `Server configuration error: Supabase ${!supabaseUrl ? 'URL' : 'Key'} is missing or invalid.` },
-                { status: 500 }
-            );
-        }
-
-        console.log(`Initializing Supabase client for upload. Key length: ${supabaseKey?.length || 0}`);
+        const { url: supabaseUrl, serviceKey: supabaseKey } = getSupabaseServiceEnv();
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         console.log(`Converting file to Buffer. Name: ${file.name}, Type: ${file.type}, Size: ${file.size}`);

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 import type { AdminPermissions, PermissionKey } from "@/shared/permissions";
+import { getPublicWebsiteUrl } from "@/lib/env";
 import {
     LayoutDashboard,
     Users,
@@ -36,7 +37,7 @@ type NavItem = {
 };
 
 const CONTENT_NAV: NavItem[] = [
-    { href: "/hot-leads", label: "🔥 Hot Leads", icon: Flame },
+    { href: "/hot-leads", label: "🔥 Hot Leads", icon: Flame, permKey: "hot_leads" },
     { href: "/reviews", label: "Reviews", icon: BookOpen, permKey: "reviews" },
     { href: "/cutoffs", label: "Cutoffs Engine", icon: ListOrdered, permKey: "cutoffs" },
     { href: "/rankings", label: "Rankings", icon: BarChart2, permKey: "rankings" },
@@ -78,7 +79,7 @@ function NavLink({ href, label, icon: Icon }: NavItem) {
 
 function canSee(role: string, permissions: AdminPermissions, key?: PermissionKey): boolean {
     if (role === "superadmin") return true;
-    if (!key) return true; // no permission key = always visible
+    if (!key) return false;
     return !!permissions[key];
 }
 
@@ -193,7 +194,7 @@ export function Sidebar({
             {/* Footer */}
             <div className="p-3 border-t border-slate-800 space-y-2">
                 <a
-                    href="http://localhost:5173"
+                    href={getPublicWebsiteUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center w-full gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors border border-slate-700"

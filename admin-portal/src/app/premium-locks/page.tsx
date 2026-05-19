@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Save, AlertCircle, CheckCircle2, Globe, Eye, EyeOff } from "lucide-react";
-import { updateGlobalPremiumLocks } from "@/app/actions/collegeFeatures";
+import { getGlobalPremiumLocks, updateGlobalPremiumLocks } from "@/app/actions/collegeFeatures";
+import { FetchErrorBanner } from "@/components/FetchErrorBanner";
 
 const AVAILABLE_FEATURES = [
     { id: "cutoffs", label: "Exam Cutoffs" },
@@ -33,9 +34,26 @@ export default function GlobalPremiumLocksPage() {
     });
 
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+
+    const loadConfig = useCallback(async () => {
+        setInitialLoading(true);
+        setError(null);
+        const res = await getGlobalPremiumLocks();
+        if (res.error) {
+            setError(res.error);
+        } else if (res.config) {
+            setConfig(res.config);
+        }
+        setInitialLoading(false);
+    }, []);
+
+    useEffect(() => {
+        loadConfig();
+    }, [loadConfig]);
 
     const toggleFeature = (tier: keyof VisibilityConfig, featureId: string) => {
         setConfig((prev) => {
@@ -134,14 +152,12 @@ export default function GlobalPremiumLocksPage() {
                     </ul>
                 </div>
 
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 shrink-0" />
-                        <div>
-                            <p className="font-bold">Error applying global visibility</p>
-                            <p className="text-red-300/80 mt-0.5">{error}</p>
-                        </div>
-                    </div>
+                {initialLoading && (
+                    <p className="text-sm text-slate-400 mb-6">Loading current global configuration…</p>
+                )}
+
+                {error && !initialLoading && (
+                    <FetchErrorBanner message={error} onRetry={loadConfig} />
                 )}
 
                 {success && (

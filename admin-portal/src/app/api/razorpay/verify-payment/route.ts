@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceEnv } from '@/lib/env';
+import { getRazorpayCredentials } from '@/lib/razorpay';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,12 +17,10 @@ export const dynamic = 'force-dynamic';
  * 5. Returns the invoice details to the frontend
  */
 export async function POST(req: NextRequest) {
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
-
     try {
+        const { url, serviceKey } = getSupabaseServiceEnv();
+        const { keySecret } = getRazorpayCredentials();
+        const supabaseAdmin = createClient(url, serviceKey);
         const body = await req.json();
         const {
             razorpay_order_id,
@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
         }
 
         // ── 2. Verify Razorpay signature ──────────────────────────────────────
-        const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
         const expectedSignature = crypto
             .createHmac('sha256', keySecret)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)

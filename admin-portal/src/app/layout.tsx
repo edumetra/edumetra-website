@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { SecurityProvider } from "@/components/SecurityProvider";
 import type { AdminPermissions } from "@/shared/permissions";
@@ -84,16 +85,18 @@ export default async function RootLayout({
     let userRole = "mini_admin";
     let permissions: AdminPermissions = {};
 
-    const { data: adminProfile } = await supabase
+    const { data: adminProfile, error: adminProfileError } = await supabase
         .from("admins")
         .select("role, permissions")
         .eq("id", user.id)
-        .single() as { data: { role: string; permissions: AdminPermissions } | null };
+        .maybeSingle();
 
-    if (adminProfile) {
-        userRole = adminProfile.role;
-        permissions = adminProfile.permissions ?? {};
+    if (!adminProfile) {
+        redirect("/login?error=not_admin");
     }
+
+    userRole = adminProfile.role;
+    permissions = (adminProfile.permissions ?? {}) as AdminPermissions;
 
     return (
         <html lang="en" className="dark">

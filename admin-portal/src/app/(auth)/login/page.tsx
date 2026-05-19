@@ -16,7 +16,7 @@ export default async function Login({
     const supabase = createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-        const { data: admin } = await supabase.from("admins").select("id").eq("id", user.id).single();
+        const { data: admin } = await supabase.from("admins").select("id").eq("id", user.id).maybeSingle();
         if (admin) redirect("/");
     }
 
@@ -36,7 +36,7 @@ export default async function Login({
         // Verify the user is an admin
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            const { data: admin } = await supabase.from("admins").select("id").eq("id", user.id).single();
+            const { data: admin } = await supabase.from("admins").select("id").eq("id", user.id).maybeSingle();
             if (!admin) {
                 await supabase.auth.signOut();
                 return redirect("/login?message=You do not have admin access to this portal.");
@@ -55,6 +55,7 @@ export default async function Login({
     else if (params.reason === "inactive") bannerMessage = "You were logged out due to inactivity.";
     else if (params.redirected) bannerMessage = "Please sign in to access the admin portal.";
     else if (params.error === "not_admin") bannerMessage = "Your account does not have admin access.";
+    else if (params.error === "config") bannerMessage = "Admin portal is misconfigured. Contact support (missing Supabase environment variables).";
 
     return (
         <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">

@@ -233,6 +233,9 @@ export default function NewCollegePage() {
                 .single();
 
             if (insertError) throw insertError;
+            if (!collegeData?.id) {
+                throw new Error("College was created but the server did not return an ID. Please check the colleges list.");
+            }
 
             // Prepare JSONB fields
             const resData = formData.reservation_percentages.reduce((acc, curr) => {

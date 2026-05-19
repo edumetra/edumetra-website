@@ -12,6 +12,11 @@ import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { formatPhoneForRazorpay, isValidIndianMobile } from '../shared/utils/phone';
 import { assertRazorpayKey, buildRazorpayCheckoutOptions } from '../shared/utils/razorpayCheckout';
+import {
+    assertLivePaymentsOnProduction,
+    getRazorpayKeyMode,
+    getTestModeBannerMessage,
+} from '../shared/utils/razorpayMode';
 import toast from 'react-hot-toast';
 
 const ORDER_API = '/api/razorpay/create-order';
@@ -89,6 +94,7 @@ const CheckoutPage = () => {
 
     const [paymentState, setPaymentState] = useState('idle'); // idle | loading | processing | success | failed
     const [paymentError, setPaymentError] = useState('');
+    const [razorpayMode, setRazorpayMode] = useState(null);
     const [invoice, setInvoice] = useState(null);
     const [showInvoice, setShowInvoice] = useState(false);
 
@@ -407,6 +413,10 @@ const CheckoutPage = () => {
             const razorpayKey = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
             assertRazorpayKey(razorpayKey);
 
+            const mode = orderData.mode || getRazorpayKeyMode(razorpayKey);
+            setRazorpayMode(mode);
+            assertLivePaymentsOnProduction(razorpayKey);
+
             setPaymentState('processing');
 
             const onDismiss = () => {
@@ -588,11 +598,17 @@ const CheckoutPage = () => {
                         </motion.div>
 
                         {/* ── Right: Payment ── */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="lg:col-span-3 space-y-6"
-                        >
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="lg:col-span-3 space-y-6"
+                            >
+                            {getTestModeBannerMessage(razorpayMode) && (
+                                <motion.div className="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 text-sm text-amber-200">
+                                    <strong className="font-bold">Test mode:</strong>{' '}
+                                    {getTestModeBannerMessage(razorpayMode)}
+                                </motion.div>
+                            )}
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Ticket className="w-5 h-5 text-red-400" />

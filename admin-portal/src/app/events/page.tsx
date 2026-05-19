@@ -232,7 +232,7 @@ export default function EventsPage() {
                 .select()
                 .single();
                 
-            if (updateErr) setError(updateErr.message);
+            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
             else {
                 const updatedEvent = data as EventItem;
                 setEvents(prev => prev.map(n => n.id === updatedEvent.id ? updatedEvent : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -245,7 +245,7 @@ export default function EventsPage() {
                 .select()
                 .single();
                 
-            if (insertErr) setError(insertErr.message);
+            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
             else {
                 const newEvent = data as EventItem;
                 setEvents(prev => [newEvent, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
