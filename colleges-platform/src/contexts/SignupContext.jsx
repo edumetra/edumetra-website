@@ -14,6 +14,7 @@ export function useSignup() {
 
 export function SignupProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -54,6 +55,7 @@ export function SignupProvider({ children }) {
 
             const currentUser = session?.user ?? null;
             setUser(currentUser);
+            setSession(session);
             
             // If we just got a user (e.g. from a shared cookie), fetch their profile
             if (currentUser) {
@@ -86,6 +88,7 @@ export function SignupProvider({ children }) {
 
                 if (session?.user) {
                     setUser(session.user);
+                    setSession(session);
                     await fetchProfile(session.user.id);
                 }
             } catch (err) {
@@ -164,6 +167,7 @@ export function SignupProvider({ children }) {
         }
         
         setUser(null);
+        setSession(null);
         setProfile(null);
         
         if (typeof document !== 'undefined') {
@@ -184,6 +188,7 @@ export function SignupProvider({ children }) {
 
     const value = {
         user,
+        session,
         profile,
         loading,
         showModal,

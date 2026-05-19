@@ -7,9 +7,10 @@ import {
 } from 'lucide-react';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { useSignup } from '../contexts/SignupContext';
+import { getAuthedPortalUrl } from '../utils/authRedirect';
 
 const Navigation = () => {
-    const { isSignedUp, user, logout, openSignIn, openSignUp } = useSignup();
+    const { isSignedUp, user, session, logout, openSignIn, openSignUp } = useSignup();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -68,7 +69,12 @@ const Navigation = () => {
             ]
         },
         { label: 'Write a Review', to: '/review', internal: true, icon: PenSquare },
-        { label: 'Main Website', to: 'https://www.edumetraglobal.com', internal: false, icon: ExternalLink },
+        { 
+            label: 'Main Website', 
+            to: getAuthedPortalUrl('https://www.edumetraglobal.com', session), 
+            internal: false, 
+            icon: ExternalLink 
+        },
     ];
 
     // Bottom tab bar — 4 most-used pages

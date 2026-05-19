@@ -5,8 +5,11 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import { useSignup } from '../contexts/SignupContext';
+import { getAuthedPortalUrl } from '../utils/authRedirect';
 
 export default function Footer() {
+    const { session } = useSignup();
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [subscribing, setSubscribing] = useState(false);
@@ -173,16 +176,20 @@ export default function Footer() {
                                 { name: '#Best_Universities', path: 'https://colleges.edumetraglobal.com/colleges' },
                                 { name: '#Best_Courses', path: 'https://www.edumetraglobal.com/' },
                                 { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
-                            ].map((tag, index) => (
-                                <a
-                                    key={index}
-                                    href={tag.path}
-                                    onClick={() => pushLeadToTeleCRM({}, ['Portal Footer Tag: ' + tag.name])}
-                                    className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20 hover:bg-red-500/20 transition-colors"
-                                >
-                                    {tag.name}
-                                </a>
-                            ))}
+                            ].map((tag, index) => {
+                                const isExternal = tag.path.includes('edumetraglobal.com') && !tag.path.includes('colleges.');
+                                const targetUrl = isExternal ? getAuthedPortalUrl(tag.path, session) : tag.path;
+                                return (
+                                    <a
+                                        key={index}
+                                        href={targetUrl}
+                                        onClick={() => pushLeadToTeleCRM({}, ['Portal Footer Tag: ' + tag.name])}
+                                        className="px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                    >
+                                        {tag.name}
+                                    </a>
+                                );
+                            })}
                         </div>
 
                         {/* Status */}
@@ -250,7 +257,7 @@ export default function Footer() {
                             {otherLinks.map((link, index) => (
                                 <li key={index}>
                                     <a
-                                        href={link.path}
+                                        href={getAuthedPortalUrl(link.path, session)}
                                         onClick={() => {
                                             if (link.path.includes('edumetraglobal.com')) {
                                                 pushLeadToTeleCRM({}, ['Portal Footer: Visited Main Site - ' + link.name]);
