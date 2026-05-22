@@ -4,10 +4,12 @@ import { Database } from "../../shared/types/database.types";
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = "sb-cache:";
+const SUPABASE_API_PATHS = ["/rest/v1/", "/auth/v1/", "/storage/v1/", "/realtime/v1/"];
 
 const isGetRequest = (init?: RequestInit) => !init?.method || init.method.toUpperCase() === "GET";
 
 const getCacheKey = (url: string) => `${SUPABASE_CACHE_PREFIX}${url}`;
+const looksLikeSupabaseApi = (url: string) => SUPABASE_API_PATHS.some((path) => url.includes(path));
 
 const saveCachedResponse = async (url: string, response: Response) => {
     if (typeof window === "undefined" || !response.ok) return;
@@ -47,7 +49,7 @@ export const createClient = () => {
     const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const isBrowser = typeof window !== "undefined";
-    const proxyUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
+    const proxyUrl = isBrowser ? `${window.location.origin}/api/supabase-proxy` : rawUrl;
 
     return createBrowserClient<Database>(proxyUrl, anonKey, {
         global: {
@@ -61,11 +63,17 @@ export const createClient = () => {
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
-                    const proxyPrefix = `${window.location.origin}/supabase`;
+                    const proxyPrefix = `${window.location.origin}/api/supabase-proxy`;
+                    const legacyProxyPrefix = `${window.location.origin}/supabase`;
                     if (url.startsWith(proxyPrefix)) {
                         endpoints.push(url.replace(proxyPrefix, rawUrl));
+                        endpoints.push(url.replace(proxyPrefix, legacyProxyPrefix));
                     } else if (url.startsWith(rawUrl)) {
                         endpoints.push(url.replace(rawUrl, proxyPrefix));
+                        endpoints.push(url.replace(rawUrl, legacyProxyPrefix));
+                    } else if (url.startsWith(legacyProxyPrefix)) {
+                        endpoints.push(url.replace(legacyProxyPrefix, proxyPrefix));
+                        endpoints.push(url.replace(legacyProxyPrefix, rawUrl));
                     }
                 }
 
@@ -77,6 +85,12 @@ export const createClient = () => {
                         try {
                             const response = await fetch(endpoint, { ...init, signal: controller.signal });
                             clearTimeout(timeout);
+                            const contentType = response.headers.get("content-type") ?? "";
+                            const isHtmlResponse = contentType.includes("text/html");
+                            if (response.ok && looksLikeSupabaseApi(endpoint) && isHtmlResponse) {
+                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
+                                continue;
+                            }
                             if (response.ok || response.status < 500) {
                                 if (isGetRequest(init)) {
                                     void saveCachedResponse(endpoint, response);

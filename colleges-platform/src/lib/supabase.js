@@ -4,14 +4,16 @@ import { cookieStorage } from '../utils/cookieStorage';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
-const supabaseUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
+const supabaseUrl = isBrowser ? `${window.location.origin}/api/supabase-proxy` : rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = 'sb-cache:';
+const SUPABASE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/realtime/v1/'];
 
 const isGetRequest = (init) => !init?.method || init.method.toUpperCase() === 'GET';
 
 const getCacheKey = (url) => `${SUPABASE_CACHE_PREFIX}${url}`;
+const looksLikeSupabaseApi = (url) => SUPABASE_API_PATHS.some((path) => url.includes(path));
 
 const saveCachedResponse = async (url, response) => {
     if (!isBrowser || !response.ok) return;
@@ -83,11 +85,17 @@ try {
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
-                    const proxyPrefix = `${window.location.origin}/supabase`;
+                    const proxyPrefix = `${window.location.origin}/api/supabase-proxy`;
+                    const legacyProxyPrefix = `${window.location.origin}/supabase`;
                     if (url.startsWith(proxyPrefix)) {
                         endpoints.push(url.replace(proxyPrefix, rawUrl));
+                        endpoints.push(url.replace(proxyPrefix, legacyProxyPrefix));
                     } else if (url.startsWith(rawUrl)) {
                         endpoints.push(url.replace(rawUrl, proxyPrefix));
+                        endpoints.push(url.replace(rawUrl, legacyProxyPrefix));
+                    } else if (url.startsWith(legacyProxyPrefix)) {
+                        endpoints.push(url.replace(legacyProxyPrefix, proxyPrefix));
+                        endpoints.push(url.replace(legacyProxyPrefix, rawUrl));
                     }
                 }
 
@@ -99,6 +107,12 @@ try {
                         try {
                             const response = await fetch(endpoint, { ...init, signal: controller.signal });
                             clearTimeout(timeout);
+                            const contentType = response.headers.get('content-type') || '';
+                            const isHtmlResponse = contentType.includes('text/html');
+                            if (response.ok && looksLikeSupabaseApi(endpoint) && isHtmlResponse) {
+                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
+                                continue;
+                            }
                             if (response.ok || response.status < 500) {
                                 if (isGetRequest(init)) {
                                     void saveCachedResponse(endpoint, response);
