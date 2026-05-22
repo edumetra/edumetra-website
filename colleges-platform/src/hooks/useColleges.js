@@ -22,7 +22,7 @@ export function useColleges() {
         // Safety timeout to reset loading state if request hangs
         const safetyTimeout = setTimeout(() => {
             setLoading(false);
-        }, 10000);
+        }, 35000);
 
         try {
             if (abortControllerRef.current) {
@@ -156,7 +156,7 @@ export function useColleges() {
     // Optimized Fetch: Get distinct options for filters
     const fetchFilterOptions = useCallback(async () => {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000); // Increased to 12s for slow connections
+        const timeout = setTimeout(() => controller.abort(), 30000); // Allow slower ISP/proxy paths
 
         try {
             // Note: Scanning 10,000+ rows in-browser is slow. 

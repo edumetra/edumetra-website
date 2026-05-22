@@ -50,10 +50,7 @@ export default function CollegeListPage() {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const options = await Promise.race([
-                    fetchFilterOptions(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Filter timeout')), 15000))
-                ]);
+                const options = await fetchFilterOptions();
                 if (options) setFilterOptions(options);
             } catch (err) {
                 console.warn('CollegeList: Initial data fetch slow/blocked', err);
