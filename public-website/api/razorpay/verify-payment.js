@@ -16,15 +16,14 @@ export default async function handler(req, res) {
             razorpay_payment_id, 
             razorpay_order_id, 
             razorpay_signature,
-            userId,
-            planType 
+            userId: requestedUserId,
+            planType: requestedPlanType
         } = req.body;
 
-        if (!razorpay_payment_id || !razorpay_signature || !userId || !razorpay_order_id) {
+        if (!razorpay_payment_id || !razorpay_signature || !razorpay_order_id) {
             return res.status(400).json({ error: 'Missing required payment verification fields' });
         }
 
-        const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
         const keySecret = process.env.RAZORPAY_KEY_SECRET || process.env.VITE_RAZORPAY_KEY_SECRET;
         const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
@@ -41,7 +40,7 @@ export default async function handler(req, res) {
             throw new Error('Invalid payment signature. Verification failed.');
         }
 
-        // 2. Fetch Payment Record
+        // 2. Fetch canonical Payment Record (server-trusted source)
         const { data: payment, error: paymentError } = await supabase
             .from('payments')
             .select('*')
@@ -50,6 +49,21 @@ export default async function handler(req, res) {
 
         if (paymentError || !payment) {
             throw new Error('Payment record not found.');
+        }
+
+        const canonicalUserId = payment.user_id;
+        const canonicalPlanType = payment.plan_type;
+
+        if (!canonicalUserId || !canonicalPlanType) {
+            throw new Error('Payment record is missing canonical user or plan details.');
+        }
+
+        // Reject mismatched caller-provided identity/plan if provided.
+        if (requestedUserId && requestedUserId !== canonicalUserId) {
+            return res.status(400).json({ error: 'User mismatch for payment verification.' });
+        }
+        if (requestedPlanType && requestedPlanType !== canonicalPlanType) {
+            return res.status(400).json({ error: 'Plan mismatch for payment verification.' });
         }
 
         // 3. Update Payment to Paid
@@ -66,10 +80,10 @@ export default async function handler(req, res) {
         const { data: profile } = await supabase
             .from('user_profiles')
             .select('full_name')
-            .eq('id', userId)
+            .eq('id', canonicalUserId)
             .single();
 
-        const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+        const { data: authUser } = await supabase.auth.admin.getUserById(canonicalUserId);
 
         // 4. Generate Invoice Number via RPC
         const { data: invoiceNumber } = await supabase.rpc('generate_invoice_number');
@@ -80,10 +94,10 @@ export default async function handler(req, res) {
             .insert({
                 invoice_number: invoiceNumber || `EDU-${Date.now()}`,
                 payment_id: payment.id,
-                user_id: userId,
+                user_id: canonicalUserId,
                 user_email: authUser?.user?.email || 'user@example.com',
                 user_name: profile?.full_name || 'Valued Student',
-                plan_type: planType,
+                plan_type: canonicalPlanType,
                 amount_paise: payment.amount_paise,
                 discount_paise: payment.discount_paise || 0,
                 total_paise: payment.amount_paise - (payment.discount_paise || 0),
@@ -99,10 +113,10 @@ export default async function handler(req, res) {
         const { error: profileUpdateErr } = await supabase
             .from('user_profiles')
             .update({ 
-                account_type: planType,
+                account_type: canonicalPlanType,
                 subscription_status: 'active'
             })
-            .eq('id', userId);
+            .eq('id', canonicalUserId);
 
         if (profileUpdateErr) {
             console.error('[Profile Update Warning]:', profileUpdateErr);

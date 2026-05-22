@@ -5,6 +5,47 @@ const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
 const supabaseUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
+const REQUEST_TIMEOUT_MS = 12000;
+const MAX_ATTEMPTS_PER_ENDPOINT = 2;
+const SUPABASE_CACHE_PREFIX = 'sb-cache:';
+
+const isGetRequest = (init) => !init?.method || init.method.toUpperCase() === 'GET';
+
+const getCacheKey = (url) => `${SUPABASE_CACHE_PREFIX}${url}`;
+
+const saveCachedResponse = async (url, response) => {
+    if (!isBrowser || !response.ok) return;
+    try {
+        const cloned = response.clone();
+        const body = await cloned.text();
+        const headers = {};
+        cloned.headers.forEach((value, key) => {
+            headers[key] = value;
+        });
+        window.localStorage.setItem(
+            getCacheKey(url),
+            JSON.stringify({ status: cloned.status, headers, body, cachedAt: Date.now() })
+        );
+    } catch {
+        // Non-fatal: continue without cache persistence
+    }
+};
+
+const getCachedResponse = (url) => {
+    if (!isBrowser) return null;
+    try {
+        const raw = window.localStorage.getItem(getCacheKey(url));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed.body !== 'string') return null;
+        return new Response(parsed.body, {
+            status: parsed.status || 200,
+            headers: parsed.headers || { 'content-type': 'application/json' }
+        });
+    } catch {
+        return null;
+    }
+};
 
 // Check if credentials are configured
 export const isConfigured = !!rawUrl && 
@@ -32,6 +73,52 @@ const createDummyQueryBuilder = () => {
 
 export const supabase = isConfigured
     ? createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+            fetch: async (input, init) => {
+                const url = typeof input === 'string' ? input : input.url;
+                const endpoints = [url];
+
+                if (isBrowser && rawUrl) {
+                    const proxyPrefix = `${window.location.origin}/supabase`;
+                    if (url.startsWith(proxyPrefix)) {
+                        endpoints.push(url.replace(proxyPrefix, rawUrl));
+                    } else if (url.startsWith(rawUrl)) {
+                        endpoints.push(url.replace(rawUrl, proxyPrefix));
+                    }
+                }
+
+                const errors = [];
+                for (const endpoint of endpoints) {
+                    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_ENDPOINT; attempt += 1) {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+                        try {
+                            const response = await fetch(endpoint, { ...init, signal: controller.signal });
+                            clearTimeout(timeout);
+                            if (response.ok || response.status < 500) {
+                                if (isGetRequest(init)) {
+                                    void saveCachedResponse(endpoint, response);
+                                }
+                                return response;
+                            }
+                            errors.push(new Error(`Supabase HTTP ${response.status} at ${endpoint}`));
+                        } catch (error) {
+                            clearTimeout(timeout);
+                            errors.push(error);
+                        }
+                    }
+                }
+
+                if (isGetRequest(init)) {
+                    for (const endpoint of endpoints) {
+                        const cached = getCachedResponse(endpoint);
+                        if (cached) return cached;
+                    }
+                }
+
+                throw errors[errors.length - 1] || new Error('Supabase request failed');
+            }
+        },
         auth: {
             storage: cookieStorage,
             autoRefreshToken: true,
@@ -61,4 +148,3 @@ if (!isConfigured && import.meta.env.DEV) {
         'See SUPABASE_SETUP.md for instructions.'
     );
 }
-

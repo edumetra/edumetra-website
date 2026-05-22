@@ -32,13 +32,17 @@ export default async function handler(req, res) {
         const rzp = new Razorpay({ key_id: keyId, key_secret: keySecret });
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Define Prices
+        // Define allowed plans and prices
         const PRICES = {
             premium: 3000,
             pro: 30000
         };
 
-        let baseAmount = PRICES[planType] || 3000;
+        if (!Object.prototype.hasOwnProperty.call(PRICES, planType)) {
+            return res.status(400).json({ error: 'Invalid planType. Allowed values: premium, pro.' });
+        }
+
+        let baseAmount = PRICES[planType];
         let discount = 0;
 
         // Handle Coupon

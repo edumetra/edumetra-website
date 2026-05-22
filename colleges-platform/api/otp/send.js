@@ -85,10 +85,15 @@ export default async function handler(req, res) {
     if (dbError) throw dbError;
 
     // 2. Send SMS via Instaalerts
-    const apiKey = process.env.INSTAALERTS_API_KEY || 'k36gKPl3Yy4T7CSscOz8Gw==';
-    const dltEntityId = process.env.INSTAALERTS_DLT_ENTITY_ID || '1001168848469782126';
-    const dltTemplateId = process.env.INSTAALERTS_DLT_TEMPLATE_ID || '1007010321594087154';
-    const senderId = process.env.INSTAALERTS_SENDER_ID || 'VIREDT';
+    const apiKey = process.env.INSTAALERTS_API_KEY;
+    const dltEntityId = process.env.INSTAALERTS_DLT_ENTITY_ID;
+    const dltTemplateId = process.env.INSTAALERTS_DLT_TEMPLATE_ID;
+    const senderId = process.env.INSTAALERTS_SENDER_ID;
+
+    if (!apiKey || !dltEntityId || !dltTemplateId || !senderId) {
+      console.error('OTP SMS configuration missing.');
+      return res.status(500).json({ error: 'OTP service is not configured' });
+    }
     const text = `Your OTP for mobile number verification with Edumetra Global is ${otp}. It is valid for 10 minutes. Do not share it with anyone. - Virtue Edtech Pvt Ltd`;
 
     const smsUrl = `https://japi.instaalerts.zone/httpapi/QueryStringReceiver?ver=1.0&key=${apiKey}&encrpt=0&dest=${formattedPhone}&send=${senderId}&text=${encodeURIComponent(text)}&dlt_entity_id=${dltEntityId}&dlt_template_id=${dltTemplateId}`;

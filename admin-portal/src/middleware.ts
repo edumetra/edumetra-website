@@ -14,9 +14,9 @@ const ALLOWED_ORIGINS = [
 ]
 
 function getCorsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : null
   return {
-    'Access-Control-Allow-Origin': allowed,
+    ...(allowed ? { 'Access-Control-Allow-Origin': allowed } : {}),
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
     'Access-Control-Max-Age': '86400',
@@ -30,12 +30,22 @@ export async function middleware(request: NextRequest) {
 
   // ── API Routes: Handle CORS before anything else ──────────────────────────
   if (pathname.startsWith('/api/')) {
+    const isAllowedOrigin = !!origin && ALLOWED_ORIGINS.includes(origin)
+
     // Short-circuit OPTIONS preflight — must not redirect
     if (request.method === 'OPTIONS') {
+      if (!origin || !isAllowedOrigin) {
+        return NextResponse.json({ error: 'CORS origin denied' }, { status: 403 })
+      }
       return new NextResponse(null, {
         status: 204,
         headers: getCorsHeaders(origin),
       })
+    }
+
+    // For cross-origin API requests, deny unknown origins explicitly
+    if (origin && !isAllowedOrigin) {
+      return NextResponse.json({ error: 'CORS origin denied' }, { status: 403 })
     }
 
     // For actual API requests, add CORS headers to the response
