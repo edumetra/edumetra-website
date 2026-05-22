@@ -16,28 +16,37 @@ export function NewsWidget() {
     const [selectedNews, setSelectedNews] = useState(null);
 
     useEffect(() => {
+        const fetchFromTable = async (tableName, limit = 5) =>
+            supabase
+                .from(tableName)
+                .select('id, title, content, image_url, tags, published_at, is_subscriber_only')
+                .order('published_at', { ascending: false })
+                .limit(limit);
+
         async function fetchTopNews() {
             const safetyTimeout = setTimeout(() => {
                 setLoading(false);
-            }, 10000);
+            }, 30000);
 
             try {
                 setLoading(true);
-                const { data, error } = await supabase
-                    .from('secure_news_updates')
-                    .select('id, title, content, image_url, tags, published_at, is_subscriber_only')
-                    .order('published_at', { ascending: false })
-                    .limit(5);
+                let { data, error } = await fetchFromTable('secure_news_updates', 5);
 
-                if (error) {
-                    console.error("Error fetching news:", error);
-                    setFetchError(error.message);
-                } else if (data) {
+                if (error || !data) {
+                    console.warn('NewsWidget: secure_news_updates failed, trying news_updates fallback', error);
+                    ({ data, error } = await fetchFromTable('news_updates', 5));
+                }
+
+                if (!error && data) {
                     setNewsItems(data);
+                    setFetchError(null);
+                } else {
+                    console.error("Error fetching news:", error);
+                    setFetchError('Unable to load latest news right now. Please refresh in a moment.');
                 }
             } catch (err) {
                 console.error("NewsWidget: Uncaught fetch error", err);
-                setFetchError(err.message || "Failed to connect to news service");
+                setFetchError("Unable to load latest news right now. Please refresh in a moment.");
             } finally {
                 clearTimeout(safetyTimeout);
                 setLoading(false);

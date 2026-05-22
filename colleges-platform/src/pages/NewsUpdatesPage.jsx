@@ -36,12 +36,20 @@ export default function NewsUpdatesPage() {
     const [sortOrder, setSortOrder] = useState('desc'); // 'desc' | 'asc'
 
     useEffect(() => {
-        async function fetchAllNews() {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('secure_news_updates')
+        const fetchFromTable = async (tableName) =>
+            supabase
+                .from(tableName)
                 .select('*')
                 .order('published_at', { ascending: false });
+
+        async function fetchAllNews() {
+            setLoading(true);
+            let { data, error } = await fetchFromTable('secure_news_updates');
+
+            if (error || !data) {
+                console.warn('NewsUpdatesPage: secure_news_updates failed, trying news_updates fallback', error);
+                ({ data, error } = await fetchFromTable('news_updates'));
+            }
 
             if (!error && data) {
                 setNewsItems(data);
@@ -52,6 +60,8 @@ export default function NewsUpdatesPage() {
                     const item = data.find(n => n.id === newsId);
                     if (item) setSelectedNews(item);
                 }
+            } else {
+                console.error('NewsUpdatesPage: failed to fetch news', error);
             }
             setLoading(false);
         }

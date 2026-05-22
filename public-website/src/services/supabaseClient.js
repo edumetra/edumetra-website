@@ -4,7 +4,7 @@ import { cookieStorage } from '../shared/utils/cookieStorage';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
-const supabaseUrl = isBrowser ? `${window.location.origin}/api/supabase-proxy` : rawUrl;
+const supabaseUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = 'sb-cache:';
@@ -81,8 +81,8 @@ export const supabase = isConfigured
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
-                    const proxyPrefix = `${window.location.origin}/api/supabase-proxy`;
-                    const legacyProxyPrefix = `${window.location.origin}/supabase`;
+                    const proxyPrefix = `${window.location.origin}/supabase`;
+                    const legacyProxyPrefix = `${window.location.origin}/api/supabase-proxy`;
                     if (url.startsWith(proxyPrefix)) {
                         endpoints.push(url.replace(proxyPrefix, rawUrl));
                         endpoints.push(url.replace(proxyPrefix, legacyProxyPrefix));
@@ -104,15 +104,26 @@ export const supabase = isConfigured
                             const response = await fetch(endpoint, { ...init, signal: controller.signal });
                             clearTimeout(timeout);
                             const contentType = response.headers.get('content-type') || '';
+                            const isSupabaseApi = looksLikeSupabaseApi(endpoint);
                             const isHtmlResponse = contentType.includes('text/html');
-                            if (response.ok && looksLikeSupabaseApi(endpoint) && isHtmlResponse) {
-                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
+                            if (isSupabaseApi && response.ok && isHtmlResponse) {
+                                errors.push(new Error(`Invalid HTML response for Supabase API at `));
                                 continue;
                             }
-                            if (response.ok || response.status < 500) {
+
+                            if (response.ok) {
                                 if (isGetRequest(init)) {
                                     void saveCachedResponse(endpoint, response);
                                 }
+                                return response;
+                            }
+
+                            if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
+                                errors.push(new Error(`Supabase endpoint unavailable () at `));
+                                continue;
+                            }
+
+                            if (response.status < 500) {
                                 return response;
                             }
                             errors.push(new Error(`Supabase HTTP ${response.status} at ${endpoint}`));
