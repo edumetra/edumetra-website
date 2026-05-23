@@ -192,7 +192,8 @@ function PricingCard({ plan, onSignUp }) {
                 )}
                 <div className="flex items-baseline gap-1">
                     <span className={`text-4xl lg:text-5xl font-black tracking-tight ${plan.color}`}>{plan.price}</span>
-                    <span className="text-slate-500 font-medium text-sm mb-1 whitespace-nowrap">/{plan.period}</span>
+                    {plan.name !== 'Free' && <span className="text-sm font-medium text-slate-500">+ GST</span>}
+                    <span className="text-slate-500 font-medium text-sm mb-1 whitespace-nowrap ml-1">/{plan.period}</span>
                 </div>
             </div>
 

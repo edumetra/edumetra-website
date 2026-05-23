@@ -127,7 +127,8 @@ const PricingSection = () => {
                                         <span className="text-5xl lg:text-6xl font-black tracking-tight gradient-text">
                                             {plan.price}
                                         </span>
-                                        <span className="text-slate-400 font-medium whitespace-nowrap">{plan.period}</span>
+                                        {plan.name !== 'Free' && <span className="text-sm font-medium text-slate-400">+ GST</span>}
+                                        <span className="text-slate-400 font-medium whitespace-nowrap ml-1">{plan.period}</span>
                                     </div>
                                 </div>
                                 <p className="text-slate-300">{plan.description}</p>

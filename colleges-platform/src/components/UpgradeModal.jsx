@@ -50,7 +50,10 @@ export default function UpgradeModal({ isOpen, onClose, featureName }) {
                 <div className="text-center mb-6">
                     <div className="flex items-end justify-center gap-2">
                         <span className="text-xl font-bold text-slate-500 line-through mb-1">₹10,000</span>
-                        <span className="text-3xl font-black text-amber-400">₹3,000</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black text-amber-400">₹3,000</span>
+                            <span className="text-sm font-medium text-slate-500">+ GST</span>
+                        </div>
                     </div>
                     <span className="text-slate-500 text-sm"> / month</span>
                     <p className="text-slate-600 text-xs mt-1">7-day free trial · Cancel anytime</p>

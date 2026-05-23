@@ -249,11 +249,14 @@ const PricingPage = () => {
                                             </span>
                                         )}
                                         <div className="flex flex-col items-center justify-center gap-1">
-                                            <span className="text-5xl lg:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                                                {appliedCoupon && plan.id !== 'free' 
-                                                    ? `₹${Math.floor(parseInt(plan.price.replace('₹', '').replace(/,/g, '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
-                                                    : plan.price}
-                                            </span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-5xl lg:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                                                    {appliedCoupon && plan.id !== 'free' 
+                                                        ? `₹${Math.floor(parseInt(plan.price.replace('₹', '').replace(/,/g, '')) * (1 - appliedCoupon.discount_percentage / 100))}` 
+                                                        : plan.price}
+                                                </span>
+                                                {plan.id !== 'free' && <span className="text-sm font-medium text-slate-400">+ GST</span>}
+                                            </div>
                                             <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px] mt-1">{plan.period}</span>
                                         </div>
                                     </div>
