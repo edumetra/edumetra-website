@@ -6,7 +6,7 @@ import {
     UserPlus, Shield, ShieldOff, Save, AlertCircle,
     Trash2, ChevronDown, ChevronUp, Check, X, Key, CheckCircle2
 } from "lucide-react";
-import { createAdminAccount, resetAdminPassword, updateAdminRole, updateAdminPermissions, deleteAdmin, getAllAdmins } from "@/app/actions/admin";
+import { createAdminAccount, resetAdminPassword, updateAdminRole, updateAdminPermissions, deleteAdmin, getAllAdmins, getCurrentAdminRole } from "@/app/actions/admin";
 import { ALL_PERMISSIONS, DEFAULT_MINI_ADMIN_PERMISSIONS, type AdminPermissions, type PermissionKey } from "@/shared/permissions";
 
 type AdminProfile = {
@@ -61,9 +61,14 @@ export default function AdminsSettingsPage() {
 
             setCurrentUserId(user.id);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
-            setCurrentUserRole(adminData?.role ?? null);
+            const roleRes = await getCurrentAdminRole();
+            if (roleRes.error) {
+                setError(roleRes.error);
+                setCurrentUserRole(null);
+                setAdmins([]);
+                return;
+            }
+            setCurrentUserRole(roleRes.role);
 
             const res = await getAllAdmins();
             if (res.error) {

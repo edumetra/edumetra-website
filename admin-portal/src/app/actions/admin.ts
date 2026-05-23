@@ -43,14 +43,13 @@ export async function createAdminAccount(formData: FormData) {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
+        const adminClient = getSupabaseAdmin();
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).single() as any;
         if (adminData?.role !== "superadmin") {
             return { error: "Only superadmins can create new admins" };
         }
-
-        // Use service role to create the Auth user
-        const adminClient = getSupabaseAdmin();
 
         let userId: string;
         const { data: { user: newUser }, error: createError } = await adminClient.auth.admin.createUser({
@@ -117,9 +116,8 @@ export async function resetAdminPassword(adminId: string, newPassword: string) {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        if (adminData?.role !== "superadmin") {
+        const roleRes = await getCurrentAdminRole();
+        if (roleRes.role !== "superadmin") {
             return { error: "Only superadmins can reset passwords" };
         }
 
@@ -155,10 +153,9 @@ export async function updateAdminRole(adminId: string, role: "superadmin" | "min
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { error: "Unauthorized" };
 
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        if (adminData?.role !== "superadmin") return { error: "Only superadmins can change roles" };
-
         const adminClient = getSupabaseAdmin();
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).single() as any;
+        if (adminData?.role !== "superadmin") return { error: "Only superadmins can change roles" };
         const { error } = await adminClient.from("admins").update({ role } as any).eq("id", adminId);
 
         if (error) return { error: error.message };
@@ -184,10 +181,9 @@ export async function updateAdminPermissions(adminId: string, permissions: Recor
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { error: "Unauthorized" };
 
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        if (adminData?.role !== "superadmin") return { error: "Only superadmins can change permissions" };
-
         const adminClient = getSupabaseAdmin();
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).single() as any;
+        if (adminData?.role !== "superadmin") return { error: "Only superadmins can change permissions" };
         const { error } = await adminClient.from("admins").update({ permissions } as any).eq("id", adminId);
 
         if (error) return { error: error.message };
@@ -213,10 +209,10 @@ export async function deleteAdmin(adminId: string) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { error: "Unauthorized" };
 
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        if (adminData?.role !== "superadmin") return { error: "Only superadmins can remove admins" };
-
         const adminClient = getSupabaseAdmin();
+
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).single() as any;
+        if (adminData?.role !== "superadmin") return { error: "Only superadmins can remove admins" };
 
         // Delete from Auth first
         await adminClient.auth.admin.deleteUser(adminId);
@@ -247,16 +243,34 @@ export async function getAllAdmins() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { error: "Unauthorized" };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        if (adminData?.role !== "superadmin") return { error: "Only superadmins can view admins" };
-
         const adminClient = getSupabaseAdmin();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).single() as any;
+        if (adminData?.role !== "superadmin") return { error: "Only superadmins can view admins" };
         const { data: admins, error } = await adminClient.from("admins").select("*").order("created_at", { ascending: false });
 
         if (error) return { error: error.message };
         return { admins };
     } catch (err: any) {
         return { error: err.message || "An error occurred" };
+    }
+}
+
+export async function getCurrentAdminRole() {
+    try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const { createClient: createServerClient } = await import("@/utils/supabase/server");
+        const supabase = createServerClient(cookieStore);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { error: "Unauthorized", role: null };
+
+        const adminClient = getSupabaseAdmin();
+        const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
+        return { role: adminData?.role ?? null };
+    } catch (err: any) {
+        return { error: err.message, role: null };
     }
 }
