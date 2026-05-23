@@ -19,13 +19,13 @@ export function useColleges() {
         sort = 'rank_asc',
         isLoadMore = false
     }) => {
-        console.log('[Deadlock Trace] fetchColleges START');
+
         if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges START' });
 
         // Safety timeout to reset loading state if request hangs
         const safetyTimeout = setTimeout(() => {
             setLoading(false);
-            console.warn('[Deadlock Trace] fetchColleges SAFETY TIMEOUT FIRED');
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges SAFETY TIMEOUT' });
         }, 35000);
 
@@ -133,7 +133,7 @@ export function useColleges() {
             }
 
             setHasMore(from + formattedData.length < count);
-            console.log('[Deadlock Trace] fetchColleges END SUCCESS');
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges END SUCCESS' });
 
         } catch (err) {
@@ -144,12 +144,12 @@ export function useColleges() {
 
             if (isAbortError) {
                 // Do NOT set error state for intentional aborts
-                console.log('[Deadlock Trace] fetchColleges ABORTED intentionally');
+
                 if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges ABORTED' });
                 return;
             }
 
-            console.error('[Deadlock Trace] fetchColleges ERROR:', err);
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges ERROR', data: err.message });
 
             if (err.message === 'Filter timeout' || err.message?.includes('Failed to fetch')) {

@@ -10,7 +10,6 @@ if (typeof window !== 'undefined') {
     };
 }
 const debugLog = (msg, data) => {
-    console.log(`[Supabase Trace] ${msg}`, data || '');
     if (typeof window !== 'undefined') {
         window.__APP_DEBUG__.logs.push({ time: new Date().toISOString(), msg, data });
     }

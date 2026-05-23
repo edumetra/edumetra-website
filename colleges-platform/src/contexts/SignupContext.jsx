@@ -38,7 +38,7 @@ export function SignupProvider({ children }) {
         };
 
         const fetchProfile = async (userId) => {
-            console.log('[Deadlock Trace] fetchProfile START', { userId });
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile START', data: { userId } });
             if (!userId || !isMounted) {
                 setProfile(null);
@@ -53,17 +53,17 @@ export function SignupProvider({ children }) {
                 
                 if (isMounted) {
                     if (error) {
-                        console.error('[Deadlock Trace] fetchProfile ERROR:', error.message);
+
                         if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile ERROR', data: error.message });
                         setProfile(null);
                     } else {
                         setProfile(data);
-                        console.log('[Deadlock Trace] fetchProfile END SUCCESS');
+
                         if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile END SUCCESS' });
                     }
                 }
             } catch (err) {
-                console.warn('[Deadlock Trace] fetchProfile ERROR (thrown):', err);
+
                 if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile ERROR (thrown)', data: err.message });
             }
         };
@@ -75,10 +75,7 @@ export function SignupProvider({ children }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (!isMounted) return;
 
-            console.log('[Auth Diagnostics] onAuthStateChange:', event, { 
-                userId: newSession?.user?.id ?? null,
-                sessionActive: !!newSession 
-            });
+
 
             const currentUser = newSession?.user ?? null;
             setUser(currentUser);
@@ -123,7 +120,7 @@ export function SignupProvider({ children }) {
         // e.g. when arriving from the main website. If it finds a session it calls
         // supabase.auth.setSession() which triggers onAuthStateChange again with the real user.
         const checkInitialSession = async () => {
-            console.log('[Deadlock Trace] checkInitialSession START');
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession START' });
             try {
                 const crossDomainSession = await bootstrapCrossDomainSession(supabase, {
@@ -135,14 +132,14 @@ export function SignupProvider({ children }) {
                 // If cross-domain session found AND the auth listener hasn't seen a user yet,
                 // apply it directly so we don't miss the session on slow domains.
                 if (crossDomainSession?.user) {
-                    console.log('[Auth Diagnostics] Session restore successful:', crossDomainSession.user.id);
+
                     setUser(crossDomainSession.user);
                     setSession(crossDomainSession);
                     await fetchProfile(crossDomainSession.user.id);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    console.warn('[Deadlock Trace] checkInitialSession ERROR:', err.message);
+
                     if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession ERROR', data: err.message });
                 }
             } finally {
@@ -150,7 +147,7 @@ export function SignupProvider({ children }) {
                     // Mark Gate 2 as done regardless of success/failure
                     bootstrapReady = true;
                     maybeFinishLoading();
-                    console.log('[Deadlock Trace] checkInitialSession END');
+
                     if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession END' });
                 }
             }
@@ -164,7 +161,7 @@ export function SignupProvider({ children }) {
             if (isMounted) {
                 // Only log if we are actually still waiting
                 if (!authListenerReady || !bootstrapReady) {
-                    console.warn('[Auth Diagnostics] Safety timer fired — forcing loading=false');
+
                 }
                 authListenerReady = true;
                 bootstrapReady = true;
@@ -219,14 +216,14 @@ export function SignupProvider({ children }) {
     };
 
     const logout = async () => {
-        console.log('[Deadlock Trace] logout START');
+
         if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout START' });
         try {
             await supabase.auth.signOut();
-            console.log('[Deadlock Trace] logout END SUCCESS');
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout END SUCCESS' });
         } catch (e) {
-            console.warn('[Deadlock Trace] logout ERROR:', e);
+
             if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout ERROR', data: e.message });
         }
         
@@ -235,7 +232,7 @@ export function SignupProvider({ children }) {
         setProfile(null);
         
         clearSharedAuthCookies();
-        console.log('[Auth Diagnostics] Logout end, state cleared');
+
     };
 
     const openAuth = (mode = 'signup') => {
