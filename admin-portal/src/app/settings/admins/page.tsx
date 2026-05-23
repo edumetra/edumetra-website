@@ -49,20 +49,35 @@ export default function AdminsSettingsPage() {
     const fetchAdmins = async () => {
         setLoading(true);
         setError(null);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        setCurrentUserId(user.id);
+        try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                setError("Your session has expired. Please sign in again.");
+                setCurrentUserId(null);
+                setCurrentUserRole(null);
+                setAdmins([]);
+                return;
+            }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
-        setCurrentUserRole(adminData?.role ?? null);
+            setCurrentUserId(user.id);
 
-        const res = await getAllAdmins();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
+            setCurrentUserRole(adminData?.role ?? null);
 
-        if (res.error) setError(res.error);
-        else setAdmins(res.admins as unknown as AdminProfile[]);
-
-        setLoading(false);
+            const res = await getAllAdmins();
+            if (res.error) {
+                setError(res.error);
+                setAdmins([]);
+            } else {
+                setAdmins((res.admins as unknown as AdminProfile[]) ?? []);
+            }
+        } catch {
+            setError("Failed to load admins. Please refresh and try again.");
+            setAdmins([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
