@@ -63,13 +63,18 @@ export async function updateSession(request: NextRequest) {
         .eq("id", user.id)
         .single();
 
-    // Only redirect if we are SURE they are not an admin (no record found)
-    // If it's a generic database error (network/timeout), let them pass through 
-    // for now rather than forcing a logout, as the page components will handle 
-    // their own specific data fetching errors.
+    // Redirect when we can determine the user is not an admin.
     if (adminError && adminError.code === 'PGRST116') { // PGRST116 = No rows found
         const loginUrl = new URL("/login", request.url);
         loginUrl.searchParams.set("error", "not_admin");
+        return NextResponse.redirect(loginUrl);
+    }
+
+    // For any other admin lookup error, fail closed with a clear login message.
+    // This avoids inconsistent page-level auth behavior while keeping policy checks strict.
+    if (adminError) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("message", "Unable to verify admin access. Please sign in again.");
         return NextResponse.redirect(loginUrl);
     }
 

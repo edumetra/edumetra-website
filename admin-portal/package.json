@@ -16,6 +16,7 @@
     "lucide-react": "^0.564.0",
     "next": "16.1.6",
     "papaparse": "^5.5.3",
+    "playwright": "^1.60.0",
     "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

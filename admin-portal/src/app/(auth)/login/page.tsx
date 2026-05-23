@@ -30,7 +30,11 @@ export default async function Login({
         const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
-            return redirect("/login?message=Invalid email or password. Please try again.");
+            const message =
+                error.message?.toLowerCase().includes("invalid login credentials")
+                    ? "Invalid email or password. Please try again."
+                    : `Login failed: ${error.message}`;
+            return redirect(`/login?message=${encodeURIComponent(message)}`);
         }
 
         // Verify the user is an admin
