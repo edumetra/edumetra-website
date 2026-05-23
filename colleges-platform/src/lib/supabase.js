@@ -2,7 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseUrl = rawUrl;
+const isBrowser = typeof window !== 'undefined';
+const PRIMARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/db` : '';
+const supabaseUrl = isBrowser ? PRIMARY_PROXY_PREFIX : rawUrl;
+const REQUEST_TIMEOUT_MS = 12000;
+const MAX_ATTEMPTS_PER_ENDPOINT = 2;
+const SUPABASE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/realtime/v1/'];
+const looksLikeSupabaseApi = (url) => SUPABASE_API_PATHS.some((path) => url.includes(path));
 
 export const isConfigured = !!rawUrl && 
     !!supabaseAnonKey && 
@@ -34,6 +40,84 @@ try {
         throw new Error("Supabase credentials are not configured or are placeholder values.");
     }
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+            fetch: async (input, init) => {
+                const method = init?.method || (input instanceof Request ? input.method : 'GET');
+                const isGet = method.toUpperCase() === 'GET';
+
+                // Bypass proxy/retry logic for POST, PUT, DELETE, etc., to avoid disturbing request bodies
+                if (!isGet) {
+                    return fetch(input, init);
+                }
+
+                const sourceRequest = input instanceof Request ? input : null;
+                const url = typeof input === 'string' ? input : input.url;
+                const endpoints = [url];
+
+                if (isBrowser && rawUrl) {
+                    if (url.startsWith(PRIMARY_PROXY_PREFIX)) {
+                        endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, rawUrl));
+                    } else if (url.startsWith(rawUrl)) {
+                        endpoints.push(url.replace(rawUrl, PRIMARY_PROXY_PREFIX));
+                    }
+                }
+
+                const uniqueEndpoints = Array.from(new Set(endpoints));
+                const errors = [];
+                for (const endpoint of uniqueEndpoints) {
+                    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_ENDPOINT; attempt += 1) {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+                        try {
+                            const requestHeaders = new Headers(sourceRequest?.headers || {});
+                            if (init?.headers) {
+                                const overrideHeaders = new Headers(init.headers);
+                                overrideHeaders.forEach((value, key) => {
+                                    requestHeaders.set(key, value);
+                                });
+                            }
+                            requestHeaders.set('cache-control', 'no-cache');
+                            requestHeaders.set('pragma', 'no-cache');
+
+                            const response = await fetch(
+                                sourceRequest ? new Request(endpoint, sourceRequest) : endpoint,
+                                {
+                                    ...init,
+                                    signal: controller.signal,
+                                    cache: 'no-store',
+                                    headers: requestHeaders
+                                }
+                            );
+                            clearTimeout(timeout);
+                            const contentType = response.headers.get('content-type') || '';
+                            const isSupabaseApi = looksLikeSupabaseApi(endpoint);
+                            const isHtmlResponse = contentType.includes('text/html');
+                            if (isSupabaseApi && response.ok && isHtmlResponse) {
+                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
+                                continue;
+                            }
+
+                            if (response.ok) return response;
+
+                            if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
+                                errors.push(new Error(`Supabase endpoint unavailable (${response.status}) at ${endpoint}`));
+                                continue;
+                            }
+
+                            if (response.status < 500) {
+                                return response;
+                            }
+                            errors.push(new Error(`Supabase HTTP ${response.status} at ${endpoint}`));
+                        } catch (error) {
+                            clearTimeout(timeout);
+                            errors.push(error);
+                        }
+                    }
+                }
+
+                throw errors[errors.length - 1] || new Error('Supabase request failed');
+            }
+        },
         auth: {
             autoRefreshToken: true,
             persistSession: true,

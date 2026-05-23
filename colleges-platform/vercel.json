@@ -20,6 +20,10 @@
   ],
   "rewrites": [
     {
+      "source": "/db/:path*",
+      "destination": "https://fymmcqtyxkeecxdtabcn.supabase.co/:path*"
+    },
+    {
       "source": "/((?!api/|service-worker.js|sw.js).*)",
       "destination": "/index.html"
     }
