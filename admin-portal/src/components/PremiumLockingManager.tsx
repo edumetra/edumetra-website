@@ -23,6 +23,8 @@ type VisibilityConfig = {
     visible_in_premium: string[];
 };
 
+const PREMIUM_ALL_FEATURE_IDS = AVAILABLE_FEATURES.map((f) => f.id);
+
 export default function PremiumLockingManager({
     collegeId,
     visibilityConfig = {
@@ -35,7 +37,10 @@ export default function PremiumLockingManager({
     collegeId: string;
     visibilityConfig?: VisibilityConfig;
 }) {
-    const [config, setConfig] = useState<VisibilityConfig>(visibilityConfig);
+    const [config, setConfig] = useState<VisibilityConfig>({
+        ...visibilityConfig,
+        visible_in_premium: PREMIUM_ALL_FEATURE_IDS,
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -56,7 +61,10 @@ export default function PremiumLockingManager({
         setError(null);
         setSuccess(false);
 
-        const res = await updatePremiumLocks(collegeId, config);
+        const res = await updatePremiumLocks(collegeId, {
+            ...config,
+            visible_in_premium: PREMIUM_ALL_FEATURE_IDS,
+        });
 
         if (res.error) {
             setError(res.error);
@@ -72,7 +80,9 @@ export default function PremiumLockingManager({
         tier: keyof VisibilityConfig,
         color: string
     ) => {
-        const selectedCount = config[tier].length;
+        const selectedCount = tier === "visible_in_premium"
+            ? PREMIUM_ALL_FEATURE_IDS.length
+            : config[tier].length;
 
         return (
             <div className={`p-4 rounded-xl border mb-4 bg-slate-950/50 border-${color}-500/20`}>
@@ -84,7 +94,9 @@ export default function PremiumLockingManager({
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
                     {AVAILABLE_FEATURES.map((feature) => {
-                        const isVisible = config[tier].includes(feature.id);
+                        const isVisible = tier === "visible_in_premium"
+                            ? true
+                            : config[tier].includes(feature.id);
                         const isDisabled = false;
 
                         return (

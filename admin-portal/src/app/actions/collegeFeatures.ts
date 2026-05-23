@@ -4,6 +4,8 @@ import { createClient as createServerClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
+const PREMIUM_ALL_FEATURES = ["cutoffs", "rankings", "reviews", "gallery", "courses", "contact", "admissions", "qna", "faq"] as const;
+
 export async function updatePremiumLocks(
     collegeId: string,
     visibilityConfig: {
@@ -22,13 +24,18 @@ export async function updatePremiumLocks(
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
+        const normalizedConfig = {
+            ...visibilityConfig,
+            visible_in_premium: [...PREMIUM_ALL_FEATURES],
+        };
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: updateError } = await (supabase.from("college_details") as any)
             .update({
-                visible_in_free: visibilityConfig.visible_in_free,
-                visible_in_signed_up: visibilityConfig.visible_in_signed_up,
-                visible_in_pro: visibilityConfig.visible_in_pro,
-                visible_in_premium: visibilityConfig.visible_in_premium
+                visible_in_free: normalizedConfig.visible_in_free,
+                visible_in_signed_up: normalizedConfig.visible_in_signed_up,
+                visible_in_pro: normalizedConfig.visible_in_pro,
+                visible_in_premium: normalizedConfig.visible_in_premium
             })
             .eq("college_id", collegeId);
 
@@ -51,7 +58,7 @@ export async function getGlobalPremiumLocks() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
-        const { data, error } = await (supabase.from("college_details") as any)
+        const { data, error } = await supabase.from("college_details")
             .select("visible_in_free, visible_in_signed_up, visible_in_pro, visible_in_premium")
             .limit(1)
             .maybeSingle();
@@ -62,7 +69,7 @@ export async function getGlobalPremiumLocks() {
             visible_in_free: [] as string[],
             visible_in_signed_up: [] as string[],
             visible_in_pro: [] as string[],
-            visible_in_premium: ["cutoffs", "rankings", "reviews", "gallery", "courses", "contact", "admissions", "qna", "faq"],
+            visible_in_premium: [...PREMIUM_ALL_FEATURES],
         };
 
         if (!data) return { config: defaults };
@@ -72,7 +79,7 @@ export async function getGlobalPremiumLocks() {
                 visible_in_free: data.visible_in_free ?? defaults.visible_in_free,
                 visible_in_signed_up: data.visible_in_signed_up ?? defaults.visible_in_signed_up,
                 visible_in_pro: data.visible_in_pro ?? defaults.visible_in_pro,
-                visible_in_premium: data.visible_in_premium ?? defaults.visible_in_premium,
+                visible_in_premium: defaults.visible_in_premium,
             },
         };
     } catch (err: unknown) {
@@ -95,13 +102,18 @@ export async function updateGlobalPremiumLocks(
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
+        const normalizedConfig = {
+            ...visibilityConfig,
+            visible_in_premium: [...PREMIUM_ALL_FEATURES],
+        };
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: updateError } = await (supabase.from("college_details") as any)
             .update({
-                visible_in_free: visibilityConfig.visible_in_free,
-                visible_in_signed_up: visibilityConfig.visible_in_signed_up,
-                visible_in_pro: visibilityConfig.visible_in_pro,
-                visible_in_premium: visibilityConfig.visible_in_premium
+                visible_in_free: normalizedConfig.visible_in_free,
+                visible_in_signed_up: normalizedConfig.visible_in_signed_up,
+                visible_in_pro: normalizedConfig.visible_in_pro,
+                visible_in_premium: normalizedConfig.visible_in_premium
             })
             .not("college_id", "is", null);
 
