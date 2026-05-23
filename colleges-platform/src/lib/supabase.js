@@ -5,7 +5,6 @@ const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
 const PRIMARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/db` : '';
-const SECONDARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/api/supabase-proxy` : '';
 const supabaseUrl = isBrowser ? PRIMARY_PROXY_PREFIX : rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
@@ -49,14 +48,9 @@ try {
 
                 if (isBrowser && rawUrl) {
                     if (url.startsWith(PRIMARY_PROXY_PREFIX)) {
-                        endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, SECONDARY_PROXY_PREFIX));
                         endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, rawUrl));
-                    } else if (url.startsWith(SECONDARY_PROXY_PREFIX)) {
-                        endpoints.push(url.replace(SECONDARY_PROXY_PREFIX, PRIMARY_PROXY_PREFIX));
-                        endpoints.push(url.replace(SECONDARY_PROXY_PREFIX, rawUrl));
                     } else if (url.startsWith(rawUrl)) {
                         endpoints.push(url.replace(rawUrl, PRIMARY_PROXY_PREFIX));
-                        endpoints.push(url.replace(rawUrl, SECONDARY_PROXY_PREFIX));
                     }
                 }
 
