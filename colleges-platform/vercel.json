@@ -17,5 +17,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/|service-worker.js|sw.js).*)",
+      "destination": "/index.html"
+    }
   ]
 }
