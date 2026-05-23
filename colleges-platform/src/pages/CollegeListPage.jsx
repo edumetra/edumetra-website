@@ -59,11 +59,14 @@ export default function CollegeListPage() {
         loadInitialData();
     }, [fetchFilterOptions]);
 
-    // 3. Fetch colleges whenever dependencies change
+    // 3. Fetch colleges whenever dependencies change.
+    // IMPORTANT: `user` is included so that if the session restores *after* mount
+    // (common on custom domains with slower cookie/token hydration), we re-fetch
+    // with the correct auth context instead of silently returning stale/empty data.
     useEffect(() => {
         setPage(1); // Reset to page 1 on new search/filter
         fetchColleges({ page: 1, query: debouncedSearchQuery, filters, sort, isLoadMore: false });
-    }, [debouncedSearchQuery, filters, sort, fetchColleges]);
+    }, [debouncedSearchQuery, filters, sort, fetchColleges, user]);
 
     // Re-fetch on tab restore / route return to avoid stale empty states
     useEffect(() => {

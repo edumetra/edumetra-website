@@ -25,6 +25,18 @@ export function SignupProvider({ children }) {
     useEffect(() => {
         let isMounted = true;
 
+        // Two-gate system: both must complete before we unblock the UI.
+        // Gate 1: onAuthStateChange fires its first event (INITIAL_SESSION / SIGNED_IN / SIGNED_OUT)
+        // Gate 2: bootstrapCrossDomainSession resolves (cross-domain cookie / URL hash handoff)
+        let authListenerReady = false;
+        let bootstrapReady = false;
+
+        const maybeFinishLoading = () => {
+            if (isMounted && authListenerReady && bootstrapReady) {
+                setLoading(false);
+            }
+        };
+
         const fetchProfile = async (userId) => {
             if (!userId || !isMounted) {
                 setProfile(null);
@@ -50,24 +62,33 @@ export function SignupProvider({ children }) {
             }
         };
 
-        // Listen for auth changes - THIS captures the initial session too
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Gate 1: Auth state listener
+        // onAuthStateChange fires synchronously for INITIAL_SESSION if a local session
+        // exists in localStorage, or fires SIGNED_OUT if none. Either way it gives us
+        // the definitive auth state from Supabase's own storage.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!isMounted) return;
 
-            const currentUser = session?.user ?? null;
+            console.log('[Auth] onAuthStateChange:', event, { userId: newSession?.user?.id ?? null });
+
+            const currentUser = newSession?.user ?? null;
             setUser(currentUser);
-            setSession(session);
-            
-            // If we just got a user (e.g. from a shared cookie), fetch their profile
+            setSession(newSession);
+
             if (currentUser) {
                 await fetchProfile(currentUser.id);
             } else {
                 setProfile(null);
             }
-            setLoading(false);
-            
+
+            // Mark Gate 1 as done on the FIRST event
+            if (!authListenerReady) {
+                authListenerReady = true;
+                maybeFinishLoading();
+            }
+
+            // Sync TeleCRM only on actual fresh sign-ins (not session restores)
             if (currentUser && event === 'SIGNED_IN') {
-                // Sync with TeleCRM only on actual sign-in events
                 const metadata = currentUser.user_metadata || {};
                 pushLeadToTeleCRM({
                     name: metadata.full_name || metadata.name || '',
@@ -78,34 +99,50 @@ export function SignupProvider({ children }) {
             }
         });
 
-        // Bootstrap shared cookies + URL hash handoff from public website
+        // Gate 2: Bootstrap cross-domain session (shared cookies / URL hash handoff)
+        // This can restore a session that localStorage/cookies on THIS domain don't yet have,
+        // e.g. when arriving from the main website. If it finds a session it calls
+        // supabase.auth.setSession() which triggers onAuthStateChange again with the real user.
         const checkInitialSession = async () => {
             try {
-                const session = await bootstrapCrossDomainSession(supabase, {
+                const crossDomainSession = await bootstrapCrossDomainSession(supabase, {
                     maxRetries: hasAuthTokensInUrl() ? 5 : 2,
                 });
 
                 if (!isMounted) return;
 
-                if (session?.user) {
-                    setUser(session.user);
-                    setSession(session);
-                    await fetchProfile(session.user.id);
+                // If cross-domain session found AND the auth listener hasn't seen a user yet,
+                // apply it directly so we don't miss the session on slow domains.
+                if (crossDomainSession?.user) {
+                    console.log('[Auth] Cross-domain session restored for user:', crossDomainSession.user.id);
+                    setUser(crossDomainSession.user);
+                    setSession(crossDomainSession);
+                    await fetchProfile(crossDomainSession.user.id);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.warn('Initial session check failed:', err.message);
                 }
             } finally {
-                if (isMounted) setLoading(false);
+                if (isMounted) {
+                    // Mark Gate 2 as done regardless of success/failure
+                    bootstrapReady = true;
+                    maybeFinishLoading();
+                }
             }
         };
 
         checkInitialSession();
 
-        const safetyDelayMs = hasAuthTokensInUrl() ? 6000 : 3000;
+        // Safety valve: force-unblock UI after max wait to avoid infinite loading screen
+        const safetyDelayMs = hasAuthTokensInUrl() ? 7000 : 4000;
         const safetyTimer = setTimeout(() => {
-            if (isMounted) setLoading(false);
+            if (isMounted) {
+                console.warn('[Auth] Safety timer fired — forcing loading=false');
+                authListenerReady = true;
+                bootstrapReady = true;
+                maybeFinishLoading();
+            }
         }, safetyDelayMs);
 
         return () => {
@@ -113,7 +150,7 @@ export function SignupProvider({ children }) {
             subscription.unsubscribe();
             clearTimeout(safetyTimer);
         };
-    }, []); // Empty dependency array for mount only
+    }, []); // Empty dependency array — runs once on mount
 
     // Show signup nudge after 8 seconds if not logged in
     useEffect(() => {
