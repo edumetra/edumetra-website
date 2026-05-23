@@ -11,6 +11,9 @@ const isGetRequest = (init?: RequestInit) => !init?.method || init.method.toUppe
 
 const getCacheKey = (url: string) => `${SUPABASE_CACHE_PREFIX}${url}`;
 const looksLikeSupabaseApi = (url: string) => SUPABASE_API_PATHS.some((path) => url.includes(path));
+const isSensitiveAuthOrAdminRequest = (url: string) =>
+    url.includes("/auth/v1/user") ||
+    url.includes("/rest/v1/admins");
 
 const saveCachedResponse = async (url: string, response: Response) => {
     if (typeof window === "undefined" || !response.ok) return;
@@ -135,7 +138,7 @@ export const createClient = () => {
                             }
 
                             if (response.ok) {
-                                if (isGetRequest(init)) {
+                                if (isGetRequest(init) && !isSensitiveAuthOrAdminRequest(endpoint)) {
                                     void saveCachedResponse(endpoint, response);
                                 }
                                 return response;
@@ -157,7 +160,7 @@ export const createClient = () => {
                     }
                 }
 
-                if (isGetRequest(init)) {
+                if (isGetRequest(init) && !uniqueEndpoints.some((endpoint) => isSensitiveAuthOrAdminRequest(endpoint))) {
                     for (const endpoint of uniqueEndpoints) {
                         const cached = getCachedResponse(endpoint);
                         if (cached) return cached;

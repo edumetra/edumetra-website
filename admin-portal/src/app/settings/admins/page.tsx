@@ -61,14 +61,24 @@ export default function AdminsSettingsPage() {
 
             setCurrentUserId(user.id);
 
-            const roleRes = await getCurrentAdminRole();
-            if (roleRes.error) {
-                setError(roleRes.error);
-                setCurrentUserRole(null);
-                setAdmins([]);
-                return;
+            // Primary role lookup from client session context (same source as visible sidebar role)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: localAdminData } = await supabase.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
+            const localRole = localAdminData?.role ?? null;
+
+            if (localRole) {
+                setCurrentUserRole(localRole);
+            } else {
+                // Fallback to server action when local lookup is unavailable
+                const roleRes = await getCurrentAdminRole();
+                if (roleRes.error) {
+                    setError(roleRes.error);
+                    setCurrentUserRole(null);
+                    setAdmins([]);
+                    return;
+                }
+                setCurrentUserRole(roleRes.role);
             }
-            setCurrentUserRole(roleRes.role);
 
             const res = await getAllAdmins();
             if (res.error) {
