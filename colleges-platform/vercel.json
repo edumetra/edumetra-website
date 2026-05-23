@@ -17,15 +17,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/db/:path*",
-      "destination": "https://fymmcqtyxkeecxdtabcn.supabase.co/:path*"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
-    }
   ]
 }

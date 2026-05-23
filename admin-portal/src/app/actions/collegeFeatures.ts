@@ -58,10 +58,11 @@ export async function getGlobalPremiumLocks() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) return { error: "Unauthorized — please sign in again" };
 
-        const { data, error } = await supabase.from("college_details")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase.from("college_details") as any)
             .select("visible_in_free, visible_in_signed_up, visible_in_pro, visible_in_premium")
             .limit(1)
-            .maybeSingle();
+            .maybeSingle() as any;
 
         if (error) return { error: error.message };
 

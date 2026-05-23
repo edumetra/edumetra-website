@@ -10,7 +10,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const returnUrl = searchParams.get('returnUrl') || '/dashboard';
-    const { signIn, signInWithGoogle, user } = useAuth();
+    const { signIn, user } = useAuth();
     const [formData, setFormData] = useState({
         identifier: '',
         password: '',

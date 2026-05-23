@@ -9,7 +9,7 @@ const SignupPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const returnUrl = searchParams.get('returnUrl') || '/dashboard';
-    const { signUp, signInWithGoogle, user } = useAuth();
+    const { signUp, user } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
