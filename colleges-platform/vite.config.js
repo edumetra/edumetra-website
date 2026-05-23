@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/supabase': {
+      '/db': {
         target: 'https://fymmcqtyxkeecxdtabcn.supabase.co',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/supabase/, ''),
+        rewrite: (path) => path.replace(/^\/db/, ''),
       }
     }
   }

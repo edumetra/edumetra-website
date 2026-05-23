@@ -48,7 +48,7 @@
     ],
     "rewrites": [
         {
-            "source": "/supabase/:path*",
+            "source": "/db/:path*",
             "destination": "https://fymmcqtyxkeecxdtabcn.supabase.co/:path*"
         },
         {

@@ -4,7 +4,7 @@ import { cookieStorage } from '../utils/cookieStorage';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
-const supabaseUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
+const supabaseUrl = isBrowser ? `${window.location.origin}/db` : rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = 'sb-cache:';
@@ -125,7 +125,7 @@ try {
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
-                    const proxyPrefix = `${window.location.origin}/supabase`;
+                    const proxyPrefix = `${window.location.origin}/db`;
                     const legacyProxyPrefix = `${window.location.origin}/api/supabase-proxy`;
                     if (url.startsWith(proxyPrefix)) {
                         endpoints.push(url.replace(proxyPrefix, rawUrl));

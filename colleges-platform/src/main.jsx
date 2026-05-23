@@ -4,8 +4,6 @@ import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 import App from './App.jsx'
 
-// Deploy trigger: 2026-05-13T21:49:00
-const CACHE_CLEANUP_VERSION = import.meta.env.VITE_CACHE_CLEANUP_VERSION || '2026-05-23-clear-all-v3'
 const SUPABASE_CACHE_PREFIX = 'sb-cache:'
 
 function clearSupabaseLocalCache() {
@@ -19,11 +17,8 @@ function clearSupabaseLocalCache() {
   keysToDelete.forEach((key) => window.localStorage.removeItem(key))
 }
 
-async function runCacheCleanupOncePerVersion() {
+async function runCacheCleanupOnEveryOpen() {
   if (typeof window === 'undefined') return
-
-  const cleanupKey = `cache_cleanup_done_${CACHE_CLEANUP_VERSION}`
-  if (window.localStorage.getItem(cleanupKey) === '1') return
 
   try {
     clearSupabaseLocalCache()
@@ -38,13 +33,11 @@ async function runCacheCleanupOncePerVersion() {
       await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)))
     }
   } catch (error) {
-    console.warn('[Cache Cleanup] Failed to clear legacy caches', error)
-  } finally {
-    window.localStorage.setItem(cleanupKey, '1')
+    console.warn('[Cache Cleanup] Failed to clear stale caches', error)
   }
 }
 
-runCacheCleanupOncePerVersion()
+runCacheCleanupOnEveryOpen()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
