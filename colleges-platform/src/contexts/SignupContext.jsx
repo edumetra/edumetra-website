@@ -72,7 +72,7 @@ export function SignupProvider({ children }) {
         // onAuthStateChange fires synchronously for INITIAL_SESSION if a local session
         // exists in localStorage, or fires SIGNED_OUT if none. Either way it gives us
         // the definitive auth state from Supabase's own storage.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (!isMounted) return;
 
             console.log('[Auth Diagnostics] onAuthStateChange:', event, { 
@@ -85,15 +85,25 @@ export function SignupProvider({ children }) {
             setSession(newSession);
 
             if (currentUser) {
-                await fetchProfile(currentUser.id);
+                // CRITICAL BUGFIX: DO NOT AWAIT HERE!
+                // gotrue-js holds `navigator.locks.request` when firing this callback during initialization.
+                // If we await supabase.from() here, it ALSO requests the exact same lock!
+                // Because Web Locks are NOT reentrant, they deadlock each other forever.
+                // Pushing to the next tick of the event loop escapes the lock context.
+                setTimeout(() => {
+                    fetchProfile(currentUser.id).finally(() => {
+                        if (!authListenerReady) {
+                            authListenerReady = true;
+                            maybeFinishLoading();
+                        }
+                    });
+                }, 0);
             } else {
                 setProfile(null);
-            }
-
-            // Mark Gate 1 as done on the FIRST event
-            if (!authListenerReady) {
-                authListenerReady = true;
-                maybeFinishLoading();
+                if (!authListenerReady) {
+                    authListenerReady = true;
+                    maybeFinishLoading();
+                }
             }
 
             // Sync TeleCRM only on actual fresh sign-ins (not session restores)
