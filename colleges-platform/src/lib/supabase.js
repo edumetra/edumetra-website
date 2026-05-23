@@ -42,16 +42,28 @@ try {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
         global: {
             fetch: async (input, init) => {
+                const url = typeof input === 'string' ? input : input.url;
+                
+                // 1. Direct Auth routing bypass:
+                // Supabase Auth POST/GET requests should never go through the /db proxy or custom retries
+                // to avoid Vercel proxy body corruption or cross-origin credential limitations.
+                if (url.includes('/auth/v1/')) {
+                    const directAuthUrl = url.replace(PRIMARY_PROXY_PREFIX, rawUrl);
+                    if (input instanceof Request) {
+                        return fetch(new Request(directAuthUrl, input), init);
+                    }
+                    return fetch(directAuthUrl, init);
+                }
+
                 const method = init?.method || (input instanceof Request ? input.method : 'GET');
                 const isGet = method.toUpperCase() === 'GET';
 
-                // Bypass proxy/retry logic for POST, PUT, DELETE, etc., to avoid disturbing request bodies
+                // Bypass proxy/retry logic for non-GET requests to avoid body-streaming issues
                 if (!isGet) {
                     return fetch(input, init);
                 }
 
                 const sourceRequest = input instanceof Request ? input : null;
-                const url = typeof input === 'string' ? input : input.url;
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
