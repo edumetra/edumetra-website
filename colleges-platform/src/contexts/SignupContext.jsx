@@ -162,7 +162,10 @@ export function SignupProvider({ children }) {
         const safetyDelayMs = hasAuthTokensInUrl() ? 7000 : 4000;
         const safetyTimer = setTimeout(() => {
             if (isMounted) {
-                console.warn('[Auth Diagnostics] Safety timer fired — forcing loading=false');
+                // Only log if we are actually still waiting
+                if (!authListenerReady || !bootstrapReady) {
+                    console.warn('[Auth Diagnostics] Safety timer fired — forcing loading=false');
+                }
                 authListenerReady = true;
                 bootstrapReady = true;
                 maybeFinishLoading();
