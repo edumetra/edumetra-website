@@ -4,7 +4,7 @@ const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
 const PRIMARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/db` : '';
-const supabaseUrl = isBrowser ? PRIMARY_PROXY_PREFIX : rawUrl;
+const supabaseUrl = rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/realtime/v1/'];
@@ -47,21 +47,25 @@ try {
                 const isGet = method.toUpperCase() === 'GET';
 
                 // Strictly bypass proxy/retry logic for anything that isn't a GET request to the database (/rest/v1/).
-                // This ensures Supabase Auth, Storage, and Realtime work flawlessly with native fetch
-                // and prevents deadlocking the internal auth queue during token refreshes or logouts.
+                // Auth, Storage, Realtime, and all POST requests natively hit rawUrl without any modification.
                 if (!isGet || !url.includes('/rest/v1/')) {
                     return fetch(input, init);
                 }
 
+                // For GET /rest/v1/ requests, we intercept and route through the local /db proxy
+                // with a fallback to the direct rawUrl.
                 const sourceRequest = input instanceof Request ? input : null;
-                const endpoints = [url];
+                const endpoints = [];
 
                 if (isBrowser && rawUrl) {
-                    if (url.startsWith(PRIMARY_PROXY_PREFIX)) {
-                        endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, rawUrl));
-                    } else if (url.startsWith(rawUrl)) {
+                    if (url.startsWith(rawUrl)) {
                         endpoints.push(url.replace(rawUrl, PRIMARY_PROXY_PREFIX));
+                        endpoints.push(url); // fallback
+                    } else {
+                        endpoints.push(url);
                     }
+                } else {
+                    endpoints.push(url);
                 }
 
                 const uniqueEndpoints = Array.from(new Set(endpoints));

@@ -69,7 +69,10 @@ export function SignupProvider({ children }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!isMounted) return;
 
-            console.log('[Auth] onAuthStateChange:', event, { userId: newSession?.user?.id ?? null });
+            console.log('[Auth Diagnostics] onAuthStateChange:', event, { 
+                userId: newSession?.user?.id ?? null,
+                sessionActive: !!newSession 
+            });
 
             const currentUser = newSession?.user ?? null;
             setUser(currentUser);
@@ -114,14 +117,14 @@ export function SignupProvider({ children }) {
                 // If cross-domain session found AND the auth listener hasn't seen a user yet,
                 // apply it directly so we don't miss the session on slow domains.
                 if (crossDomainSession?.user) {
-                    console.log('[Auth] Cross-domain session restored for user:', crossDomainSession.user.id);
+                    console.log('[Auth Diagnostics] Session restore successful:', crossDomainSession.user.id);
                     setUser(crossDomainSession.user);
                     setSession(crossDomainSession);
                     await fetchProfile(crossDomainSession.user.id);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    console.warn('Initial session check failed:', err.message);
+                    console.warn('[Auth Diagnostics] Initial session restore check failed:', err.message);
                 }
             } finally {
                 if (isMounted) {
@@ -138,7 +141,7 @@ export function SignupProvider({ children }) {
         const safetyDelayMs = hasAuthTokensInUrl() ? 7000 : 4000;
         const safetyTimer = setTimeout(() => {
             if (isMounted) {
-                console.warn('[Auth] Safety timer fired — forcing loading=false');
+                console.warn('[Auth Diagnostics] Safety timer fired — forcing loading=false');
                 authListenerReady = true;
                 bootstrapReady = true;
                 maybeFinishLoading();
@@ -192,10 +195,12 @@ export function SignupProvider({ children }) {
     };
 
     const logout = async () => {
+        console.log('[Auth Diagnostics] Logout start');
         try {
             await supabase.auth.signOut();
+            console.log('[Auth Diagnostics] Logout API complete');
         } catch (e) {
-            console.warn('Signout issue', e);
+            console.warn('[Auth Diagnostics] Signout issue', e);
         }
         
         setUser(null);
@@ -203,6 +208,7 @@ export function SignupProvider({ children }) {
         setProfile(null);
         
         clearSharedAuthCookies();
+        console.log('[Auth Diagnostics] Logout end, state cleared');
     };
 
     const openAuth = (mode = 'signup') => {
