@@ -10,6 +10,7 @@ import {
     Settings, Tag,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { createCoupon } from "@/app/actions/management";
 
 type Coupon = Database["public"]["Tables"]["coupons"]["Row"];
 
@@ -158,8 +159,8 @@ export default function CouponsPage() {
                 .eq("id", editingCoupon.id);
             error = err;
         } else {
-            const { error: err } = await supabase.from("coupons").insert([payload]);
-            error = err;
+            const res = await createCoupon(payload);
+            error = res.error ? ({ message: res.error } as { message: string }) : null;
         }
 
         if (error) {

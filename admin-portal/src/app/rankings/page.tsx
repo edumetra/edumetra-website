@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Papa from "papaparse";
 import { FetchErrorBanner } from "@/components/FetchErrorBanner";
+import { createRanking } from "@/app/actions/management";
 
 type Ranking = {
     id: string;
@@ -120,9 +121,8 @@ export default function RankingsManager() {
                 rank: Number(formData.rank),
                 category: formData.category || null,
             };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await (supabase as any).from("rankings").insert([payload]);
-            if (error) throw error;
+            const res = await createRanking(payload);
+            if (res.error) throw new Error(res.error);
             setShowForm(false);
             setFormData({ college_id: "", provider: "NIRF", year: CURRENT_YEAR, rank: "", category: "" });
             fetchData();

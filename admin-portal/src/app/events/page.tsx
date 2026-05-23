@@ -225,18 +225,16 @@ export default function EventsPage() {
         };
 
         if (editingEvent) {
-            const { data, error: updateErr } = await db
+            const { error: updateErr } = await db
                 .from("events")
                 .update(payload)
-                .eq("id", editingEvent.id)
-                .select()
-                .single();
+                .eq("id", editingEvent.id);
                 
-            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
+            if (updateErr) setError(updateErr.message || "Update failed");
             else {
-                const updatedEvent = data as EventItem;
-                setEvents(prev => prev.map(n => n.id === updatedEvent.id ? updatedEvent : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setEvents(prev => prev.map(n => n.id === editingEvent.id ? { ...n, ...payload } as EventItem : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
+                fetchData();
             }
         } else {
             const { data, error: insertErr } = await db

@@ -62,6 +62,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
         // New college_details fields
         minority_status: "false",
         intake_capacity: "",
+        total_associated_beds_in_hospital: "",
         reservation_percentages: [] as { category: string; percentage: string }[],
         category_fees: [] as { category: string; fee: string }[],
         faq: [] as { question: string; answer: string }[],
@@ -127,6 +128,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                 website_url: data.website_url || "",
                 minority_status: details?.minority_status ? "true" : "false",
                 intake_capacity: details?.intake_capacity?.toString() || "",
+                total_associated_beds_in_hospital: details?.total_associated_beds_in_hospital?.toString() || "",
                 reservation_percentages: Object.entries(resPercentages).map(([category, percentage]) => ({ category, percentage: percentage.toString() })),
                 category_fees: Object.entries(catFees).map(([category, fee]) => ({ category, fee: fee.toString() })),
                 faq: Array.isArray(fetchedFaq) ? fetchedFaq : [],
@@ -228,6 +230,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
         if (!formData.location_state.trim()) errs.location_state = "State is required";
         if (formData.rating && (parseFloat(formData.rating) < 0 || parseFloat(formData.rating) > 5)) errs.rating = "Rating must be 0–5";
         if (formData.intake_capacity && isNaN(parseInt(formData.intake_capacity))) errs.intake_capacity = "Must be a valid number";
+        if (formData.total_associated_beds_in_hospital && isNaN(parseInt(formData.total_associated_beds_in_hospital))) errs.total_associated_beds_in_hospital = "Must be a valid number";
         setFieldErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -305,6 +308,7 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                 }),
                 minority_status: formData.minority_status === "true",
                 intake_capacity: parseInt(formData.intake_capacity) || 0,
+                total_associated_beds_in_hospital: parseInt(formData.total_associated_beds_in_hospital) || 0,
                 reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
                 category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
                 faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
@@ -645,6 +649,12 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                                     <option value="false">Non-Minority</option>
                                     <option value="true">Minority Institution</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label className={labelCls}>Total Associated Beds in Hospital</label>
+                                <input type="number" name="total_associated_beds_in_hospital" placeholder="e.g. 1500"
+                                    value={formData.total_associated_beds_in_hospital} onChange={handleChange} className={inputCls("total_associated_beds_in_hospital")} />
+                                {fieldErrors.total_associated_beds_in_hospital && <p className="text-red-400 text-xs mt-1">{fieldErrors.total_associated_beds_in_hospital}</p>}
                             </div>
                         </div>
 

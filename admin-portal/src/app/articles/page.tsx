@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { FileText, Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import ArticleImageUpload from "@/components/ArticleImageUpload";
+import { updateArticleById } from "@/app/actions/management";
 
 type Article = {
     id: string;
@@ -89,16 +90,12 @@ export default function ArticlesPage() {
         };
 
         if (editingArticle) {
-            const { data, error: updateErr } = await supabase
-                .from("articles")
-                .update(payload)
-                .eq("id", editingArticle.id)
-                .select()
-                .single();
-            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
+            const res = await updateArticleById(editingArticle.id, payload);
+            if (res.error) setError(res.error || "Update failed");
             else {
-                setArticles(prev => prev.map(a => a.id === data.id ? data : a));
+                setArticles(prev => prev.map(a => a.id === editingArticle.id ? { ...a, ...payload } as Article : a));
                 setIsModalOpen(false);
+                fetchArticles();
             }
         } else {
             const { data, error: insertErr } = await supabase

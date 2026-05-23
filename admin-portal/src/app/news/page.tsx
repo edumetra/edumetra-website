@@ -109,17 +109,16 @@ export default function NewsPage() {
         };
 
         if (editingNews) {
-            const { data, error: updateErr } = await (supabase
+            const { error: updateErr } = await (supabase
                 .from("news_updates") as any)
                 .update(payload)
-                .eq("id", editingNews.id)
-                .select()
-                .single();
+                .eq("id", editingNews.id);
                 
-            if (updateErr || !data) setError(updateErr?.message || "Update failed — no data returned");
+            if (updateErr) setError(updateErr?.message || "Update failed");
             else {
-                setNewsItems(prev => prev.map(n => n.id === data.id ? data : n).sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
+                setNewsItems(prev => prev.map(n => n.id === editingNews.id ? { ...n, ...payload } : n).sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);
+                fetchData();
             }
         } else {
             const { data, error: insertErr } = await (supabase
