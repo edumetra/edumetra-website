@@ -86,6 +86,23 @@ export default function CollegeDetailPage() {
 
 
     const stats = college.placementStats || {};
+
+    const parseObjectField = (value) => {
+        if (!value) return null;
+        if (typeof value === 'object' && !Array.isArray(value)) return value;
+        if (typeof value === 'string') {
+            try {
+                const parsed = JSON.parse(value);
+                return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+            } catch {
+                return null;
+            }
+        }
+        return null;
+    };
+
+    const reservationPercentages = parseObjectField(college.reservation_percentages);
+    const categoryFees = parseObjectField(college.category_fees);
     // SEO Construction
     const currentYear = new Date().getFullYear();
     const cityState = [college.city, college.state].filter(Boolean).join(', ');

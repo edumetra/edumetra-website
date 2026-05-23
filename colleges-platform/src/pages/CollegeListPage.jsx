@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase, clearAllSiteData } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 import FilterSidebar from '../components/college-list/FilterSidebar';
 import SearchHeader from '../components/college-list/SearchHeader';
@@ -9,7 +9,6 @@ import SEOHead from '../components/SEOHead';
 import { useColleges } from '../hooks/useColleges';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, WifiOff, RefreshCw, ShieldCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export default function CollegeListPage() {
     const { user } = useSignup();
@@ -103,11 +102,7 @@ export default function CollegeListPage() {
         fetchColleges({ page: nextPage, query: debouncedSearchQuery, filters, sort, isLoadMore: true });
     };
 
-    const handleRetryAfterCacheClear = async () => {
-        toast.success('Clearing cache and retrying...');
-        await clearAllSiteData();
-        window.location.reload();
-    };
+    const handleRetry = () => window.location.reload();
 
     // Removing early return for `loading` as we now handle it inside the main render's layout
 
@@ -171,7 +166,7 @@ export default function CollegeListPage() {
                                         }}
                                         className="space-y-5"
                                     >
-                                        {colleges.map((college, index) => (
+                                        {colleges.map((college) => (
                                             <motion.div
                                                 key={college.id}
                                                 variants={{
@@ -220,7 +215,7 @@ export default function CollegeListPage() {
                                     <div className="flex flex-wrap items-center justify-center gap-3">
                                         {error ? (
                                             <button 
-                                                onClick={handleRetryAfterCacheClear}
+                                                onClick={handleRetry}
                                                 className="px-6 py-3 bg-amber-500 text-slate-950 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2"
                                             >
                                                 <RefreshCw className="w-4 h-4" /> Try Again
@@ -269,7 +264,7 @@ export default function CollegeListPage() {
                                             </p>
                                         </div>
                                         <button 
-                                            onClick={handleRetryAfterCacheClear}
+                                            onClick={handleRetry}
                                             className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-slate-950 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-amber-500/20"
                                         >
                                             <RefreshCw className="w-4 h-4" /> Try Again

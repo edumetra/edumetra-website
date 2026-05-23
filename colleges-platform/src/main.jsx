@@ -4,41 +4,6 @@ import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 import App from './App.jsx'
 
-const SUPABASE_CACHE_PREFIX = 'sb-cache:'
-
-function clearSupabaseLocalCache() {
-  const keysToDelete = []
-  for (let i = 0; i < window.localStorage.length; i += 1) {
-    const key = window.localStorage.key(i)
-    if (key && key.startsWith(SUPABASE_CACHE_PREFIX)) {
-      keysToDelete.push(key)
-    }
-  }
-  keysToDelete.forEach((key) => window.localStorage.removeItem(key))
-}
-
-async function runCacheCleanupOnEveryOpen() {
-  if (typeof window === 'undefined') return
-
-  try {
-    clearSupabaseLocalCache()
-
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    }
-
-    if ('caches' in window) {
-      const cacheNames = await caches.keys()
-      await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)))
-    }
-  } catch (error) {
-    console.warn('[Cache Cleanup] Failed to clear stale caches', error)
-  }
-}
-
-runCacheCleanupOnEveryOpen()
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

@@ -4,90 +4,13 @@ import { cookieStorage } from '../utils/cookieStorage';
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
-const supabaseUrl = isBrowser ? `${window.location.origin}/db` : rawUrl;
+const PRIMARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/api/supabase-proxy` : '';
+const SECONDARY_PROXY_PREFIX = isBrowser ? `${window.location.origin}/db` : '';
+const supabaseUrl = isBrowser ? PRIMARY_PROXY_PREFIX : rawUrl;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
-const SUPABASE_CACHE_PREFIX = 'sb-cache:';
 const SUPABASE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/realtime/v1/'];
-const SUPABASE_CACHE_TTL_MS = 10 * 60 * 1000;
-
-const isGetRequest = (init) => !init?.method || init.method.toUpperCase() === 'GET';
-
-const getCacheKey = (url) => `${SUPABASE_CACHE_PREFIX}${url}`;
 const looksLikeSupabaseApi = (url) => SUPABASE_API_PATHS.some((path) => url.includes(path));
-
-const saveCachedResponse = async (url, response) => {
-    if (!isBrowser || !response.ok) return;
-    try {
-        const cloned = response.clone();
-        const body = await cloned.text();
-        const headers = {};
-        cloned.headers.forEach((value, key) => {
-            headers[key] = value;
-        });
-        window.localStorage.setItem(
-            getCacheKey(url),
-            JSON.stringify({ status: cloned.status, headers, body, cachedAt: Date.now() })
-        );
-    } catch {
-        // Non-fatal: continue without cache persistence
-    }
-};
-
-const getCachedResponse = (url) => {
-    if (!isBrowser) return null;
-    try {
-        const raw = window.localStorage.getItem(getCacheKey(url));
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed.body !== 'string') return null;
-        if (typeof parsed.cachedAt !== 'number' || Date.now() - parsed.cachedAt > SUPABASE_CACHE_TTL_MS) {
-            window.localStorage.removeItem(getCacheKey(url));
-            return null;
-        }
-        return new Response(parsed.body, {
-            status: parsed.status || 200,
-            headers: parsed.headers || { 'content-type': 'application/json' }
-        });
-    } catch {
-        return null;
-    }
-};
-
-export const clearSupabaseCache = () => {
-    if (!isBrowser) return;
-    try {
-        const keysToDelete = [];
-        for (let i = 0; i < window.localStorage.length; i += 1) {
-            const key = window.localStorage.key(i);
-            if (key && key.startsWith(SUPABASE_CACHE_PREFIX)) {
-                keysToDelete.push(key);
-            }
-        }
-        keysToDelete.forEach((key) => window.localStorage.removeItem(key));
-    } catch {
-        // Ignore cleanup issues
-    }
-};
-
-export const clearAllSiteData = async () => {
-    if (!isBrowser) return;
-    clearSupabaseCache();
-    try {
-        if ('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(registrations.map((registration) => registration.unregister()));
-        }
-        if ('caches' in window) {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
-        }
-        window.localStorage.clear();
-        window.sessionStorage.clear();
-    } catch {
-        // Ignore cleanup issues
-    }
-};
 
 export const isConfigured = !!rawUrl && 
     !!supabaseAnonKey && 
@@ -125,17 +48,15 @@ try {
                 const endpoints = [url];
 
                 if (isBrowser && rawUrl) {
-                    const proxyPrefix = `${window.location.origin}/db`;
-                    const legacyProxyPrefix = `${window.location.origin}/api/supabase-proxy`;
-                    if (url.startsWith(proxyPrefix)) {
-                        endpoints.push(url.replace(proxyPrefix, rawUrl));
-                        endpoints.push(url.replace(proxyPrefix, legacyProxyPrefix));
+                    if (url.startsWith(PRIMARY_PROXY_PREFIX)) {
+                        endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, SECONDARY_PROXY_PREFIX));
+                        endpoints.push(url.replace(PRIMARY_PROXY_PREFIX, rawUrl));
+                    } else if (url.startsWith(SECONDARY_PROXY_PREFIX)) {
+                        endpoints.push(url.replace(SECONDARY_PROXY_PREFIX, PRIMARY_PROXY_PREFIX));
+                        endpoints.push(url.replace(SECONDARY_PROXY_PREFIX, rawUrl));
                     } else if (url.startsWith(rawUrl)) {
-                        endpoints.push(url.replace(rawUrl, proxyPrefix));
-                        endpoints.push(url.replace(rawUrl, legacyProxyPrefix));
-                    } else if (url.startsWith(legacyProxyPrefix)) {
-                        endpoints.push(url.replace(legacyProxyPrefix, proxyPrefix));
-                        endpoints.push(url.replace(legacyProxyPrefix, rawUrl));
+                        endpoints.push(url.replace(rawUrl, PRIMARY_PROXY_PREFIX));
+                        endpoints.push(url.replace(rawUrl, SECONDARY_PROXY_PREFIX));
                     }
                 }
 
@@ -156,12 +77,7 @@ try {
                                 continue;
                             }
 
-                            if (response.ok) {
-                                if (isGetRequest(init)) {
-                                    void saveCachedResponse(endpoint, response);
-                                }
-                                return response;
-                            }
+                            if (response.ok) return response;
 
                             if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
                                 errors.push(new Error(`Supabase endpoint unavailable (${response.status}) at ${endpoint}`));
@@ -176,13 +92,6 @@ try {
                             clearTimeout(timeout);
                             errors.push(error);
                         }
-                    }
-                }
-
-                if (isGetRequest(init)) {
-                    for (const endpoint of uniqueEndpoints) {
-                        const cached = getCachedResponse(endpoint);
-                        if (cached) return cached;
                     }
                 }
 
