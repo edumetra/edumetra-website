@@ -42,7 +42,9 @@ export async function createRanking(payload: {
     const auth = await requireSuperadmin();
     if (auth.error) return { error: auth.error };
     const adminClient = createAdminClient();
-    const { error } = await adminClient.from("rankings").insert([payload]);
+    // DB type definitions are behind schema (provider/category fields), so use runtime-safe cast.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (adminClient.from("rankings") as any).insert([payload]);
     return error ? { error: error.message } : { success: true };
 }
 
