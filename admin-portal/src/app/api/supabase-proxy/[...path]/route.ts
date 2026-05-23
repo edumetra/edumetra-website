@@ -7,7 +7,15 @@ async function proxy(request: NextRequest, params: { path: string[] }) {
   }
 
   const path = params.path?.join('/') ?? '';
-  const query = request.nextUrl.search;
+  let query = request.nextUrl.search;
+
+  // Enforce visible reviews only for unauthenticated/public reads
+  if (request.method === 'GET' && path === 'rest/v1/reviews') {
+      const url = new URL(request.url);
+      url.searchParams.set('moderation_status', 'eq.visible');
+      query = url.search;
+  }
+
   const target = `${supabaseBase.replace(/\/$/, '')}/${path}${query}`;
 
   try {
@@ -17,10 +25,30 @@ async function proxy(request: NextRequest, params: { path: string[] }) {
     headers.delete('connection');
     headers.delete('content-length');
 
+    let bodyText = undefined;
+    if (bodyAllowed) {
+        bodyText = await request.text();
+        // Force new reviews to be pending
+        if (request.method === 'POST' && path === 'rest/v1/reviews') {
+            try {
+                const bodyJson = JSON.parse(bodyText);
+                if (Array.isArray(bodyJson)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    bodyJson.forEach((item: any) => item.moderation_status = 'pending');
+                } else {
+                    bodyJson.moderation_status = 'pending';
+                }
+                bodyText = JSON.stringify(bodyJson);
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+    }
+
     const upstream = await fetch(target, {
       method: request.method,
       headers,
-      body: bodyAllowed ? await request.text() : undefined,
+      body: bodyText,
     });
 
     return new NextResponse(upstream.body, {
@@ -58,3 +86,4 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204 });
 }
+

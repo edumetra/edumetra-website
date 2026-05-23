@@ -81,7 +81,10 @@ const NewHeroSection = () => {
         analytics.trackCTAClick('Hero Search', 'Hero Section', 'search');
         trackTeleCRMTouchpoint(['Hero Search'], { query: searchQuery.trim() });
         const baseUrl = 'https://colleges.edumetraglobal.com/colleges';
-        const finalUrl = getAuthedPortalUrl(baseUrl, session, searchQuery.trim() ? { q: searchQuery.trim() } : {});
+        let finalUrl = baseUrl;
+        if (searchQuery.trim()) {
+            finalUrl += `?q=${encodeURIComponent(searchQuery.trim())}`;
+        }
         window.location.href = finalUrl;
     };
 

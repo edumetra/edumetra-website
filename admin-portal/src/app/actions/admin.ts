@@ -238,3 +238,25 @@ export async function deleteAdmin(adminId: string) {
         return { error: err.message || "An error occurred" };
     }
 }
+
+export async function getAllAdmins() {
+    try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(cookieStore);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { error: "Unauthorized" };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
+        if (adminData?.role !== "superadmin") return { error: "Only superadmins can view admins" };
+
+        const adminClient = getSupabaseAdmin();
+        const { data: admins, error } = await adminClient.from("admins").select("*").order("created_at", { ascending: false });
+
+        if (error) return { error: error.message };
+        return { admins };
+    } catch (err: any) {
+        return { error: err.message || "An error occurred" };
+    }
+}

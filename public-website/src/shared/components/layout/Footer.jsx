@@ -187,7 +187,7 @@ const Footer = () => {
                                 { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
                             ].map((tag, index) => {
                                 const isExternal = tag.path.startsWith('http');
-                                const targetUrl = isExternal ? getAuthedPortalUrl(tag.path, session) : tag.path;
+                                const targetUrl = tag.path;
                                 return (
                                     <a
                                         key={index}

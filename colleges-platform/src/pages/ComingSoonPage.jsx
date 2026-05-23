@@ -103,7 +103,7 @@ const ComingSoonPage = () => {
                     </div>
                     
                     <a 
-                        href={getAuthedPortalUrl('https://www.edumetraglobal.com', session)} 
+                        href="https://www.edumetraglobal.com" 
                         onClick={() => trackTeleCRMTouchpoint(['Coming Soon: Visit Main Site'])}
                         className="group flex items-center gap-3 px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-slate-400 hover:text-white transition-all text-sm font-bold"
                     >

@@ -14,7 +14,8 @@ const FindCollegesPage = () => {
 
         const params = new URLSearchParams(window.location.search);
         const q = params.get('q');
-        const target = getAuthedPortalUrl(COLLEGES_PORTAL_URL, session, q ? { q } : {});
+        let target = COLLEGES_PORTAL_URL;
+        if (q) target += `?q=${encodeURIComponent(q)}`;
 
         setRedirectUrl(target);
         window.location.replace(target);

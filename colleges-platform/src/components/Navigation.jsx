@@ -71,7 +71,7 @@ const Navigation = () => {
         { label: 'Write a Review', to: '/review', internal: true, icon: PenSquare },
         { 
             label: 'Main Website', 
-            to: getAuthedPortalUrl('https://www.edumetraglobal.com', session), 
+            to: 'https://www.edumetraglobal.com', 
             internal: false, 
             icon: ExternalLink 
         },

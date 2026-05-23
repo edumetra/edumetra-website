@@ -178,7 +178,7 @@ export default function Footer() {
                                 { name: '#Best_Exams', path: 'https://colleges.edumetraglobal.com/colleges' }
                             ].map((tag, index) => {
                                 const isExternal = tag.path.includes('edumetraglobal.com') && !tag.path.includes('colleges.');
-                                const targetUrl = isExternal ? getAuthedPortalUrl(tag.path, session) : tag.path;
+                                const targetUrl = tag.path;
                                 return (
                                     <a
                                         key={index}
@@ -257,7 +257,7 @@ export default function Footer() {
                             {otherLinks.map((link, index) => (
                                 <li key={index}>
                                     <a
-                                        href={getAuthedPortalUrl(link.path, session)}
+                                        href={link.path}
                                         onClick={() => {
                                             if (link.path.includes('edumetraglobal.com')) {
                                                 trackTeleCRMTouchpoint(['Portal Footer: Visited Main Site - ' + link.name]);

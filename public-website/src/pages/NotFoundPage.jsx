@@ -11,7 +11,7 @@ const NotFoundPage = () => {
   const { session } = useAuth();
 
   const quickLinks = [
-    { label: 'Find Colleges', to: getAuthedPortalUrl('https://colleges.edumetraglobal.com', session), icon: Search, desc: 'Search for your dream college', external: true },
+    { label: 'Find Colleges', to: 'https://colleges.edumetraglobal.com', icon: Search, desc: 'Search for your dream college', external: true },
     { label: 'Explore Courses', to: '/', icon: BookOpen, desc: 'Browse our extensive course catalog' },
     { label: 'Go Home', to: '/', icon: Home, desc: 'Back to the Edumetra homepage' },
   ];

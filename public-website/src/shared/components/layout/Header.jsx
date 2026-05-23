@@ -21,7 +21,7 @@ const Header = () => {
         { name: 'Home', path: '/' },
         { 
             name: 'Find Colleges', 
-            path: getAuthedPortalUrl('https://colleges.edumetraglobal.com', session), 
+            path: 'https://colleges.edumetraglobal.com', 
             external: true 
         },
         { name: 'Features', path: '/features' },

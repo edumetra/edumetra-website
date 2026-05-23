@@ -6,7 +6,7 @@ import {
     UserPlus, Shield, ShieldOff, Save, AlertCircle,
     Trash2, ChevronDown, ChevronUp, Check, X, Key, CheckCircle2
 } from "lucide-react";
-import { createAdminAccount, resetAdminPassword, updateAdminRole, updateAdminPermissions, deleteAdmin } from "@/app/actions/admin";
+import { createAdminAccount, resetAdminPassword, updateAdminRole, updateAdminPermissions, deleteAdmin, getAllAdmins } from "@/app/actions/admin";
 import { ALL_PERMISSIONS, DEFAULT_MINI_ADMIN_PERMISSIONS, type AdminPermissions, type PermissionKey } from "@/shared/permissions";
 
 type AdminProfile = {
@@ -57,13 +57,11 @@ export default function AdminsSettingsPage() {
         const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single() as any;
         setCurrentUserRole(adminData?.role ?? null);
 
-        const { data: adminsList, error: adminsErr } = await supabase
-            .from("admins")
-            .select("*")
-            .order("created_at", { ascending: false });
+        const res = await getAllAdmins();
 
-        if (adminsErr) setError(adminsErr.message);
-        else setAdmins((adminsList ?? []) as unknown as AdminProfile[]);
+        if (res.error) setError(res.error);
+        else setAdmins(res.admins as unknown as AdminProfile[]);
+
         setLoading(false);
     };
 
