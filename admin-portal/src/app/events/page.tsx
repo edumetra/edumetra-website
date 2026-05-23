@@ -234,7 +234,7 @@ export default function EventsPage() {
             else {
                 setEvents(prev => prev.map(n => n.id === editingEvent.id ? { ...n, ...payload } as EventItem : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
-                fetchData();
+                fetchEvents();
             }
         } else {
             const { data, error: insertErr } = await db
