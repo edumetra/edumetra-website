@@ -118,7 +118,7 @@ export default function NewsPage() {
             else {
                 setNewsItems(prev => prev.map(n => n.id === editingNews.id ? { ...n, ...payload } : n).sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);
-                fetchData();
+                fetchNews();
             }
         } else {
             const { data, error: insertErr } = await (supabase
