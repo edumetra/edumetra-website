@@ -65,6 +65,24 @@ export default function CollegeListPage() {
         fetchColleges({ page: 1, query: debouncedSearchQuery, filters, sort, isLoadMore: false });
     }, [debouncedSearchQuery, filters, sort, fetchColleges]);
 
+    // Re-fetch on tab restore / route return to avoid stale empty states
+    useEffect(() => {
+        const refetch = () => {
+            fetchColleges({ page: 1, query: debouncedSearchQuery, filters, sort, isLoadMore: false });
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') refetch();
+        };
+
+        window.addEventListener('pageshow', refetch);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        return () => {
+            window.removeEventListener('pageshow', refetch);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [debouncedSearchQuery, filters, sort, fetchColleges]);
+
     // Fetch saved colleges for user
     useEffect(() => {
         if (user) fetchSavedIds();

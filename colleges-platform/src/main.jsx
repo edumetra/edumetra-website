@@ -5,26 +5,19 @@ import './index.css'
 import App from './App.jsx'
 
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    } catch (error) {
+  navigator.serviceWorker.getRegistrations()
+    .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+    .catch((error) => {
       console.warn('Service worker unregister failed:', error)
-    }
+    })
 
-    try {
-      if (!('caches' in window)) return
-      const cacheNames = await caches.keys()
-      await Promise.all(
-        cacheNames
-          .filter((name) => /workbox|sw|vite|pwa|service-worker/i.test(name))
-          .map((name) => caches.delete(name))
-      )
-    } catch (error) {
-      console.warn('Service worker cache cleanup failed:', error)
-    }
-  })
+  if ('caches' in window) {
+    caches.keys()
+      .then((cacheNames) => Promise.all(cacheNames.map((name) => caches.delete(name))))
+      .catch((error) => {
+        console.warn('Service worker cache cleanup failed:', error)
+      })
+  }
 }
 
 createRoot(document.getElementById('root')).render(

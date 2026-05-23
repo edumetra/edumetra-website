@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { cookieStorage } from '../utils/cookieStorage';
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -61,7 +60,16 @@ try {
                         const controller = new AbortController();
                         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
                         try {
-                            const response = await fetch(endpoint, { ...init, signal: controller.signal });
+                            const response = await fetch(endpoint, {
+                                ...init,
+                                signal: controller.signal,
+                                cache: 'no-store',
+                                headers: {
+                                    ...(init?.headers || {}),
+                                    'cache-control': 'no-cache',
+                                    pragma: 'no-cache'
+                                }
+                            });
                             clearTimeout(timeout);
                             const contentType = response.headers.get('content-type') || '';
                             const isSupabaseApi = looksLikeSupabaseApi(endpoint);
@@ -93,7 +101,6 @@ try {
             }
         },
         auth: {
-            storage: cookieStorage,
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true

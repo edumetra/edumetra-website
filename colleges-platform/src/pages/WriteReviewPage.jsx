@@ -37,27 +37,18 @@ export default function WriteReviewPage() {
             const safeQuery = query.replace(/[%_]/g, '');
             const { data, error: err } = await supabase
                 .from('colleges')
-                .select('id, name, location_city, location_state, image')
+                .select('id, name, location_city, location_state, image, visibility')
                 .or(`name.ilike.%${safeQuery}%,location_city.ilike.%${safeQuery}%,location_state.ilike.%${safeQuery}%`)
-                .or('visibility.eq.public,visibility.is.null')
                 .order('name', { ascending: true })
-                .limit(20);
-            
-            if (err) throw err;
-            if (data?.length) {
-                setSearchResults(data);
-            } else {
-                // Fallback without visibility filter for legacy datasets.
-                const { data: fallbackData, error: fallbackErr } = await supabase
-                    .from('colleges')
-                    .select('id, name, location_city, location_state, image')
-                    .or(`name.ilike.%${safeQuery}%,location_city.ilike.%${safeQuery}%,location_state.ilike.%${safeQuery}%`)
-                    .order('name', { ascending: true })
-                    .limit(20);
+                .limit(30);
 
-                if (fallbackErr) throw fallbackErr;
-                setSearchResults(fallbackData || []);
-            }
+            if (err) throw err;
+
+            const visibleColleges = (data || []).filter((college) => {
+                const visibility = (college.visibility || '').toLowerCase();
+                return !visibility || visibility === 'public';
+            });
+            setSearchResults(visibleColleges);
         } catch (err) {
             console.error('Search error (possibly blocked):', err);
             setError('Unable to load colleges right now. Please try again.');
