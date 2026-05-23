@@ -46,8 +46,10 @@ try {
                 const method = init?.method || (input instanceof Request ? input.method : 'GET');
                 const isGet = method.toUpperCase() === 'GET';
 
-                // Bypass proxy/retry logic for non-GET requests to avoid body-streaming issues
-                if (!isGet) {
+                // Strictly bypass proxy/retry logic for anything that isn't a GET request to the database (/rest/v1/).
+                // This ensures Supabase Auth, Storage, and Realtime work flawlessly with native fetch
+                // and prevents deadlocking the internal auth queue during token refreshes or logouts.
+                if (!isGet || !url.includes('/rest/v1/')) {
                     return fetch(input, init);
                 }
 
