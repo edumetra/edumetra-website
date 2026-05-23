@@ -186,7 +186,6 @@ export const supabase = isConfigured
             }
         },
         auth: {
-            storage: cookieStorage,
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true
