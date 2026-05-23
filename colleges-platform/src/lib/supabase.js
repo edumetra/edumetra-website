@@ -42,6 +42,7 @@ try {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
         global: {
             fetch: async (input, init) => {
+                const sourceRequest = input instanceof Request ? input : null;
                 const url = typeof input === 'string' ? input : input.url;
                 const endpoints = [url];
 
@@ -60,16 +61,25 @@ try {
                         const controller = new AbortController();
                         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
                         try {
-                            const requestHeaders = new Headers(init?.headers || {});
+                            const requestHeaders = new Headers(sourceRequest?.headers || {});
+                            if (init?.headers) {
+                                const overrideHeaders = new Headers(init.headers);
+                                overrideHeaders.forEach((value, key) => {
+                                    requestHeaders.set(key, value);
+                                });
+                            }
                             requestHeaders.set('cache-control', 'no-cache');
                             requestHeaders.set('pragma', 'no-cache');
 
-                            const response = await fetch(endpoint, {
-                                ...init,
-                                signal: controller.signal,
-                                cache: 'no-store',
-                                headers: requestHeaders
-                            });
+                            const response = await fetch(
+                                sourceRequest ? new Request(endpoint, sourceRequest) : endpoint,
+                                {
+                                    ...init,
+                                    signal: controller.signal,
+                                    cache: 'no-store',
+                                    headers: requestHeaders
+                                }
+                            );
                             clearTimeout(timeout);
                             const contentType = response.headers.get('content-type') || '';
                             const isSupabaseApi = looksLikeSupabaseApi(endpoint);
