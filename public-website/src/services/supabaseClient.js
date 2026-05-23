@@ -9,6 +9,7 @@ const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = 'sb-cache:';
 const SUPABASE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/realtime/v1/'];
+const SUPABASE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const isGetRequest = (init) => !init?.method || init.method.toUpperCase() === 'GET';
 
@@ -40,12 +41,51 @@ const getCachedResponse = (url) => {
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed.body !== 'string') return null;
+        if (typeof parsed.cachedAt !== 'number' || Date.now() - parsed.cachedAt > SUPABASE_CACHE_TTL_MS) {
+            window.localStorage.removeItem(getCacheKey(url));
+            return null;
+        }
         return new Response(parsed.body, {
             status: parsed.status || 200,
             headers: parsed.headers || { 'content-type': 'application/json' }
         });
     } catch {
         return null;
+    }
+};
+
+export const clearSupabaseCache = () => {
+    if (!isBrowser) return;
+    try {
+        const keysToDelete = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(SUPABASE_CACHE_PREFIX)) {
+                keysToDelete.push(key);
+            }
+        }
+        keysToDelete.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+        // Ignore cleanup errors
+    }
+};
+
+export const clearAllSiteData = async () => {
+    if (!isBrowser) return;
+    clearSupabaseCache();
+    try {
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+        }
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+    } catch {
+        // Ignore cleanup errors
     }
 };
 
@@ -95,8 +135,9 @@ export const supabase = isConfigured
                     }
                 }
 
+                const uniqueEndpoints = Array.from(new Set(endpoints));
                 const errors = [];
-                for (const endpoint of endpoints) {
+                for (const endpoint of uniqueEndpoints) {
                     for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_ENDPOINT; attempt += 1) {
                         const controller = new AbortController();
                         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -107,7 +148,7 @@ export const supabase = isConfigured
                             const isSupabaseApi = looksLikeSupabaseApi(endpoint);
                             const isHtmlResponse = contentType.includes('text/html');
                             if (isSupabaseApi && response.ok && isHtmlResponse) {
-                                errors.push(new Error(`Invalid HTML response for Supabase API at `));
+                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
                                 continue;
                             }
 
@@ -119,7 +160,7 @@ export const supabase = isConfigured
                             }
 
                             if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
-                                errors.push(new Error(`Supabase endpoint unavailable () at `));
+                                errors.push(new Error(`Supabase endpoint unavailable (${response.status}) at ${endpoint}`));
                                 continue;
                             }
 
@@ -135,7 +176,7 @@ export const supabase = isConfigured
                 }
 
                 if (isGetRequest(init)) {
-                    for (const endpoint of endpoints) {
+                    for (const endpoint of uniqueEndpoints) {
                         const cached = getCachedResponse(endpoint);
                         if (cached) return cached;
                     }

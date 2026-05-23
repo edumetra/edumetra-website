@@ -36,7 +36,7 @@ export default function CollegeDetailPage() {
 
     // Custom Hooks
     const { college, loading, error } = useCollegeDetails(slug);
-    const { isSectionVisible, visibilityTier } = usePremium();
+    const { isSectionVisible } = usePremium();
     const { user } = useSignup();
     const { hasExceededLimit } = useGuestLimit(user, slug);
 
@@ -308,7 +308,7 @@ export default function CollegeDetailPage() {
                                     <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Admission Details
                                 </h2>
                                 {!isSectionVisible('admissions', college) ? (
-                                    <LockedSection title="Admission Details" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                    <LockedSection title="Admission Details" requiredTier={user ? 'pro' : 'signed_up'}>
                                         <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                     </LockedSection>
                                 ) : (
@@ -372,7 +372,7 @@ export default function CollegeDetailPage() {
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Courses &amp; Fees
                             </h2>
                             {!isSectionVisible('courses', college) ? (
-                                <LockedSection title="Courses & Fees" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                <LockedSection title="Courses & Fees" requiredTier={user ? 'pro' : 'signed_up'}>
                                     <CoursesTable courses={(college.courses_fees || []).slice(0, 2)} />
                                 </LockedSection>
                             ) : (
@@ -406,7 +406,7 @@ export default function CollegeDetailPage() {
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Questions & Answers
                             </h2>
                             {!isSectionVisible('qna', college) ? (
-                                <LockedSection title="Questions & Answers" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                <LockedSection title="Questions & Answers" requiredTier={user ? 'pro' : 'signed_up'}>
                                     <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                 </LockedSection>
                             ) : (
@@ -420,7 +420,7 @@ export default function CollegeDetailPage() {
                                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Frequently Asked Questions
                             </h2>
                             {!isSectionVisible('faq', college) ? (
-                                <LockedSection title="Frequently Asked Questions" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                <LockedSection title="Frequently Asked Questions" requiredTier={user ? 'pro' : 'signed_up'}>
                                     <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
                                 </LockedSection>
                             ) : (
@@ -444,7 +444,7 @@ export default function CollegeDetailPage() {
                             </div>
 
                             {!isSectionVisible('reviews', college) ? (
-                                <LockedSection title="Student Reviews" requiredTier={visibilityTier === 'free' ? 'signed_up' : 'pro'}>
+                                <LockedSection title="Student Reviews" requiredTier={user ? 'pro' : 'signed_up'}>
                                     <div className="grid gap-8">
                                         <div className="h-96 bg-slate-900 border border-slate-800 rounded-2xl" />
                                     </div>
@@ -491,4 +491,3 @@ export default function CollegeDetailPage() {
         </div>
     );
 }
-

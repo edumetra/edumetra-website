@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { SecurityProvider } from "@/components/SecurityProvider";
+import { CacheCleanupBootstrap } from "@/components/CacheCleanupBootstrap";
 import type { AdminPermissions } from "@/shared/permissions";
 import Script from "next/script";
 
@@ -59,6 +60,7 @@ export default async function RootLayout({
                     </Script>
                 </head>
                 <body className={`${inter.className} bg-slate-950 text-slate-200 antialiased`}>
+                    <CacheCleanupBootstrap />
                     <noscript>
                         <iframe
                             src="https://www.googletagmanager.com/ns.html?id=GTM-5M8W4DBD"
@@ -126,6 +128,7 @@ export default async function RootLayout({
                 </Script>
             </head>
             <body className={`${inter.className} bg-slate-950 text-slate-200 antialiased`}>
+                <CacheCleanupBootstrap />
                 <noscript>
                     <iframe
                         src="https://www.googletagmanager.com/ns.html?id=GTM-5M8W4DBD"

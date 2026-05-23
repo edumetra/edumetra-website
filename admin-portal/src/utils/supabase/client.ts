@@ -5,6 +5,7 @@ const REQUEST_TIMEOUT_MS = 12000;
 const MAX_ATTEMPTS_PER_ENDPOINT = 2;
 const SUPABASE_CACHE_PREFIX = "sb-cache:";
 const SUPABASE_API_PATHS = ["/rest/v1/", "/auth/v1/", "/storage/v1/", "/realtime/v1/"];
+const SUPABASE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const isGetRequest = (init?: RequestInit) => !init?.method || init.method.toUpperCase() === "GET";
 
@@ -34,14 +35,53 @@ const getCachedResponse = (url: string): Response | null => {
     try {
         const raw = window.localStorage.getItem(getCacheKey(url));
         if (!raw) return null;
-        const parsed = JSON.parse(raw) as { status?: number; headers?: Record<string, string>; body?: string };
+        const parsed = JSON.parse(raw) as { status?: number; headers?: Record<string, string>; body?: string; cachedAt?: number };
         if (!parsed || typeof parsed.body !== "string") return null;
+        if (typeof parsed.cachedAt !== "number" || Date.now() - parsed.cachedAt > SUPABASE_CACHE_TTL_MS) {
+            window.localStorage.removeItem(getCacheKey(url));
+            return null;
+        }
         return new Response(parsed.body, {
             status: parsed.status ?? 200,
             headers: parsed.headers ?? { "content-type": "application/json" },
         });
     } catch {
         return null;
+    }
+};
+
+export const clearSupabaseCache = () => {
+    if (typeof window === "undefined") return;
+    try {
+        const keysToDelete: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(SUPABASE_CACHE_PREFIX)) {
+                keysToDelete.push(key);
+            }
+        }
+        keysToDelete.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+        // Ignore cache cleanup errors
+    }
+};
+
+export const clearAllSiteData = async () => {
+    if (typeof window === "undefined") return;
+    clearSupabaseCache();
+    try {
+        if ("serviceWorker" in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+        if ("caches" in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+        }
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+    } catch {
+        // Ignore storage cleanup errors
     }
 };
 
@@ -77,8 +117,9 @@ export const createClient = () => {
                     }
                 }
 
+                const uniqueEndpoints = Array.from(new Set(endpoints));
                 const errors: unknown[] = [];
-                for (const endpoint of endpoints) {
+                for (const endpoint of uniqueEndpoints) {
                     for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_ENDPOINT; attempt += 1) {
                         const controller = new AbortController();
                         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -89,7 +130,7 @@ export const createClient = () => {
                             const isSupabaseApi = looksLikeSupabaseApi(endpoint);
                             const isHtmlResponse = contentType.includes("text/html");
                             if (isSupabaseApi && response.ok && isHtmlResponse) {
-                                errors.push(new Error(`Invalid HTML response for Supabase API at `));
+                                errors.push(new Error(`Invalid HTML response for Supabase API at ${endpoint}`));
                                 continue;
                             }
 
@@ -101,7 +142,7 @@ export const createClient = () => {
                             }
 
                             if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
-                                errors.push(new Error(`Supabase endpoint unavailable () at `));
+                                errors.push(new Error(`Supabase endpoint unavailable (${response.status}) at ${endpoint}`));
                                 continue;
                             }
 
@@ -117,7 +158,7 @@ export const createClient = () => {
                 }
 
                 if (isGetRequest(init)) {
-                    for (const endpoint of endpoints) {
+                    for (const endpoint of uniqueEndpoints) {
                         const cached = getCachedResponse(endpoint);
                         if (cached) return cached;
                     }

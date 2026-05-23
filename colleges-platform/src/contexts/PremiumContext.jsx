@@ -21,7 +21,7 @@ export function PremiumProvider({ children }) {
     useEffect(() => {
         if (profile?.account_type) {
             setTier(profile.account_type);
-            setVisibilityTier(profile.account_type);
+            setVisibilityTier(profile.account_type === 'free' ? 'signed_up' : profile.account_type);
         } else if (user) {
             fetchTier();
         } else {
@@ -44,12 +44,12 @@ export function PremiumProvider({ children }) {
             const apiTier = data?.account_type;
             setTier(apiTier || 'free');
             setAiUsage(data?.ai_usage_count || 0);
-            setVisibilityTier(apiTier || 'free');
+            setVisibilityTier((apiTier || 'free') === 'free' ? 'signed_up' : (apiTier || 'free'));
         } catch (err) {
             console.warn('PremiumProvider: Failed to fetch tier (possibly blocked):', err);
-            // Default to free state
+            // Signed-in users should still be treated as signed-up for visibility checks.
             setTier('free');
-            setVisibilityTier('free');
+            setVisibilityTier(user ? 'signed_up' : 'free');
         } finally {
             setLoadingTier(false);
         }

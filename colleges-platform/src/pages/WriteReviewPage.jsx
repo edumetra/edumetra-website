@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Star, MessageSquare, Search, ArrowLeft, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Star, Search, ArrowLeft, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 import { pushLeadToTeleCRM } from '../services/telecrm';
@@ -8,8 +8,7 @@ import { pushLeadToTeleCRM } from '../services/telecrm';
 
 
 export default function WriteReviewPage() {
-    const { isSignedUp, user, openSignIn } = useSignup();
-    const navigate = useNavigate();
+    const { isSignedUp, user, openSignIn, openAuth } = useSignup();
 
     const [step, setStep] = useState(1); // 1 = select college, 2 = write review
     const [collegeSearch, setCollegeSearch] = useState('');
@@ -24,8 +23,10 @@ export default function WriteReviewPage() {
     const [error, setError] = useState('');
 
     const searchColleges = async (q) => {
-        if (!q.trim()) { setSearchResults([]); return; }
+        const query = (q || '').trim();
+        if (!query) { setSearchResults([]); return; }
         setSearching(true);
+        setError('');
         
         // Safety timeout to reset searching state if request hangs or is blocked
         const timeout = setTimeout(() => {
@@ -33,17 +34,33 @@ export default function WriteReviewPage() {
         }, 5000);
 
         try {
+            const safeQuery = query.replace(/[%_]/g, '');
             const { data, error: err } = await supabase
                 .from('colleges')
                 .select('id, name, location_city, location_state, image')
-                .ilike('name', `%${q}%`)
-                .eq('visibility', 'public')
-                .limit(6);
+                .or(`name.ilike.%${safeQuery}%,location_city.ilike.%${safeQuery}%,location_state.ilike.%${safeQuery}%`)
+                .or('visibility.eq.public,visibility.is.null')
+                .order('name', { ascending: true })
+                .limit(20);
             
             if (err) throw err;
-            setSearchResults(data || []);
+            if (data?.length) {
+                setSearchResults(data);
+            } else {
+                // Fallback without visibility filter for legacy datasets.
+                const { data: fallbackData, error: fallbackErr } = await supabase
+                    .from('colleges')
+                    .select('id, name, location_city, location_state, image')
+                    .or(`name.ilike.%${safeQuery}%,location_city.ilike.%${safeQuery}%,location_state.ilike.%${safeQuery}%`)
+                    .order('name', { ascending: true })
+                    .limit(20);
+
+                if (fallbackErr) throw fallbackErr;
+                setSearchResults(fallbackData || []);
+            }
         } catch (err) {
             console.error('Search error (possibly blocked):', err);
+            setError('Unable to load colleges right now. Please try again.');
             setSearchResults([]);
         } finally {
             clearTimeout(timeout);
@@ -106,7 +123,10 @@ export default function WriteReviewPage() {
                         Share your college experience to help thousands of students make better decisions.
                     </p>
                     <button
-                        onClick={openSignIn}
+                        onClick={() => {
+                            if (typeof openSignIn === 'function') openSignIn();
+                            else if (typeof openAuth === 'function') openAuth('login');
+                        }}
                         className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:scale-105 transition-all"
                     >
                         Sign In to Continue

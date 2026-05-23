@@ -2,10 +2,10 @@ import { Lock, Crown, ArrowRight, Star } from 'lucide-react';
 import { useSignup } from '../../contexts/SignupContext';
 
 export function LockedSection({ title, requiredTier = 'signed_up', children }) {
-    const { setShowSignup } = useSignup();
+    const { openAuth, user } = useSignup();
 
     const isSignupRequired = requiredTier === 'signed_up';
-    const ctaText = isSignupRequired ? 'Create Free Account' : 'Upgrade to Pro';
+    const ctaText = isSignupRequired ? 'Create Free Account' : (user ? 'Upgrade Plan' : 'Sign In');
 
     return (
         <div className="relative rounded-2xl overflow-hidden border border-slate-800">
@@ -37,7 +37,7 @@ export function LockedSection({ title, requiredTier = 'signed_up', children }) {
 
                     {/* CTA */}
                     <button
-                        onClick={() => setShowSignup(true)}
+                        onClick={() => openAuth(isSignupRequired ? 'signup' : 'login')}
                         className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-white text-slate-900 hover:bg-slate-100 active:scale-95 shadow"
                     >
                         {ctaText}

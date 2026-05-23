@@ -374,18 +374,35 @@ const Navigation = () => {
                 <div className="flex items-stretch h-16">
                     {bottomTabs.map(({ label, to, icon: Icon, action }) => {
                         const active = to && isActive(to);
-                        const Wrapper = to ? Link : 'button';
+                        const className = `flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors relative ${active ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`;
+
+                        if (to) {
+                            return (
+                                <Link
+                                    key={label}
+                                    to={to}
+                                    className={className}
+                                >
+                                    {active && <motion.div layoutId="bottomTabIndicator" className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-red-500 rounded-full" />}
+                                    <Icon className="w-5 h-5" />
+                                    {label}
+                                </Link>
+                            );
+                        }
+
                         return (
-                            <Wrapper
+                            <button
                                 key={label}
-                                to={to || undefined}
-                                onClick={action || undefined}
-                                className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors relative ${active ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
+                                type="button"
+                                onClick={() => {
+                                    if (typeof action === 'function') action();
+                                }}
+                                className={className}
                             >
                                 {active && <motion.div layoutId="bottomTabIndicator" className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-red-500 rounded-full" />}
                                 <Icon className="w-5 h-5" />
                                 {label}
-                            </Wrapper>
+                            </button>
                         );
                     })}
                 </div>
