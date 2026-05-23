@@ -60,15 +60,15 @@ try {
                         const controller = new AbortController();
                         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
                         try {
+                            const requestHeaders = new Headers(init?.headers || {});
+                            requestHeaders.set('cache-control', 'no-cache');
+                            requestHeaders.set('pragma', 'no-cache');
+
                             const response = await fetch(endpoint, {
                                 ...init,
                                 signal: controller.signal,
                                 cache: 'no-store',
-                                headers: {
-                                    ...(init?.headers || {}),
-                                    'cache-control': 'no-cache',
-                                    pragma: 'no-cache'
-                                }
+                                headers: requestHeaders
                             });
                             clearTimeout(timeout);
                             const contentType = response.headers.get('content-type') || '';
