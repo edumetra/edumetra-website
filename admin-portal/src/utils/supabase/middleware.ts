@@ -92,7 +92,6 @@ export async function updateSession(request: NextRequest) {
         "/users": "users",
         "/analytics": "analytics",
         "/careers": "careers",
-        "/audit-logs": "audit_logs",
         "/settings": "settings",
         "/articles": "articles",
         "/cutoffs": "cutoffs",

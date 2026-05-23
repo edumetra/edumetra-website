@@ -265,12 +265,12 @@ export async function getCurrentAdminRole() {
         const supabase = createServerClient(cookieStore);
 
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return { error: "Unauthorized", role: null };
+        if (!user) return { error: "Unauthorized", role: null, userId: null };
 
         const adminClient = getSupabaseAdmin();
         const { data: adminData } = await adminClient.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
-        return { role: adminData?.role ?? null };
+        return { role: adminData?.role ?? null, userId: user.id };
     } catch (err: any) {
-        return { error: err.message, role: null };
+        return { error: err.message, role: null, userId: null };
     }
 }

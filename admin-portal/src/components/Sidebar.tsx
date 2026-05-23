@@ -16,7 +16,6 @@ import {
     FileText,
     Briefcase,
     UserCog,
-    ScrollText,
     LogOut,
     ExternalLink,
     GraduationCap,
@@ -57,7 +56,6 @@ const SUPERADMIN_NAV: NavItem[] = [
     { href: "/settings/admins", label: "Manage Admins", icon: UserCog, permKey: "settings" },
     { href: "/coupons", label: "Coupons", icon: Ticket, permKey: "coupons" },
     { href: "/analytics", label: "Analytics", icon: BarChart2, permKey: "analytics" },
-    { href: "/audit-logs", label: "Audit Logs", icon: ScrollText, permKey: "audit_logs" },
 ];
 
 function NavLink({ href, label, icon: Icon }: NavItem) {

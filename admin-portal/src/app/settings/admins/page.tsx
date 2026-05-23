@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
 import {
     UserPlus, Shield, ShieldOff, Save, AlertCircle,
     Trash2, ChevronDown, ChevronUp, Check, X, Key, CheckCircle2
@@ -18,10 +17,9 @@ type AdminProfile = {
 };
 
 export default function AdminsSettingsPage() {
-    const supabase = createClient();
     const [admins, setAdmins] = useState<AdminProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+    const [currentUserRole, setCurrentUserRole] = useState<"superadmin" | "mini_admin" | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -50,35 +48,15 @@ export default function AdminsSettingsPage() {
         setLoading(true);
         setError(null);
         try {
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (userError || !user) {
-                setError("Your session has expired. Please sign in again.");
-                setCurrentUserId(null);
+            const roleRes = await getCurrentAdminRole();
+            if (roleRes.error || !roleRes.role) {
+                setError(roleRes.error ?? "Unable to determine your admin role.");
                 setCurrentUserRole(null);
                 setAdmins([]);
                 return;
             }
-
-            setCurrentUserId(user.id);
-
-            // Primary role lookup from client session context (same source as visible sidebar role)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: localAdminData } = await supabase.from("admins").select("role").eq("id", user.id).maybeSingle() as any;
-            const localRole = localAdminData?.role ?? null;
-
-            if (localRole) {
-                setCurrentUserRole(localRole);
-            } else {
-                // Fallback to server action when local lookup is unavailable
-                const roleRes = await getCurrentAdminRole();
-                if (roleRes.error) {
-                    setError(roleRes.error);
-                    setCurrentUserRole(null);
-                    setAdmins([]);
-                    return;
-                }
-                setCurrentUserRole(roleRes.role);
-            }
+            setCurrentUserRole(roleRes.role as "superadmin" | "mini_admin");
+            setCurrentUserId(roleRes.userId ?? null);
 
             const res = await getAllAdmins();
             if (res.error) {
@@ -179,7 +157,19 @@ export default function AdminsSettingsPage() {
 
     if (loading) return <div className="p-8 text-slate-400">Loading admins...</div>;
 
-    if (currentUserRole !== "superadmin") {
+    if (!loading && currentUserRole === null) {
+        return (
+            <div className="p-8 max-w-3xl mx-auto">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-8 rounded-xl text-center">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-70" />
+                    <h2 className="text-xl font-bold mb-2">Unable to Verify Access</h2>
+                    <p>{error ?? "We could not verify your role right now. Please refresh and try again."}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (currentUserRole === "mini_admin") {
         return (
             <div className="p-8 max-w-3xl mx-auto">
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-8 rounded-xl text-center">
