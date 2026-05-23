@@ -19,9 +19,14 @@ export function useColleges() {
         sort = 'rank_asc',
         isLoadMore = false
     }) => {
+        console.log('[Deadlock Trace] fetchColleges START');
+        if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges START' });
+
         // Safety timeout to reset loading state if request hangs
         const safetyTimeout = setTimeout(() => {
             setLoading(false);
+            console.warn('[Deadlock Trace] fetchColleges SAFETY TIMEOUT FIRED');
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges SAFETY TIMEOUT' });
         }, 35000);
 
         try {
@@ -128,6 +133,8 @@ export function useColleges() {
             }
 
             setHasMore(from + formattedData.length < count);
+            console.log('[Deadlock Trace] fetchColleges END SUCCESS');
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges END SUCCESS' });
 
         } catch (err) {
             // Check if this is an intentional abort (e.g. new search started)
@@ -137,14 +144,17 @@ export function useColleges() {
 
             if (isAbortError) {
                 // Do NOT set error state for intentional aborts
-                console.log('Fetch aborted intentionally');
+                console.log('[Deadlock Trace] fetchColleges ABORTED intentionally');
+                if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges ABORTED' });
                 return;
             }
+
+            console.error('[Deadlock Trace] fetchColleges ERROR:', err);
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchColleges ERROR', data: err.message });
 
             if (err.message === 'Filter timeout' || err.message?.includes('Failed to fetch')) {
                 setError('DATABASE_CONNECTION_BLOCKED');
             } else {
-                console.error('Error fetching colleges:', err.message || err);
                 setError(err.message || 'Failed to fetch colleges');
             }
         } finally {
