@@ -1,5 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
+// 1. Expose Debug State
+if (typeof window !== 'undefined') {
+    window.__APP_DEBUG__ = window.__APP_DEBUG__ || {
+        requests: [],
+        auth: {},
+        createClientCount: 0,
+        logs: []
+    };
+}
+const debugLog = (msg, data) => {
+    console.log(`[Supabase Trace] ${msg}`, data || '');
+    if (typeof window !== 'undefined') {
+        window.__APP_DEBUG__.logs.push({ time: new Date().toISOString(), msg, data });
+    }
+};
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isBrowser = typeof window !== 'undefined';
@@ -39,17 +54,47 @@ try {
     if (!isConfigured) {
         throw new Error("Supabase credentials are not configured or are placeholder values.");
     }
+    if (typeof window !== 'undefined') {
+        window.__APP_DEBUG__.createClientCount += 1;
+        debugLog('createClient initializing', { url: supabaseUrl, count: window.__APP_DEBUG__.createClientCount, stack: new Error().stack });
+    }
+    
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
         global: {
             fetch: async (input, init) => {
+                const startTime = Date.now();
                 const url = typeof input === 'string' ? input : input.url;
                 const method = init?.method || (input instanceof Request ? input.method : 'GET');
                 const isGet = method.toUpperCase() === 'GET';
+                
+                const isAuth = url.includes('/auth/v1/');
+                const isTokenRefresh = url.includes('grant_type=refresh_token');
+
+                debugLog('Fetch Start', { url, method, isAuth, isTokenRefresh });
+
+                const finalizeLog = (res, err) => {
+                    const duration = Date.now() - startTime;
+                    if (err) {
+                        debugLog('Fetch Failed', { url, method, duration, error: err.message });
+                    } else {
+                        debugLog('Fetch Complete', { url, method, duration, status: res?.status });
+                    }
+                    if (typeof window !== 'undefined') {
+                        window.__APP_DEBUG__.requests.push({ url, method, duration, error: err?.message, status: res?.status, time: new Date().toISOString() });
+                    }
+                };
 
                 // Strictly bypass proxy/retry logic for anything that isn't a GET request to the database (/rest/v1/).
                 // Auth, Storage, Realtime, and all POST requests natively hit rawUrl without any modification.
                 if (!isGet || !url.includes('/rest/v1/')) {
-                    return fetch(input, init);
+                    try {
+                        const res = await fetch(input, init);
+                        finalizeLog(res, null);
+                        return res;
+                    } catch (e) {
+                        finalizeLog(null, e);
+                        throw e;
+                    }
                 }
 
                 // For GET /rest/v1/ requests, we intercept and route through the local /db proxy
@@ -103,7 +148,10 @@ try {
                                 continue;
                             }
 
-                            if (response.ok) return response;
+                            if (response.ok) {
+                                finalizeLog(response, null);
+                                return response;
+                            }
 
                             if (isSupabaseApi && (response.status === 404 || response.status === 405)) {
                                 errors.push(new Error(`Supabase endpoint unavailable (${response.status}) at ${endpoint}`));
@@ -111,6 +159,7 @@ try {
                             }
 
                             if (response.status < 500) {
+                                finalizeLog(response, null);
                                 return response;
                             }
                             errors.push(new Error(`Supabase HTTP ${response.status} at ${endpoint}`));
@@ -121,7 +170,9 @@ try {
                     }
                 }
 
-                throw errors[errors.length - 1] || new Error('Supabase request failed');
+                const finalError = errors[errors.length - 1] || new Error('Supabase request failed');
+                finalizeLog(null, finalError);
+                throw finalError;
             }
         },
         auth: {

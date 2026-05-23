@@ -20,8 +20,15 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   }
 }
 
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('[Global Error Trap] onerror:', { msg, url, lineNo, columnNo, error });
+    return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('[Global Error Trap] unhandledrejection:', event.reason);
+});
+
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <App />
-  </StrictMode>,
 )

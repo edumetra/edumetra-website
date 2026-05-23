@@ -38,6 +38,8 @@ export function SignupProvider({ children }) {
         };
 
         const fetchProfile = async (userId) => {
+            console.log('[Deadlock Trace] fetchProfile START', { userId });
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile START', data: { userId } });
             if (!userId || !isMounted) {
                 setProfile(null);
                 return;
@@ -51,14 +53,18 @@ export function SignupProvider({ children }) {
                 
                 if (isMounted) {
                     if (error) {
-                        console.error('Profile fetch error:', error.message);
+                        console.error('[Deadlock Trace] fetchProfile ERROR:', error.message);
+                        if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile ERROR', data: error.message });
                         setProfile(null);
                     } else {
                         setProfile(data);
+                        console.log('[Deadlock Trace] fetchProfile END SUCCESS');
+                        if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile END SUCCESS' });
                     }
                 }
             } catch (err) {
-                console.warn('Profile fetch aborted or failed:', err);
+                console.warn('[Deadlock Trace] fetchProfile ERROR (thrown):', err);
+                if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'fetchProfile ERROR (thrown)', data: err.message });
             }
         };
 
@@ -107,6 +113,8 @@ export function SignupProvider({ children }) {
         // e.g. when arriving from the main website. If it finds a session it calls
         // supabase.auth.setSession() which triggers onAuthStateChange again with the real user.
         const checkInitialSession = async () => {
+            console.log('[Deadlock Trace] checkInitialSession START');
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession START' });
             try {
                 const crossDomainSession = await bootstrapCrossDomainSession(supabase, {
                     maxRetries: hasAuthTokensInUrl() ? 5 : 2,
@@ -124,13 +132,16 @@ export function SignupProvider({ children }) {
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    console.warn('[Auth Diagnostics] Initial session restore check failed:', err.message);
+                    console.warn('[Deadlock Trace] checkInitialSession ERROR:', err.message);
+                    if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession ERROR', data: err.message });
                 }
             } finally {
                 if (isMounted) {
                     // Mark Gate 2 as done regardless of success/failure
                     bootstrapReady = true;
                     maybeFinishLoading();
+                    console.log('[Deadlock Trace] checkInitialSession END');
+                    if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'checkInitialSession END' });
                 }
             }
         };
@@ -195,12 +206,15 @@ export function SignupProvider({ children }) {
     };
 
     const logout = async () => {
-        console.log('[Auth Diagnostics] Logout start');
+        console.log('[Deadlock Trace] logout START');
+        if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout START' });
         try {
             await supabase.auth.signOut();
-            console.log('[Auth Diagnostics] Logout API complete');
+            console.log('[Deadlock Trace] logout END SUCCESS');
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout END SUCCESS' });
         } catch (e) {
-            console.warn('[Auth Diagnostics] Signout issue', e);
+            console.warn('[Deadlock Trace] logout ERROR:', e);
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'logout ERROR', data: e.message });
         }
         
         setUser(null);

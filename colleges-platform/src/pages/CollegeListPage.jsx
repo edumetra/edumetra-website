@@ -14,6 +14,15 @@ export default function CollegeListPage() {
     const { user } = useSignup();
     const { colleges, loading, error, hasMore, totalCount, fetchColleges, fetchFilterOptions } = useColleges();
 
+    useEffect(() => {
+        console.log('[Router Trace] CollegeListPage MOUNTED');
+        if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'CollegeListPage MOUNTED' });
+        return () => {
+            console.log('[Router Trace] CollegeListPage UNMOUNTED');
+            if (typeof window !== 'undefined') window.__APP_DEBUG__?.logs.push({ time: new Date().toISOString(), msg: 'CollegeListPage UNMOUNTED' });
+        };
+    }, []);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
