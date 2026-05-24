@@ -69,17 +69,6 @@ export default function UsersPage() {
         setLoading(true);
         setError(null);
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return router.push("/login");
-
-        const { data: adminData } = await supabase.from("admins").select("role, permissions").eq("id", user.id).single();
-        const role = (adminData as { role: string } | null)?.role;
-        const permissions = (adminData as { permissions: Record<string, boolean> } | null)?.permissions || {};
-
-        if (role !== "superadmin" && !permissions.users) {
-            return router.push("/");
-        }
-
         const { data: profiles, error: profileErr } = await supabase
             .from("user_profiles")
             .select("*")
