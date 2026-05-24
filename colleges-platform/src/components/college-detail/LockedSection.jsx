@@ -1,11 +1,20 @@
 import { Lock, Crown, ArrowRight, Star } from 'lucide-react';
 import { useSignup } from '../../contexts/SignupContext';
+import { useNavigate } from 'react-router-dom';
 
 export function LockedSection({ title, requiredTier = 'signed_up', children }) {
     const { openAuth, user } = useSignup();
+    const navigate = useNavigate();
 
     const isSignupRequired = requiredTier === 'signed_up';
     const ctaText = isSignupRequired ? 'Create Free Account' : (user ? 'Upgrade Plan' : 'Sign In');
+    const handleCta = () => {
+        if (!isSignupRequired && user) {
+            navigate('/pricing');
+            return;
+        }
+        openAuth(isSignupRequired ? 'signup' : 'login');
+    };
 
     return (
         <div className="relative rounded-2xl overflow-hidden border border-slate-800">
@@ -37,7 +46,7 @@ export function LockedSection({ title, requiredTier = 'signed_up', children }) {
 
                     {/* CTA */}
                     <button
-                        onClick={() => openAuth(isSignupRequired ? 'signup' : 'login')}
+                        onClick={handleCta}
                         className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-white text-slate-900 hover:bg-slate-100 active:scale-95 shadow"
                     >
                         {ctaText}
