@@ -72,8 +72,11 @@ export default function UsersPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return router.push("/login");
 
-        const { data: adminData } = await supabase.from("admins").select("role").eq("id", user.id).single();
-        if ((adminData as { role: string } | null)?.role === "mini_admin") {
+        const { data: adminData } = await supabase.from("admins").select("role, permissions").eq("id", user.id).single();
+        const role = (adminData as { role: string } | null)?.role;
+        const permissions = (adminData as { permissions: Record<string, boolean> } | null)?.permissions || {};
+
+        if (role !== "superadmin" && !permissions.users) {
             return router.push("/");
         }
 
