@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Star, Eye, EyeOff, Clock, Search, ChevronLeft, ChevronRight, MessageSquare, CheckCircle2 } from "lucide-react";
 import ReviewReplyModal from "@/components/ReviewReplyModal";
 import { FetchErrorBanner } from "@/components/FetchErrorBanner";
+import { updateReviewModerationStatus, deleteReview } from "@/app/actions/management";
 
 type ModerationStatus = "visible" | "hidden" | "pending";
 
@@ -95,16 +96,20 @@ export default function ReviewsPage() {
 
     const handleStatusChange = async (id: string, status: ModerationStatus) => {
         setActionLoading(id);
-        await supabase.from("reviews").update({ moderation_status: status }).eq("id", id);
-        setReviews((prev) => prev.map((r) => r.id === id ? { ...r, moderation_status: status } : r));
+        const { error } = await updateReviewModerationStatus(id, status);
+        if (!error) {
+            setReviews((prev) => prev.map((r) => r.id === id ? { ...r, moderation_status: status } : r));
+        }
         setActionLoading(null);
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm("Delete this review? This cannot be undone.")) return;
         setActionLoading(id);
-        await supabase.from("reviews").delete().eq("id", id);
-        setReviews((prev) => prev.filter((r) => r.id !== id));
+        const { error } = await deleteReview(id);
+        if (!error) {
+            setReviews((prev) => prev.filter((r) => r.id !== id));
+        }
         setActionLoading(null);
     };
 

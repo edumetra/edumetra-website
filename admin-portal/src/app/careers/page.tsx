@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { updateCareerApplicationStatus } from "@/app/actions/management";
 import {
     Briefcase,
     Search,
@@ -91,10 +92,7 @@ export default function CareersPage() {
 
     const handleStatusChange = async (id: string, status: AppStatus) => {
         setActionLoading(id);
-        const { error: err } = await supabase
-            .from("career_applications")
-            .update({ status })
-            .eq("id", id);
+        const { error: err } = await updateCareerApplicationStatus(id, status);
         if (!err) {
             setApps((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
         }

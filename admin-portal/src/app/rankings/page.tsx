@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Papa from "papaparse";
 import { FetchErrorBanner } from "@/components/FetchErrorBanner";
-import { createRanking } from "@/app/actions/management";
+import { createRanking, updateRanking, deleteRanking, createRankingsBulk } from "@/app/actions/management";
 
 type Ranking = {
     id: string;
@@ -91,9 +91,9 @@ export default function RankingsManager() {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Remove this ranking?")) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("rankings").delete().eq("id", id);
-        if (!error) setRankings((prev) => prev.filter((r) => r.id !== id));
+        const res = await deleteRanking(id);
+        if (!res.error) setRankings((prev) => prev.filter((r) => r.id !== id));
+        else alert("Delete failed: " + res.error);
     };
 
     const startEdit = (row: Ranking) => {
@@ -102,12 +102,11 @@ export default function RankingsManager() {
     };
 
     const saveEdit = async (id: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("rankings").update(editValues).eq("id", id);
-        if (!error) {
+        const res = await updateRanking(id, editValues);
+        if (!res.error) {
             setRankings((prev) => prev.map((r) => r.id === id ? { ...r, ...editValues } : r));
             setEditingId(null);
-        } else alert("Save failed: " + error.message);
+        } else alert("Save failed: " + res.error);
     };
 
     const handleSaveManual = async (e: React.FormEvent) => {
@@ -154,10 +153,10 @@ export default function RankingsManager() {
 
                 let success = 0, failed = 0;
                 for (let i = 0; i < inserts.length; i += 100) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const { error } = await (supabase as any).from("rankings").insert(inserts.slice(i, i + 100));
-                    if (error) failed += inserts.slice(i, i + 100).length;
-                    else success += inserts.slice(i, i + 100).length;
+                    const chunk = inserts.slice(i, i + 100);
+                    const res = await createRankingsBulk(chunk);
+                    if (res.error) failed += chunk.length;
+                    else success += chunk.length;
                 }
                 setUploadResult({ success, failed });
                 setUploading(false);

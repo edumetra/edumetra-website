@@ -10,7 +10,7 @@ import {
     Settings, Tag,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { createCoupon } from "@/app/actions/management";
+import { createCoupon, updateCoupon, deleteCoupon } from "@/app/actions/management";
 
 type Coupon = Database["public"]["Tables"]["coupons"]["Row"];
 
@@ -92,12 +92,14 @@ export default function CouponsPage() {
     };
 
     const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-        const { error } = await supabase
-            .from("coupons")
-            .update({ is_active: !currentStatus })
-            .eq("id", id);
+        const res = await updateCoupon(id, {
+            // Find coupon by id to get all fields or construct partial payload
+            // Since we know the fields, we can just grab from local state
+            ...coupons.find(c => c.id === id)!,
+            is_active: !currentStatus
+        });
 
-        if (error) {
+        if (res.error) {
             toast.error("Failed to update status");
         } else {
             setCoupons((prev) =>
@@ -110,9 +112,9 @@ export default function CouponsPage() {
     const handleDelete = async (id: string, code: string) => {
         if (!confirm(`Are you sure you want to delete coupon "${code}"?`)) return;
 
-        const { error } = await supabase.from("coupons").delete().eq("id", id);
+        const res = await deleteCoupon(id);
 
-        if (error) {
+        if (res.error) {
             toast.error("Failed to delete coupon");
         } else {
             setCoupons((prev) => prev.filter((c) => c.id !== id));
@@ -153,11 +155,8 @@ export default function CouponsPage() {
 
         let error;
         if (editingCoupon) {
-            const { error: err } = await supabase
-                .from("coupons")
-                .update(payload)
-                .eq("id", editingCoupon.id);
-            error = err;
+            const res = await updateCoupon(editingCoupon.id, payload);
+            error = res.error ? ({ message: res.error } as { message: string }) : null;
         } else {
             const res = await createCoupon(payload);
             error = res.error ? ({ message: res.error } as { message: string }) : null;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { createEvent, updateEvent, deleteEvent } from "@/app/actions/management";
 import { Plus, Edit2, Trash2, Calendar, Users, Image as ImageIcon, Phone, Mail, UserCheck, UserX } from "lucide-react";
 
 type EventItem = {
@@ -13,6 +14,7 @@ type EventItem = {
     category: string;
     speaker: string;
     speaker_title: string;
+    about_speaker: string;
     description: string;
     long_description: string;
     image: string;
@@ -84,6 +86,7 @@ export default function EventsPage() {
         category: '',
         speaker: '',
         speaker_title: '',
+        about_speaker: '',
         description: '',
         long_description: '',
         image: '',
@@ -181,6 +184,7 @@ export default function EventsPage() {
                 category: event.category,
                 speaker: event.speaker,
                 speaker_title: event.speaker_title,
+                about_speaker: event.about_speaker || '',
                 description: event.description,
                 long_description: event.long_description,
                 image: event.image || '',
@@ -191,7 +195,20 @@ export default function EventsPage() {
         } else {
             setEditingEvent(null);
             setFormData({
-                slug: '', title: '', date: '', time: '', category: 'Counseling Guide', speaker: '', speaker_title: '', description: '', long_description: '', image: '', featured: false, type: 'Live Webinar', agendaString: ''
+                slug: '',
+                title: '',
+                date: '',
+                time: '',
+                category: 'Counseling Guide',
+                speaker: '',
+                speaker_title: '',
+                about_speaker: '',
+                description: '',
+                long_description: '',
+                image: '',
+                featured: false,
+                type: 'Live Webinar',
+                agendaString: ''
             });
         }
         setIsModalOpen(true);
@@ -216,6 +233,7 @@ export default function EventsPage() {
             category: formData.category,
             speaker: formData.speaker,
             speaker_title: formData.speaker_title,
+            about_speaker: formData.about_speaker,
             description: formData.description,
             long_description: formData.long_description,
             image: formData.image,
@@ -225,27 +243,18 @@ export default function EventsPage() {
         };
 
         if (editingEvent) {
-            const { error: updateErr } = await db
-                .from("events")
-                .update(payload)
-                .eq("id", editingEvent.id);
-                
-            if (updateErr) setError(updateErr.message || "Update failed");
+            const res = await updateEvent(editingEvent.id, payload);
+            if (res.error) setError(res.error);
             else {
                 setEvents(prev => prev.map(n => n.id === editingEvent.id ? { ...n, ...payload } as EventItem : n).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
                 fetchEvents();
             }
         } else {
-            const { data, error: insertErr } = await db
-                .from("events")
-                .insert([payload])
-                .select()
-                .single();
-                
-            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
+            const res = await createEvent(payload);
+            if (res.error || !res.data) setError(res.error || "Create failed — no data returned");
             else {
-                const newEvent = data as EventItem;
+                const newEvent = res.data as EventItem;
                 setEvents(prev => [newEvent, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
                 setIsModalOpen(false);
             }
@@ -256,11 +265,11 @@ export default function EventsPage() {
     const handleDelete = async (id: string, title: string) => {
         if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
         setActionLoading(id);
-        const { error: delErr } = await db.from("events").delete().eq("id", id);
-        if (!delErr) {
+        const res = await deleteEvent(id);
+        if (!res.error) {
             setEvents(prev => prev.filter(n => n.id !== id));
         } else {
-            alert(delErr.message);
+            alert(res.error);
         }
         setActionLoading(null);
     };
@@ -300,7 +309,7 @@ export default function EventsPage() {
                     <table className="min-w-full divide-y divide-slate-800">
                         <thead className="bg-slate-950/50">
                             <tr>
-                                {["Event Details", "Type & Category", "Date & Time", "Speaker", "Actions"].map(h => (
+                                {["Event Details", "Type & Category", "Date & Time", "Speaker", "About Speaker", "Actions"].map(h => (
                                     <th key={h} className="px-5 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                         {h}
                                     </th>
@@ -309,10 +318,10 @@ export default function EventsPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-800/60">
                             {loading ? (
-                                <tr><td colSpan={5} className="py-12 text-center text-slate-500">Loading events...</td></tr>
+                                <tr><td colSpan={6} className="py-12 text-center text-slate-500">Loading events...</td></tr>
                             ) : events.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-12 text-center">
+                                    <td colSpan={6} className="py-12 text-center">
                                         <Calendar className="w-12 h-12 text-slate-700 mx-auto mb-3" />
                                         <p className="text-slate-400 font-medium">No events yet</p>
                                     </td>
@@ -349,6 +358,9 @@ export default function EventsPage() {
                                     <td className="px-5 py-4 text-sm text-slate-300">
                                         <div className="font-medium">{event.speaker}</div>
                                         <div className="text-xs text-slate-500">{event.speaker_title}</div>
+                                    </td>
+                                    <td className="px-5 py-4 text-sm text-slate-400 min-w-[280px]">
+                                        <div className="line-clamp-3">{event.about_speaker || '—'}</div>
                                     </td>
                                     <td className="px-5 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-2">
@@ -588,6 +600,10 @@ export default function EventsPage() {
                                         <label className="block text-sm font-medium text-slate-300 mb-1">Time *</label>
                                         <input required type="text" value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white" placeholder="6:00 PM - 7:30 PM IST" />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">About Speaker *</label>
+                                    <textarea required value={formData.about_speaker} onChange={e => setFormData({ ...formData, about_speaker: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white h-24 resize-none text-sm" placeholder="Brief bio, expertise, and credentials..."></textarea>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">

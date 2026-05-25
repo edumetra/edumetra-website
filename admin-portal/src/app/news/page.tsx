@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { createNewsUpdate, updateNewsUpdate, deleteNewsUpdate } from "@/app/actions/management";
 import { FileText, Plus, Edit2, Trash2, Calendar, Tag, Image as ImageIcon } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import ArticleImageUpload from "@/components/ArticleImageUpload";
@@ -109,27 +110,18 @@ export default function NewsPage() {
         };
 
         if (editingNews) {
-            const { error: updateErr } = await (supabase
-                .from("news_updates") as any)
-                .update(payload)
-                .eq("id", editingNews.id);
-                
-            if (updateErr) setError(updateErr?.message || "Update failed");
+            const res = await updateNewsUpdate(editingNews.id, payload);
+            if (res.error) setError(res.error || "Update failed");
             else {
                 setNewsItems(prev => prev.map(n => n.id === editingNews.id ? { ...n, ...payload } : n).sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);
                 fetchNews();
             }
         } else {
-            const { data, error: insertErr } = await (supabase
-                .from("news_updates") as any)
-                .insert([payload])
-                .select()
-                .single();
-                
-            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
+            const res = await createNewsUpdate(payload);
+            if (res.error || !res.data) setError(res.error || "Create failed — no data returned");
             else {
-                setNewsItems(prev => [data, ...prev].sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
+                setNewsItems(prev => [res.data, ...prev].sort((a,b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()));
                 setIsModalOpen(false);
             }
         }
@@ -139,11 +131,11 @@ export default function NewsPage() {
     const handleDelete = async (id: string, title: string) => {
         if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
         setActionLoading(id);
-        const { error: delErr } = await supabase.from("news_updates").delete().eq("id", id);
-        if (!delErr) {
+        const res = await deleteNewsUpdate(id);
+        if (!res.error) {
             setNewsItems(prev => prev.filter(n => n.id !== id));
         } else {
-            alert(delErr.message);
+            alert(res.error);
         }
         setActionLoading(null);
     };

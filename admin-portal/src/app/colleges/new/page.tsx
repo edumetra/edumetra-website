@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createCollege } from "@/app/actions/colleges";
 import {
     ArrowLeft, Building2, MapPin, GraduationCap, IndianRupee,
     BookOpen, Globe, FileText, Upload, X, ImageIcon,
@@ -210,38 +211,6 @@ export default function NewCollegePage() {
             const coursesArray = formData.courses.split(",").map((c) => c.trim()).filter(Boolean);
             const slug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: collegeData, error: insertError } = await (supabase
-                .from("colleges") as any)
-                .insert({
-                    name: formData.name,
-                    slug,
-                    location_city: formData.location_city,
-                    location_state: formData.location_state,
-                    type: formData.type,
-                    visibility: formData.visibility,
-                    rank: parseInt(formData.rank) || null,
-                    rating: parseFloat(formData.rating) || null,
-                    fees: formData.fees || null,
-                    avg_package: formData.avg_package || null,
-                    exams: formData.exams || null,
-                    courses: coursesArray,
-                    image: mainImage,
-                    gallery_images: galleryImages.length ? galleryImages : null,
-                    description: formData.description || null,
-                    established_year: parseInt(formData.established_year) || null,
-                    website_url: formData.website_url || null,
-                    is_published: formData.visibility === "public",
-                })
-                .select()
-                .single();
-
-            if (insertError) throw insertError;
-            if (!collegeData?.id) {
-                throw new Error("College was created but the server did not return an ID. Please check the colleges list.");
-            }
-
-            // Prepare JSONB fields
             const resData = formData.reservation_percentages.reduce((acc, curr) => {
                 if (curr.category && curr.percentage) acc[curr.category] = parseFloat(curr.percentage);
                 return acc;
@@ -252,28 +221,46 @@ export default function NewCollegePage() {
                 return acc;
             }, {} as Record<string, string>);
 
-            // Insert placement stats & new JSONB fields into college_details
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: detailsError } = await (supabase.from("college_details") as any)
-                .insert({
-                    college_id: collegeData.id,
-                    placement_stats: JSON.stringify({
-                        highest_package: formData.highest_package,
-                        placement_rate: formData.placement_rate,
-                        average_package: formData.avg_package,
-                    }),
-                    minority_status: formData.minority_status === "true",
-                    intake_capacity: parseInt(formData.intake_capacity) || 0,
-                    total_associated_beds_in_hospital: parseInt(formData.total_associated_beds_in_hospital) || 0,
-                    reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
-                    category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
-                    faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
-                });
+            const collegePayload = {
+                name: formData.name,
+                slug,
+                location_city: formData.location_city,
+                location_state: formData.location_state,
+                type: formData.type,
+                visibility: formData.visibility,
+                rank: parseInt(formData.rank) || null,
+                rating: parseFloat(formData.rating) || null,
+                fees: formData.fees || null,
+                avg_package: formData.avg_package || null,
+                exams: formData.exams || null,
+                courses: coursesArray,
+                image: mainImage,
+                gallery_images: galleryImages.length ? galleryImages : null,
+                description: formData.description || null,
+                established_year: parseInt(formData.established_year) || null,
+                website_url: formData.website_url || null,
+                is_published: formData.visibility === "public",
+            };
 
-            if (detailsError) console.error("Details insert error:", detailsError);
+            const detailsPayload = {
+                placement_stats: JSON.stringify({
+                    highest_package: formData.highest_package,
+                    placement_rate: formData.placement_rate,
+                    average_package: formData.avg_package,
+                }),
+                minority_status: formData.minority_status === "true",
+                intake_capacity: parseInt(formData.intake_capacity) || 0,
+                total_associated_beds_in_hospital: parseInt(formData.total_associated_beds_in_hospital) || 0,
+                reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
+                category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
+                faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
+            };
+
+            const res = await createCollege(collegePayload, detailsPayload);
+            if (res.error) throw new Error(res.error);
 
             setSuccess(true);
-            setTimeout(() => router.push(`/colleges/${collegeData.id}`), 1000);
+            setTimeout(() => router.push(`/colleges/${res.data.id}`), 1000);
         } catch (err) {
             setError((err as Error).message);
         } finally {

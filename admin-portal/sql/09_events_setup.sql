@@ -12,6 +12,7 @@ create table if not exists public.events (
   category         text not null,
   speaker          text not null,
   speaker_title    text not null,
+  about_speaker    text not null default '',
   description      text not null,
   long_description text not null,
   image            text not null,
@@ -93,8 +94,8 @@ create policy "Users can delete their own registrations"
   using (auth.uid() = user_id);
 
 -- Dummy Data Insertion (Optional but helpful for testing)
-insert into public.events (slug, title, date, time, category, speaker, speaker_title, description, long_description, image, featured, type, agenda)
+insert into public.events (slug, title, date, time, category, speaker, speaker_title, about_speaker, description, long_description, image, featured, type, agenda)
 values
-  ('neet-2026-counseling-strategy', 'NEET 2026 Counseling: Complete Strategy and Timeline', '2026-05-15', '6:00 PM - 7:30 PM IST', 'Counseling Guide', 'Dr. Rajesh Kumar', 'Senior Counseling Expert', 'Learn the complete NEET counseling process, important dates, document preparation, and college selection strategy from our expert counselors.', 'Our comprehensive counseling webinar is designed to guide students and parents through the complex process of medical admissions.', '📚', true, 'Live Webinar', '["Understanding AIQ vs State Quota", "Document Verification Checklist", "Preference Filling Strategy", "Seat Allotment & Reporting Process", "Live Q&A Session"]'::jsonb),
-  ('top-medical-colleges-admission-strategy', 'Top Medical Colleges in India: Admission Strategy 2026', '2026-05-18', '5:00 PM - 6:30 PM IST', 'Career Guidance', 'Dr. Priya Sharma', 'Medical Education Consultant', 'Discover insider tips on getting admission to top AIIMS, JIPMER, and state medical colleges.', 'Getting into a premier medical institution requires more than just a high score.', '🎓', false, 'Live Webinar', '["Analysis of NIRF Top 50 Colleges", "Previous Year Cutoff Deep-Dive", "AIIMS & JIPMER Specific Requirements"]'::jsonb)
+  ('neet-2026-counseling-strategy', 'NEET 2026 Counseling: Complete Strategy and Timeline', '2026-05-15', '6:00 PM - 7:30 PM IST', 'Counseling Guide', 'Dr. Rajesh Kumar', 'Senior Counseling Expert', 'Counseling specialist with 10+ years of NEET admission guidance experience.', 'Learn the complete NEET counseling process, important dates, document preparation, and college selection strategy from our expert counselors.', 'Our comprehensive counseling webinar is designed to guide students and parents through the complex process of medical admissions.', '📚', true, 'Live Webinar', '["Understanding AIQ vs State Quota", "Document Verification Checklist", "Preference Filling Strategy", "Seat Allotment & Reporting Process", "Live Q&A Session"]'::jsonb),
+  ('top-medical-colleges-admission-strategy', 'Top Medical Colleges in India: Admission Strategy 2026', '2026-05-18', '5:00 PM - 6:30 PM IST', 'Career Guidance', 'Dr. Priya Sharma', 'Medical Education Consultant', 'Medical education mentor focused on AIIMS, JIPMER, and top government colleges.', 'Discover insider tips on getting admission to top AIIMS, JIPMER, and state medical colleges.', 'Getting into a premier medical institution requires more than just a high score.', '🎓', false, 'Live Webinar', '["Analysis of NIRF Top 50 Colleges", "Previous Year Cutoff Deep-Dive", "AIIMS & JIPMER Specific Requirements"]'::jsonb)
 on conflict (slug) do nothing;

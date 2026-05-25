@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { X, Send, Trash2, Loader2, CheckCircle2, MessageSquare } from "lucide-react";
+import { saveReviewAdminReply, clearReviewAdminReply } from "@/app/actions/management";
 
 type Review = {
     id: string;
@@ -30,11 +31,7 @@ export default function ReviewReplyModal({ review, onClose, onSaved }: Props) {
     const handleSave = async () => {
         if (!reply.trim()) return;
         setSaving(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase.from("reviews") as any).update({
-            admin_reply: reply.trim(),
-            admin_reply_at: new Date().toISOString(),
-        }).eq("id", review.id);
+        const { error } = await saveReviewAdminReply(review.id, reply.trim());
         if (!error) {
             onSaved(review.id, reply.trim());
             setSaved(true);
@@ -46,11 +43,7 @@ export default function ReviewReplyModal({ review, onClose, onSaved }: Props) {
     const handleClear = async () => {
         if (!confirm("Remove this admin reply? Users will no longer see a response.")) return;
         setSaving(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase.from("reviews") as any).update({
-            admin_reply: null,
-            admin_reply_at: null,
-        }).eq("id", review.id);
+        const { error } = await clearReviewAdminReply(review.id);
         if (!error) {
             onSaved(review.id, null);
             onClose();

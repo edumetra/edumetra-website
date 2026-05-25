@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { FileText, Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import ArticleImageUpload from "@/components/ArticleImageUpload";
-import { updateArticleById } from "@/app/actions/management";
+import { updateArticleById, createArticle, deleteArticle, toggleArticlePublish } from "@/app/actions/management";
 
 type Article = {
     id: string;
@@ -98,14 +98,10 @@ export default function ArticlesPage() {
                 fetchArticles();
             }
         } else {
-            const { data, error: insertErr } = await supabase
-                .from("articles")
-                .insert([payload])
-                .select()
-                .single();
-            if (insertErr || !data) setError(insertErr?.message || "Create failed — no data returned");
+            const res = await createArticle(payload);
+            if (res.error || !res.data) setError(res.error || "Create failed — no data returned");
             else {
-                setArticles(prev => [data, ...prev]);
+                setArticles(prev => [res.data, ...prev]);
                 setIsModalOpen(false);
             }
         }
@@ -115,20 +111,22 @@ export default function ArticlesPage() {
     const handleDelete = async (id: string, title: string) => {
         if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
         setActionLoading(id);
-        const { error: delErr } = await supabase.from("articles").delete().eq("id", id);
-        if (!delErr) {
+        const res = await deleteArticle(id);
+        if (!res.error) {
             setArticles(prev => prev.filter(a => a.id !== id));
         } else {
-            alert(delErr.message);
+            alert(res.error);
         }
         setActionLoading(null);
     };
 
     const handleTogglePublish = async (id: string, currentStatus: boolean) => {
         setActionLoading(id);
-        const { error } = await supabase.from("articles").update({ published: !currentStatus }).eq("id", id);
-        if (!error) {
+        const res = await toggleArticlePublish(id, !currentStatus);
+        if (!res.error) {
             setArticles(prev => prev.map(a => a.id === id ? { ...a, published: !currentStatus } : a));
+        } else {
+            alert(res.error);
         }
         setActionLoading(null);
     };

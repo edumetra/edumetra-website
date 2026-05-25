@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useParams, useRouter } from "next/navigation";
 import { Save, Plus, Trash2, ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
+import { saveCollegeCoursesAndFees, deleteCollegeCourse, deleteCourseFeeBreakdown } from "@/app/actions/colleges";
 import Link from "next/link";
 
 type CourseFees = {
@@ -118,8 +119,8 @@ export default function CollegeCoursesManager() {
         if (course.id) {
             if (!confirm("Are you sure? This will delete the course and all associated fee structures from the database.")) return;
             try {
-                const { error } = await supabase.from("college_courses").delete().eq("id", course.id);
-                if (error) throw error;
+                const res = await deleteCollegeCourse(course.id, collegeId as string);
+                if (res.error) throw new Error(res.error);
             } catch (err: any) {
                 setError("Delete error: " + err.message);
                 return;
@@ -154,7 +155,11 @@ export default function CollegeCoursesManager() {
 
         if (fee?.id) {
             if (!confirm("Delete this fee breakdown?")) return;
-            await supabase.from("course_fees_breakdown").delete().eq("id", fee.id);
+            const res = await deleteCourseFeeBreakdown(fee.id, collegeId as string);
+            if (res.error) {
+                setError("Delete fee error: " + res.error);
+                return;
+            }
         }
 
         updated[courseIndex].fees_breakdown = updated[courseIndex].fees_breakdown?.filter((_, i) => i !== feeIndex);
@@ -169,64 +174,16 @@ export default function CollegeCoursesManager() {
                 if (!course.name || !course.duration) {
                     throw new Error("All courses must have a name and duration.");
                 }
-
-                let savedCourseId = course.id;
-
-                // Save or Update Course
-                if (!savedCourseId) {
-                    const { data, error } = await supabase
-                        .from("college_courses")
-                        .insert({
-                            college_id: course.college_id,
-                            name: course.name,
-                            duration: course.duration,
-                            eligibility_criteria: course.eligibility_criteria || null
-                        } as never)
-                        .select("id")
-                        .single();
-                    if (error) throw error;
-                    savedCourseId = (data as any)?.id;
-                } else {
-                    const { error } = await supabase
-                        .from("college_courses")
-                        .update({
-                            name: course.name,
-                            duration: course.duration,
-                            eligibility_criteria: course.eligibility_criteria || null
-                        } as never)
-                        .eq("id", savedCourseId);
-                    if (error) throw error;
-                }
-
-                // Save or Update Fees breakdown
                 if (course.fees_breakdown && course.fees_breakdown.length > 0) {
                     for (const fee of course.fees_breakdown) {
                         if (!fee.fee_type) throw new Error("Fee type is required for all breakdowns.");
-
-                        if (!fee.id) {
-                            const { error } = await supabase
-                                .from("course_fees_breakdown")
-                                .insert({
-                                    course_id: savedCourseId,
-                                    fee_type: fee.fee_type,
-                                    amount: fee.amount,
-                                    is_annual: fee.is_annual
-                                } as never);
-                            if (error) throw error;
-                        } else {
-                            const { error } = await supabase
-                                .from("course_fees_breakdown")
-                                .update({
-                                    fee_type: fee.fee_type,
-                                    amount: fee.amount,
-                                    is_annual: fee.is_annual
-                                } as never)
-                                .eq("id", fee.id);
-                            if (error) throw error;
-                        }
                     }
                 }
             }
+
+            const res = await saveCollegeCoursesAndFees(collegeId as string, courses);
+            if (res.error) throw new Error(res.error);
+
             // Refresh to get new IDs
             await fetchData();
             alert("Courses and fees saved successfully!");

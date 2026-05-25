@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Papa from "papaparse";
 import { FetchErrorBanner } from "@/components/FetchErrorBanner";
+import { createCutoff, createCutoffsBulk, updateCutoff, deleteCutoff } from "@/app/actions/management";
 
 type Cutoff = {
     id: string;
@@ -89,9 +90,9 @@ export default function CutoffsManager() {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Delete this cutoff record?")) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("cutoffs").delete().eq("id", id);
-        if (!error) setCutoffs((prev) => prev.filter((c) => c.id !== id));
+        const res = await deleteCutoff(id);
+        if (!res.error) setCutoffs((prev) => prev.filter((c) => c.id !== id));
+        else alert("Delete failed: " + res.error);
     };
 
     const handleSaveManual = async (e: React.FormEvent) => {
@@ -107,9 +108,8 @@ export default function CutoffsManager() {
                 closing_score: formData.closing_score ? Number(formData.closing_score) : null,
                 closing_rank: formData.closing_rank ? Number(formData.closing_rank) : null,
             };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await (supabase as any).from("cutoffs").insert([payload]);
-            if (error) throw error;
+            const res = await createCutoff(payload);
+            if (res.error) throw new Error(res.error);
             setShowForm(false);
             setFormData({ college_id: "", course_id: "", exam_name: "NEET", year: CURRENT_YEAR, category: "General", closing_score: "", closing_rank: "" });
             fetchData();
@@ -132,13 +132,12 @@ export default function CutoffsManager() {
     };
 
     const saveEdit = async (id: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("cutoffs").update(editValues).eq("id", id);
-        if (!error) {
+        const res = await updateCutoff(id, editValues);
+        if (!res.error) {
             setCutoffs((prev) => prev.map((c) => c.id === id ? { ...c, ...editValues } : c));
             setEditingId(null);
         } else {
-            alert("Save failed: " + error.message);
+            alert("Save failed: " + res.error);
         }
     };
 
@@ -168,9 +167,8 @@ export default function CutoffsManager() {
                 const errorLog: string[] = [];
                 for (let i = 0; i < inserts.length; i += 100) {
                     const chunk = inserts.slice(i, i + 100);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const { error } = await (supabase as any).from("cutoffs").insert(chunk);
-                    if (error) { failCount += chunk.length; errorLog.push(error.message); }
+                    const res = await createCutoffsBulk(chunk);
+                    if (res.error) { failCount += chunk.length; errorLog.push(res.error); }
                     else successCount += chunk.length;
                 }
                 setUploadResult({ success: successCount, failed: failCount, errors: errorLog });

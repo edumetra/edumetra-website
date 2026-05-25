@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Star, Flag, Eye, EyeOff, AlertTriangle, Clock, Shield, Search, CheckCheck } from "lucide-react";
 import { FetchErrorBanner } from "@/components/FetchErrorBanner";
+import { updateReviewModerationStatus, updateReviewsModerationStatusBulk } from "@/app/actions/management";
 
 type Review = {
     id: string;
@@ -71,8 +72,10 @@ export default function ModerationPage() {
 
     const setStatus = async (id: string, status: "visible" | "hidden" | "pending") => {
         setActionLoading(id);
-        await supabase.from("reviews").update({ moderation_status: status }).eq("id", id);
-        setReviews((prev) => prev.map((r) => r.id === id ? { ...r, moderation_status: status } : r));
+        const { error } = await updateReviewModerationStatus(id, status);
+        if (!error) {
+            setReviews((prev) => prev.map((r) => r.id === id ? { ...r, moderation_status: status } : r));
+        }
         setActionLoading(null);
     };
 
@@ -80,9 +83,11 @@ export default function ModerationPage() {
         if (selected.size === 0) return;
         setBulkLoading(true);
         const ids = [...selected];
-        await supabase.from("reviews").update({ moderation_status: "visible" }).in("id", ids);
-        setReviews((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, moderation_status: "visible" } : r));
-        setSelected(new Set());
+        const { error } = await updateReviewsModerationStatusBulk(ids, "visible");
+        if (!error) {
+            setReviews((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, moderation_status: "visible" } : r));
+            setSelected(new Set());
+        }
         setBulkLoading(false);
     };
 
@@ -90,9 +95,11 @@ export default function ModerationPage() {
         if (selected.size === 0) return;
         setBulkLoading(true);
         const ids = [...selected];
-        await supabase.from("reviews").update({ moderation_status: "hidden" }).in("id", ids);
-        setReviews((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, moderation_status: "hidden" } : r));
-        setSelected(new Set());
+        const { error } = await updateReviewsModerationStatusBulk(ids, "hidden");
+        if (!error) {
+            setReviews((prev) => prev.map((r) => ids.includes(r.id) ? { ...r, moderation_status: "hidden" } : r));
+            setSelected(new Set());
+        }
         setBulkLoading(false);
     };
 
@@ -100,8 +107,10 @@ export default function ModerationPage() {
         const pending = reviews.filter((r) => r.moderation_status === "pending").map((r) => r.id);
         if (pending.length === 0) return;
         setBulkLoading(true);
-        await supabase.from("reviews").update({ moderation_status: "visible" }).in("id", pending);
-        setReviews((prev) => prev.map((r) => r.moderation_status === "pending" ? { ...r, moderation_status: "visible" } : r));
+        const { error } = await updateReviewsModerationStatusBulk(pending, "visible");
+        if (!error) {
+            setReviews((prev) => prev.map((r) => r.moderation_status === "pending" ? { ...r, moderation_status: "visible" } : r));
+        }
         setBulkLoading(false);
     };
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, use } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { updateCollege } from "@/app/actions/colleges";
 import {
     ArrowLeft, Building2, MapPin, GraduationCap, IndianRupee,
     BookOpen, Globe, FileText, Upload, X, ImageIcon,
@@ -263,8 +264,17 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
         const slug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: updateErr } = await (supabase.from("colleges") as any).update({
+            const resData = formData.reservation_percentages.reduce((acc, curr) => {
+                if (curr.category && curr.percentage) acc[curr.category] = parseFloat(curr.percentage);
+                return acc;
+            }, {} as Record<string, number>);
+
+            const feeData = formData.category_fees.reduce((acc, curr) => {
+                if (curr.category && curr.fee) acc[curr.category] = curr.fee;
+                return acc;
+            }, {} as Record<string, string>);
+
+            const collegePayload = {
                 name: formData.name,
                 slug,
                 location_city: formData.location_city,
@@ -283,24 +293,9 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                 established_year: parseInt(formData.established_year) || null,
                 website_url: formData.website_url || null,
                 is_published: formData.visibility === "public",
-            }).eq("id", id);
+            };
 
-            if (updateErr) throw updateErr;
-
-            // Prepare JSONB fields
-            const resData = formData.reservation_percentages.reduce((acc, curr) => {
-                if (curr.category && curr.percentage) acc[curr.category] = parseFloat(curr.percentage);
-                return acc;
-            }, {} as Record<string, number>);
-
-            const feeData = formData.category_fees.reduce((acc, curr) => {
-                if (curr.category && curr.fee) acc[curr.category] = curr.fee;
-                return acc;
-            }, {} as Record<string, string>);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (supabase.from("college_details") as any).upsert({
-                college_id: id,
+            const detailsPayload = {
                 placement_stats: JSON.stringify({
                     highest_package: formData.highest_package,
                     placement_rate: formData.placement_rate,
@@ -312,7 +307,10 @@ export default function EditCollegePage({ params }: { params: Promise<{ id: stri
                 reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
                 category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
                 faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
-            }, { onConflict: "college_id" });
+            };
+
+            const res = await updateCollege(id as string, collegePayload, detailsPayload);
+            if (res.error) throw new Error(res.error);
 
             setSaveSuccess(true);
             setTimeout(() => router.push(`/colleges/${id}`), 900);

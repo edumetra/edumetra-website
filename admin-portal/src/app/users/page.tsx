@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Shield, ShieldOff, User, Crown, Star, CheckCircle, XCircle, Search, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDetailModal from "@/components/UserDetailModal";
+import { updateUserProfile } from "@/app/actions/management";
 
 type AccountType = "free" | "premium" | "pro";
 type BanFilter = "all" | "active" | "banned";
@@ -89,10 +90,10 @@ export default function UsersPage() {
 
     const handleBan = async (id: string, ban: boolean) => {
         setActionLoading(id);
-        const { error } = await supabase
-            .from("user_profiles")
-            .update({ is_banned: ban, banned_at: ban ? new Date().toISOString() : null })
-            .eq("id", id);
+        const { error } = await updateUserProfile(id, {
+            is_banned: ban,
+            banned_at: ban ? new Date().toISOString() : null
+        });
         if (!error) {
             const update = { is_banned: ban, banned_at: ban ? new Date().toISOString() : null };
             setUsers((prev) => prev.map((u) => u.id === id ? { ...u, ...update } : u));
@@ -102,10 +103,7 @@ export default function UsersPage() {
     };
 
     const handleAccountTypeChange = async (id: string, type: AccountType) => {
-        const { error } = await supabase
-            .from("user_profiles")
-            .update({ account_type: type })
-            .eq("id", id);
+        const { error } = await updateUserProfile(id, { account_type: type });
         if (!error) {
             setUsers((prev) => prev.map((u) => u.id === id ? { ...u, account_type: type } : u));
             setSelectedUser((prev) => prev?.id === id ? { ...prev, account_type: type } : prev);
