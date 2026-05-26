@@ -172,7 +172,7 @@ export default function CollegeDetailPage() {
             {/* ── Hero: Split Layout ────────────────────────────────────────── */}
             <div ref={targetRef} className="relative bg-slate-950 border-b border-slate-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-2 gap-0 min-h-[420px] md:min-h-[480px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[420px] md:min-h-[480px]">
 
                         {/* ── Left: Info ── */}
                         <div className="flex flex-col justify-center py-20 pr-0 lg:pr-12">
@@ -311,7 +311,7 @@ export default function CollegeDetailPage() {
                     <StatCard icon={GraduationCap} label="Total Courses" value={`${college.programs.length}+ Courses`} delay={0.3} />
                 </div>
 
-                <div className="grid lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
                     {/* Main Left Column */}
                     <div className="lg:col-span-3 space-y-16 lg:space-y-20 w-full min-w-0">
                         {/* Hidden Glassmorphic Tabs */}
@@ -366,7 +366,7 @@ export default function CollegeDetailPage() {
                                     </LockedSection>
                                 ) : (
                                     <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-8">
-                                        <div className="grid sm:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {college.intake_capacity > 0 && (
                                                 <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-start gap-4">
                                                     <div className="p-3 bg-red-500/10 text-red-500 rounded-xl"><Users className="w-5 h-5"/></div>
@@ -534,7 +534,7 @@ export default function CollegeDetailPage() {
                             ) : (
                                 <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
                                     {college.rankings && college.rankings.length > 0 ? (
-                                        <div className="grid sm:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {college.rankings.map((ranking, i) => (
                                                 <div key={i} className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-center justify-between hover:border-red-500/20 transition-all">
                                                     <div>
@@ -559,7 +559,7 @@ export default function CollegeDetailPage() {
                         {college.programs.length > 0 && (
                             <section>
                                 <h2 className="text-2xl font-bold text-white mb-6">Popular Programs</h2>
-                                <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {college.programs.map((program, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-red-500/30 transition-colors group cursor-pointer">
                                             <div className="flex items-center gap-3">
