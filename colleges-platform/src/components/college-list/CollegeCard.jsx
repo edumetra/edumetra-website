@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Trophy, ArrowRight, Wallet, BookOpen, GitCompareArrows, Bookmark, BookmarkCheck } from 'lucide-react';
+import { MapPin, Star, Trophy, ArrowRight, Wallet, BookOpen, GitCompareArrows, Bookmark, BookmarkCheck, TrendingUp } from 'lucide-react';
 import { useCompare } from '../../contexts/CompareContext';
 import { useSignup } from '../../contexts/SignupContext';
 import { usePremium } from '../../contexts/PremiumContext';

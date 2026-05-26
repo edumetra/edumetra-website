@@ -183,6 +183,8 @@
 
   html {
     scroll-behavior: smooth;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -191,6 +193,8 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    max-width: 100%;
+    overflow-x: hidden;
     background-image:
       radial-gradient(at 27% 37%, rgba(71, 85, 105, 0.03) 0px, transparent 50%),
       radial-gradient(at 97% 21%, rgba(51, 65, 85, 0.02) 0px, transparent 50%),

@@ -408,8 +408,6 @@ const Navigation = () => {
                 </div>
             </nav>
 
-            {/* Spacer so content doesn't hide behind the tab bar */}
-            <div className="lg:hidden h-16" />
         </>
     );
 };

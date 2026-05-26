@@ -161,7 +161,7 @@ export default function CollegeDetailPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-red-500/30">
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-red-500/30 w-full overflow-x-hidden">
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
@@ -313,7 +313,7 @@ export default function CollegeDetailPage() {
 
                 <div className="grid lg:grid-cols-4 gap-8 lg:gap-12 pb-20 relative items-start">
                     {/* Main Left Column */}
-                    <div className="lg:col-span-3 space-y-16 lg:space-y-20">
+                    <div className="lg:col-span-3 space-y-16 lg:space-y-20 w-full min-w-0">
                         {/* Hidden Glassmorphic Tabs */}
                         <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
                             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
@@ -337,8 +337,8 @@ export default function CollegeDetailPage() {
 
                         {/* About Section */}
                         <section id="overview" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> About {college.name}
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> About {college.name}
                             </h2>
                             <p className="text-slate-300 leading-relaxed text-lg mb-8">
                                 {college.description || "Information about this institution is currently being updated. Please check back later for detailed insights on campus life, academic excellence, and student achievements."}
@@ -357,8 +357,8 @@ export default function CollegeDetailPage() {
                         {/* Detail Admissions & Capacity */}
                         {(college.intake_capacity > 0 || college.total_associated_beds_in_hospital > 0 || isMinority || categoryFees || reservationPercentages) && (
                             <section id="admissions" className="scroll-mt-32">
-                                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Admission Details
+                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Admission Details
                                 </h2>
                                 {!isSectionVisible('admissions', college) ? (
                                     <LockedSection title="Admission Details" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -403,9 +403,9 @@ export default function CollegeDetailPage() {
                                                 <h3 className="text-lg font-bold text-slate-300 mb-4 border-b border-slate-800 pb-2">Seat Reservations Breakdown</h3>
                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                                     {Object.entries(reservationPercentages).map(([cat, pct]) => (
-                                                        <div key={cat} className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-center">
-                                                            <div className="text-red-400 font-bold mb-1">{cat}</div>
-                                                            <div className="text-2xl font-black text-white">{pct}%</div>
+                                                        <div key={cat} className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-center flex flex-col justify-center min-w-0">
+                                                            <div className="text-red-400 font-bold mb-1 text-xs sm:text-sm break-words">{cat}</div>
+                                                            <div className="text-xl sm:text-2xl font-black text-white">{pct}%</div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -417,9 +417,9 @@ export default function CollegeDetailPage() {
                                                 <h3 className="text-lg font-bold text-slate-300 mb-4 border-b border-slate-800 pb-2">Category-wise Fee Structure</h3>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {Object.entries(categoryFees).map(([cat, fee]) => (
-                                                        <div key={cat} className="flex justify-between items-center bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                                                            <span className="font-semibold text-slate-400">{cat}</span>
-                                                            <span className="font-bold text-emerald-400">{fee}</span>
+                                                        <div key={cat} className="flex justify-between items-center bg-slate-950 border border-slate-800 p-4 rounded-xl gap-4 min-w-0">
+                                                            <span className="font-semibold text-slate-400 text-xs sm:text-sm break-words min-w-0 flex-1">{cat}</span>
+                                                            <span className="font-bold text-emerald-400 text-xs sm:text-sm shrink-0">{fee}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -448,8 +448,8 @@ export default function CollegeDetailPage() {
 
                         {/* Courses & Fees */}
                         <section id="courses" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Courses &amp; Fees
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Courses &amp; Fees
                             </h2>
                             {!isSectionVisible('courses', college) ? (
                                 <LockedSection title="Courses & Fees" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -463,8 +463,8 @@ export default function CollegeDetailPage() {
                         {/* Placements Section */}
                         {((stats && Object.keys(stats).filter(k => stats[k]).length > 0) || college.avg_package) && (
                             <section id="placements" className="scroll-mt-32">
-                                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Placements Stats
+                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Placements Stats
                                 </h2>
                                 {!isSectionVisible('placements', college) ? (
                                     <LockedSection title="Placements Stats" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -478,8 +478,8 @@ export default function CollegeDetailPage() {
 
                         {/* Cutoffs Section */}
                         <section id="cutoffs" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Expected Cutoffs
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Expected Cutoffs
                             </h2>
                             {!isSectionVisible('cutoffs', college) ? (
                                 <LockedSection title="Expected Cutoffs" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -524,8 +524,8 @@ export default function CollegeDetailPage() {
 
                         {/* Rankings Section */}
                         <section id="rankings" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> National &amp; Global Rankings
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> National &amp; Global Rankings
                             </h2>
                             {!isSectionVisible('rankings', college) ? (
                                 <LockedSection title="National & Global Rankings" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -577,8 +577,8 @@ export default function CollegeDetailPage() {
 
                         {/* Q&A */}
                         <section id="q&a" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Questions & Answers
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Questions &amp; Answers
                             </h2>
                             {!isSectionVisible('qna', college) ? (
                                 <LockedSection title="Questions & Answers" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -591,8 +591,8 @@ export default function CollegeDetailPage() {
 
                         {/* FAQs */}
                         <section id="faq" className="scroll-mt-32">
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Frequently Asked Questions
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 flex-wrap">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Frequently Asked Questions
                             </h2>
                             {!isSectionVisible('faq', college) ? (
                                 <LockedSection title="Frequently Asked Questions" requiredTier={user ? 'pro' : 'signed_up'}>
@@ -606,8 +606,8 @@ export default function CollegeDetailPage() {
                         {/* Reviews */}
                         <section id="reviews" className="scroll-mt-32">
                             <div className="flex items-center justify-between mb-8">
-                                <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Student Reviews
+                                <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3 flex-wrap">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full shrink-0" /> Student Reviews
                                 </h2>
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center text-amber-400">

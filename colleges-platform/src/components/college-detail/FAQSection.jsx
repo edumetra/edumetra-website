@@ -8,12 +8,13 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => (
     <div className="border border-slate-800 rounded-xl overflow-hidden mb-3 bg-slate-900/30">
         <button
             onClick={onClick}
-            className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800/50 transition-colors"
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800/50 transition-colors gap-4"
         >
-            <span className="font-medium text-slate-200">{question}</span>
+            <span className="font-medium text-slate-200 flex-1 pr-4 break-words">{question}</span>
             <motion.div
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
+                className="shrink-0 ml-2"
             >
                 <ChevronDown className="w-5 h-5 text-slate-500" />
             </motion.div>

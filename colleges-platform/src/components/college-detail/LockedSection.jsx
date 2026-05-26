@@ -24,8 +24,8 @@ export function LockedSection({ title, requiredTier = 'signed_up', children }) {
             </div>
 
             {/* Lock banner — compact horizontal layout */}
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-slate-950/95 via-slate-950/80 to-slate-950/95">
-                <div className="w-full mx-4 sm:mx-8 bg-slate-900 border border-slate-700/60 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 shadow-xl">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-slate-950/95 via-slate-950/80 to-slate-950/95 px-4 sm:px-8">
+                <div className="w-full max-w-4xl bg-slate-900 border border-slate-700/60 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 shadow-xl">
                     {/* Icon + text */}
                     <div className="flex items-center gap-4 flex-1">
                         <div className="shrink-0 w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">

@@ -137,7 +137,7 @@ export default function CollegeListPage() {
     // Removing early return for `loading` as we now handle it inside the main render's layout
 
     return (
-        <div className="min-h-screen bg-black">
+        <div className="min-h-screen bg-black w-full overflow-x-hidden">
             <SEOHead
                 title="Find Colleges in India — Search, Filter & Compare"
                 description="Explore 10,000+ colleges by stream, NAAC grade, fees, location and more. Compare side-by-side and read verified student reviews."

@@ -66,7 +66,7 @@ function App() {
         <CounsellingProvider>
           <Router>
             <ScrollToTop />
-            <div className="min-h-screen flex flex-col scrollbar-custom">
+            <div className="min-h-screen flex flex-col scrollbar-custom w-full overflow-x-hidden">
               <PromoBanner />
               <Header />
               <div className="flex-1">
