@@ -168,78 +168,141 @@ export default function ComparePage() {
                 {loading ? (
                     <div className="text-slate-400 text-center py-20 animate-pulse">Loading details...</div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            {/* College Headers */}
-                            <thead>
-                                <tr>
-                                    <td className="w-36 pr-4 pb-6 align-bottom">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Attribute</span>
-                                    </td>
-                                    {colleges.map(college => (
-                                        <td key={college.id} className="pb-6 px-4 align-top min-w-[220px]">
-                                            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                                                <div className="relative h-32 bg-slate-800">
-                                                    {college.image && (
-                                                        <img src={college.image} alt={college.name} className="w-full h-full object-cover opacity-80" />
-                                                    )}
-                                                    <button
-                                                        onClick={() => removeFromCompare(college.id)}
-                                                        className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-600 rounded-lg text-white transition-colors"
-                                                    >
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    {college.rank && (
-                                                        <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">
-                                                            <Trophy className="w-3 h-3" /> #{college.rank}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="p-4">
-                                                    <h3 className="font-bold text-white text-sm mb-1 line-clamp-2">{college.name}</h3>
-                                                    <div className="flex items-center gap-1 text-slate-500 text-xs">
-                                                        <MapPin className="w-3 h-3" />{college.location}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    ))}
-                                    {/* Empty slot if < 3 */}
-                                    {colleges.length < 3 && (
-                                        <td className="pb-6 px-4 align-top min-w-[220px]">
-                                            <Link to="/colleges" className="flex flex-col items-center justify-center h-[186px] border-2 border-dashed border-slate-800 rounded-2xl hover:border-red-500/40 transition-colors group">
-                                                <span className="text-slate-700 group-hover:text-slate-500 text-3xl mb-2">+</span>
-                                                <span className="text-slate-600 text-xs">Add college</span>
-                                            </Link>
-                                        </td>
-                                    )}
-                                </tr>
-                            </thead>
+                    <div className="space-y-6">
+                        {/* Mobile View - Stacked Cards */}
+                        <div className="block md:hidden space-y-5">
+                            {/* Mobile Headers list */}
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {colleges.map(college => (
+                                    <div key={college.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col justify-between gap-3 relative">
+                                        <button
+                                            onClick={() => removeFromCompare(college.id)}
+                                            className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-red-600 rounded text-white transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                        <div>
+                                            <h3 className="font-bold text-white text-xs line-clamp-2 pr-6 mb-1">{college.name}</h3>
+                                            <p className="text-[10px] text-slate-500 flex items-center gap-1"><MapPin className="w-2.5 h-2.5" /> {college.location_city}</p>
+                                        </div>
+                                        {college.rank && (
+                                            <span className="inline-block px-1.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-bold rounded w-fit">
+                                                Rank #{college.rank}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                                {colleges.length < 3 && (
+                                    <Link to="/colleges" className="flex flex-col items-center justify-center p-4 border border-dashed border-slate-800 rounded-xl hover:border-red-500/40 text-slate-500 group transition-colors">
+                                        <span className="text-xl mb-1 text-slate-700 group-hover:text-slate-500">+</span>
+                                        <span className="text-[10px] font-medium">Add College</span>
+                                    </Link>
+                                )}
+                            </div>
 
-                            {/* Attribute Rows */}
-                            <tbody>
-                                {FIELDS.map((field, fi) => {
+                            {/* Attribute Cards */}
+                            <div className="space-y-3">
+                                {FIELDS.map((field) => {
                                     const bestIdx = getBestIndex(field);
                                     return (
-                                        <tr key={field.key} className={fi % 2 === 0 ? 'bg-slate-900/30' : ''}>
-                                            <td className="pr-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                                        <div key={field.key} className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-3 border-b border-slate-800/60 pb-1.5">
                                                 {field.label}
-                                            </td>
-                                            {colleges.map((college, ci) => (
-                                                <td
-                                                    key={college.id}
-                                                    className={`px-4 py-3 text-sm font-medium rounded transition-colors ${bestIdx === ci ? 'text-emerald-400 bg-emerald-500/5' : 'text-slate-300'}`}
-                                                >
-                                                    {field.format(college[field.key])}
-                                                    {bestIdx === ci && <span className="ml-1 text-xs">✓</span>}
-                                                </td>
-                                            ))}
-                                            {colleges.length < 3 && <td />}
-                                        </tr>
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {colleges.map((college, ci) => {
+                                                    const isBest = bestIdx === ci;
+                                                    return (
+                                                        <div key={college.id} className="flex justify-between items-start gap-4">
+                                                            <span className="text-xs text-slate-400 font-medium truncate flex-1">{college.name}</span>
+                                                            <span className={`text-xs font-bold shrink-0 ${isBest ? 'text-emerald-400' : 'text-slate-200'}`}>
+                                                                {field.format(college[field.key])}
+                                                                {isBest && <span className="ml-0.5 text-[10px]">✓</span>}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
                                     );
                                 })}
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+
+                        {/* Desktop View - Table */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                {/* College Headers */}
+                                <thead>
+                                    <tr>
+                                        <td className="w-36 pr-4 pb-6 align-bottom">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Attribute</span>
+                                        </td>
+                                        {colleges.map(college => (
+                                            <td key={college.id} className="pb-6 px-4 align-top min-w-[220px]">
+                                                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                                                    <div className="relative h-32 bg-slate-800">
+                                                        {college.image && (
+                                                            <img src={college.image} alt={college.name} className="w-full h-full object-cover opacity-80" />
+                                                        )}
+                                                        <button
+                                                            onClick={() => removeFromCompare(college.id)}
+                                                            className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-600 rounded-lg text-white transition-colors"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        {college.rank && (
+                                                            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                                                <Trophy className="w-3 h-3" /> #{college.rank}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-4">
+                                                        <h3 className="font-bold text-white text-sm mb-1 line-clamp-2">{college.name}</h3>
+                                                        <div className="flex items-center gap-1 text-slate-500 text-xs">
+                                                            <MapPin className="w-3 h-3" />{college.location}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        ))}
+                                        {/* Empty slot if < 3 */}
+                                        {colleges.length < 3 && (
+                                            <td className="pb-6 px-4 align-top min-w-[220px]">
+                                                <Link to="/colleges" className="flex flex-col items-center justify-center h-[186px] border-2 border-dashed border-slate-800 rounded-2xl hover:border-red-500/40 transition-colors group">
+                                                    <span className="text-slate-700 group-hover:text-slate-500 text-3xl mb-2">+</span>
+                                                    <span className="text-slate-600 text-xs">Add college</span>
+                                                </Link>
+                                            </td>
+                                        )}
+                                    </tr>
+                                </thead>
+
+                                {/* Attribute Rows */}
+                                <tbody>
+                                    {FIELDS.map((field, fi) => {
+                                        const bestIdx = getBestIndex(field);
+                                        return (
+                                            <tr key={field.key} className={fi % 2 === 0 ? 'bg-slate-900/30' : ''}>
+                                                <td className="pr-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                                                    {field.label}
+                                                </td>
+                                                {colleges.map((college, ci) => (
+                                                    <td
+                                                        key={college.id}
+                                                        className={`px-4 py-3 text-sm font-medium rounded transition-colors ${bestIdx === ci ? 'text-emerald-400 bg-emerald-500/5' : 'text-slate-300'}`}
+                                                    >
+                                                        {field.format(college[field.key])}
+                                                        {bestIdx === ci && <span className="ml-1 text-xs">✓</span>}
+                                                    </td>
+                                                ))}
+                                                {colleges.length < 3 && <td />}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

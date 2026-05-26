@@ -81,22 +81,22 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                 {/* Content */}
                 <div className="flex-1 p-5 md:p-7 flex flex-col justify-between">
                     <div>
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="inline-block px-2 py-0.5 bg-slate-800 text-slate-400 text-xs rounded border border-slate-700">{college.type}</span>
+                        <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-3 sm:gap-2">
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <span className="inline-block px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] sm:text-xs rounded border border-slate-700">{college.type}</span>
                                     {college.stream && (
-                                        <span className="inline-block px-2 py-0.5 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20">{college.stream}</span>
+                                        <span className="inline-block px-2 py-0.5 bg-red-500/10 text-red-400 text-[10px] sm:text-xs rounded border border-red-500/20">{college.stream}</span>
                                     )}
                                 </div>
-                                <h3 className="text-2xl font-bold text-white group-hover:text-red-400 transition-colors line-clamp-1">{college.name}</h3>
+                                <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-red-400 transition-colors line-clamp-2 sm:line-clamp-1">{college.name}</h3>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <div className="flex items-center gap-1.5 bg-slate-800/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-slate-700/50">
-                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                    <span className="text-sm font-bold text-slate-100">{college.rating || '—'}</span>
+                            <div className="flex items-center sm:flex-col sm:items-end gap-1.5 sm:gap-1 shrink-0 bg-slate-800/30 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full border border-slate-700/30 sm:border-transparent">
+                                <div className="flex items-center gap-1.5 bg-slate-800/80 backdrop-blur-sm px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50">
+                                    <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
+                                    <span className="text-xs sm:text-sm font-bold text-slate-100">{college.rating || '—'}</span>
                                 </div>
-                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Rating</span>
+                                <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium uppercase tracking-wider">Rating</span>
                             </div>
                         </div>
 
@@ -123,19 +123,19 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto pt-2">
-                        <div className="px-5 py-3 bg-red-600/10 text-red-400 group-hover:bg-red-600 group-hover:text-white text-sm font-bold rounded-full transition-all border border-red-500/20 flex items-center gap-2 active:scale-95">
-                            View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <div className="flex items-center justify-between mt-auto pt-2 gap-3">
+                        <div className="px-4 py-2.5 sm:px-5 sm:py-3 bg-red-600/10 text-red-400 group-hover:bg-red-600 group-hover:text-white text-xs sm:text-sm font-bold rounded-full transition-all border border-red-500/20 flex items-center gap-2 active:scale-95 shrink-0">
+                            View Details <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform shrink-0" />
                         </div>
                         
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                             {/* Compare */}
                             <button
                                 onClick={handleCompare}
                                 title={inCompare ? 'Remove from compare' : 'Add to compare'}
-                                className={`p-2.5 rounded-full border transition-all active:scale-95 ${inCompare ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
+                                className={`p-2 sm:p-2.5 rounded-full border transition-all active:scale-95 ${inCompare ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/20' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-red-500/50 hover:text-red-400'}`}
                             >
-                                <GitCompareArrows className="w-4 h-4" />
+                                <GitCompareArrows className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                             {/* Save */}
                             {user && (
@@ -143,9 +143,9 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                                     onClick={handleSave}
                                     disabled={saving}
                                     title={isSaved ? 'Remove from saved' : 'Save college'}
-                                    className={`p-2.5 rounded-full border transition-all active:scale-95 ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
+                                    className={`p-2 sm:p-2.5 rounded-full border transition-all active:scale-95 ${isSaved ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-amber-500/40 hover:text-amber-400'}`}
                                 >
-                                    {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                                    {isSaved ? <BookmarkCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                                 </button>
                             )}
                         </div>

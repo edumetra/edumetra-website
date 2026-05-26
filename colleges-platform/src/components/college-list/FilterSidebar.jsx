@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 
 const FilterSection = ({ title, options, selected, onChange }) => {
@@ -69,6 +69,18 @@ const RangeFilter = ({ label, min, max, onMinChange, onMaxChange }) => (
 );
 
 export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose, filterOptions }) {
+    // Lock body scroll on mobile when open
+    useEffect(() => {
+        if (isOpen && typeof window !== 'undefined' && window.innerWidth < 1024) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            if (typeof document !== 'undefined') document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
     // Truly dynamic: if filterOptions is null, we are in a loading or blocked state
     const isLoading = !filterOptions;
     
@@ -112,9 +124,9 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
             )}
             <aside className={`
                 fixed lg:sticky top-0 lg:top-24 left-0 h-screen lg:h-[calc(100vh-8rem)]
-                w-80 bg-slate-950 lg:bg-transparent border-r lg:border border-slate-800
+                w-[85vw] lg:w-80 max-w-xs bg-slate-950 lg:bg-transparent border-r lg:border border-slate-800
                 transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-[70] lg:z-0
-                overflow-y-auto lg:rounded-xl shadow-2xl lg:shadow-none
+                overflow-y-auto lg:rounded-xl shadow-2xl lg:shadow-none pb-24 lg:pb-6
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 <div className="p-6 space-y-1">
