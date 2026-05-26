@@ -250,8 +250,8 @@ export default async function CollegeViewPage({ params }: { params: Promise<{ id
                                     visible_in_signed_up: details?.visible_in_signed_up || [],
                                     visible_in_pro: details?.visible_in_pro || [],
                                     visible_in_premium: details?.visible_in_premium || [
-                                        "placements", "cutoffs", "rankings", "reviews",
-                                        "gallery", "courses", "contact"
+                                        "cutoffs", "rankings", "reviews", "gallery", "courses",
+                                        "contact", "admissions", "placements", "qna", "faq"
                                     ]
                                 }}
                             />

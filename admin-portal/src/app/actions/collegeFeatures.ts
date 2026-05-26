@@ -4,7 +4,7 @@ import { createClient as createServerClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-const PREMIUM_ALL_FEATURES = ["cutoffs", "rankings", "reviews", "gallery", "courses", "contact", "admissions", "qna", "faq"] as const;
+const PREMIUM_ALL_FEATURES = ["cutoffs", "rankings", "reviews", "gallery", "courses", "contact", "admissions", "placements", "qna", "faq"] as const;
 
 export async function updatePremiumLocks(
     collegeId: string,

@@ -13,6 +13,7 @@ const AVAILABLE_FEATURES = [
     { id: "courses", label: "Courses & Fees" },
     { id: "contact", label: "Contact Information" },
     { id: "admissions", label: "Admission Details" },
+    { id: "placements", label: "Placements Stats" },
     { id: "qna", label: "Questions & Answers" },
     { id: "faq", label: "Frequently Asked Questions" },
 ];

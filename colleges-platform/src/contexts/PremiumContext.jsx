@@ -11,6 +11,20 @@ const LIMITS = {
     pro: { compare: 10, saved: Infinity, aiInsights: true, aiLimit: Infinity },
 };
 
+// These are the section ids controlled from admin premium-lock settings.
+const LOCKABLE_SECTIONS = new Set([
+    'cutoffs',
+    'rankings',
+    'reviews',
+    'gallery',
+    'courses',
+    'contact',
+    'admissions',
+    'qna',
+    'faq',
+    'placements',
+]);
+
 export function PremiumProvider({ children }) {
     const { user, profile } = useSignup();
     const [tier, setTier] = useState('free');
@@ -88,7 +102,14 @@ export function PremiumProvider({ children }) {
         const arrayKey = `visible_in_${visibilityTier}`;
 
         const allowedSections = collegeDetails[arrayKey];
-        if (!Array.isArray(allowedSections)) return true; // Default true if array is missing/malformed
+        if (!Array.isArray(allowedSections)) {
+            // Fail-safe: if config is missing, keep controlled sections locked.
+            // This prevents guests/free users from seeing all content due to bad/incomplete data.
+            if (LOCKABLE_SECTIONS.has(sectionId)) {
+                return visibilityTier === 'premium' || visibilityTier === 'pro';
+            }
+            return true;
+        }
 
         return allowedSections.includes(sectionId);
     };
