@@ -19,7 +19,7 @@ export default function RankingsPage() {
         setLoading(true);
         let query = supabase
             .from('colleges')
-            .select('id, slug, name, location_city, location_state, type, stream, naac_grade, rating, review_count, image, rank')
+            .select('id, slug, name, location_city, location_state, type, stream, naac_grade, rating, review_count, image, rank, avg_package, rankings(*)')
             .eq('visibility', 'public')
             .limit(50);
 
@@ -141,10 +141,28 @@ export default function RankingsPage() {
                                         {college.location_city}, {college.location_state}
                                         {college.stream && <span className="ml-2 text-slate-600">· {college.stream}</span>}
                                     </div>
+                                    {college.rankings && college.rankings.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                            {college.rankings.map((r, i) => (
+                                                <span key={i} className="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-semibold rounded">
+                                                    {r.provider} '{String(r.year).slice(-2)}: #{r.rank}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Stats */}
                                 <div className="shrink-0 flex items-center gap-4 text-right">
+                                    {college.avg_package && (
+                                        <div className="hidden sm:block">
+                                            <div className="text-emerald-400 font-bold text-sm flex items-center justify-end gap-0.5">
+                                                <TrendingUp className="w-3.5 h-3.5" />
+                                                {college.avg_package}
+                                            </div>
+                                            <div className="text-slate-600 text-xs">Avg Package</div>
+                                        </div>
+                                    )}
                                     <div>
                                         <div className="flex items-center gap-1 text-amber-400 font-bold text-sm">
                                             <Star className="w-3.5 h-3.5 fill-current" />

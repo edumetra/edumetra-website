@@ -85,7 +85,10 @@ export default function CollegeDetailPage() {
 
 
 
-    const stats = college.placementStats || {};
+    const stats = {
+        ...college.placementStats,
+        average_package: college.placementStats?.average_package || college.avg_package
+    };
 
     const parseObjectField = (value) => {
         if (!value) return null;
@@ -103,6 +106,19 @@ export default function CollegeDetailPage() {
 
     const reservationPercentages = parseObjectField(college.reservation_percentages);
     const categoryFees = parseObjectField(college.category_fees);
+    const isMinority = college.is_minority || 
+                       college.minority_status === true || 
+                       college.minority_status === 'true' || 
+                       (typeof college.minority_status === 'string' && 
+                        college.minority_status.toLowerCase() !== 'false' && 
+                        college.minority_status.trim() !== '');
+
+    const minorityText = college.minority_status_text || 
+                         (typeof college.minority_status === 'string' && 
+                          college.minority_status !== 'Non-Minority' && 
+                          college.minority_status !== 'true' && 
+                          college.minority_status !== 'false' && 
+                          college.minority_status.trim() !== '' ? college.minority_status : null);
     // SEO Construction
     const currentYear = new Date().getFullYear();
     const cityState = [college.city, college.state].filter(Boolean).join(', ');
@@ -189,6 +205,13 @@ export default function CollegeDetailPage() {
                                         <Star className="w-3 h-3 fill-current" /> {college.rating}
                                     </span>
                                 )}
+                                {college.accreditations && college.accreditations.length > 0 && (
+                                    college.accreditations.map((acc, i) => (
+                                        <span key={i} className="px-3 py-1 bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs font-bold rounded-lg uppercase tracking-wider">
+                                            {acc}
+                                        </span>
+                                    ))
+                                )}
                                 {myChances && (
                                     <motion.div 
                                         initial={{ opacity: 0, scale: 0.9 }}
@@ -253,7 +276,9 @@ export default function CollegeDetailPage() {
                                 <HeroCarousel
                                     images={[
                                         college.image,
-                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : [])
+                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : []),
+                                        ...(Array.isArray(college.campus_photos) ? college.campus_photos : []),
+                                        ...(Array.isArray(college.campus_life_images) ? college.campus_life_images : [])
                                     ].filter(Boolean)}
                                     alt={college.name}
                                 />
@@ -266,7 +291,9 @@ export default function CollegeDetailPage() {
                                 <HeroCarousel
                                     images={[
                                         college.image,
-                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : [])
+                                        ...(Array.isArray(college.gallery_images) ? college.gallery_images : []),
+                                        ...(Array.isArray(college.campus_photos) ? college.campus_photos : []),
+                                        ...(Array.isArray(college.campus_life_images) ? college.campus_life_images : [])
                                     ].filter(Boolean)}
                                     alt={college.name}
                                 />
@@ -290,7 +317,7 @@ export default function CollegeDetailPage() {
                         {/* Hidden Glassmorphic Tabs */}
                         <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
                             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
-                                {['Overview', 'Admissions', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
+                                {['Overview', 'Admissions', 'Courses', 'Placements', 'Cutoffs', 'Rankings', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => {
@@ -316,10 +343,19 @@ export default function CollegeDetailPage() {
                             <p className="text-slate-300 leading-relaxed text-lg mb-8">
                                 {college.description || "Information about this institution is currently being updated. Please check back later for detailed insights on campus life, academic excellence, and student achievements."}
                             </p>
+
+                            {college.hostel_info && (
+                                <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 mt-6">
+                                    <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                                        <Building2 className="w-5 h-5 text-red-400" /> Hostel &amp; Accommodation
+                                    </h3>
+                                    <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">{college.hostel_info}</p>
+                                </div>
+                            )}
                         </section>
 
                         {/* Detail Admissions & Capacity */}
-                        {(college.intake_capacity > 0 || college.minority_status || categoryFees || reservationPercentages) && (
+                        {(college.intake_capacity > 0 || college.total_associated_beds_in_hospital > 0 || isMinority || categoryFees || reservationPercentages) && (
                             <section id="admissions" className="scroll-mt-32">
                                 <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                                     <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Admission Details
@@ -340,12 +376,23 @@ export default function CollegeDetailPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                            {college.minority_status && (
+                                            {college.total_associated_beds_in_hospital > 0 && (
+                                                <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-start gap-4">
+                                                    <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl"><Building2 className="w-5 h-5"/></div>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Associated Hospital Beds</div>
+                                                        <div className="text-xl font-bold text-slate-200">{college.total_associated_beds_in_hospital} Beds</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {isMinority && (
                                                 <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-start gap-4">
                                                     <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl"><Award className="w-5 h-5"/></div>
                                                     <div>
                                                         <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Minority Status</div>
-                                                        <div className="text-xl font-bold text-amber-500">Minority Institution</div>
+                                                        <div className="text-xl font-bold text-amber-500">
+                                                            {minorityText ? `${minorityText} Institution` : "Minority Institution"}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
@@ -378,6 +425,22 @@ export default function CollegeDetailPage() {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {college.seat_reservations && (
+                                            <div className="mt-6 p-5 bg-slate-950 border border-slate-800 rounded-xl">
+                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reservation Criteria / Quota Details</h4>
+                                                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{college.seat_reservations}</p>
+                                            </div>
+                                        )}
+
+                                        {college.admission_process && (
+                                            <div className="mt-8 pt-8 border-t border-slate-800">
+                                                <h3 className="text-lg font-bold text-slate-300 mb-3 flex items-center gap-2">
+                                                    <BookOpen className="w-5 h-5 text-red-400" /> Admission Process
+                                                </h3>
+                                                <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">{college.admission_process}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </section>
@@ -394,6 +457,101 @@ export default function CollegeDetailPage() {
                                 </LockedSection>
                             ) : (
                                 <CoursesTable courses={college.courses_fees || []} />
+                            )}
+                        </section>
+
+                        {/* Placements Section */}
+                        {((stats && Object.keys(stats).filter(k => stats[k]).length > 0) || college.avg_package) && (
+                            <section id="placements" className="scroll-mt-32">
+                                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Placements Stats
+                                </h2>
+                                {!isSectionVisible('placements', college) ? (
+                                    <LockedSection title="Placements Stats" requiredTier={user ? 'pro' : 'signed_up'}>
+                                        <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                    </LockedSection>
+                                ) : (
+                                    <PlacementChart stats={stats} />
+                                )}
+                            </section>
+                        )}
+
+                        {/* Cutoffs Section */}
+                        <section id="cutoffs" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Expected Cutoffs
+                            </h2>
+                            {!isSectionVisible('cutoffs', college) ? (
+                                <LockedSection title="Expected Cutoffs" requiredTier={user ? 'pro' : 'signed_up'}>
+                                    <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                </LockedSection>
+                            ) : (
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
+                                    {college.cutoffs && college.cutoffs.length > 0 ? (
+                                        <div className="overflow-x-auto rounded-xl border border-slate-800">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="bg-slate-950 border-b border-slate-800">
+                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Exam</th>
+                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Year</th>
+                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Category</th>
+                                                        <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Score</th>
+                                                        <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Rank</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {college.cutoffs.map((cutoff, i) => (
+                                                        <tr key={i} className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${i % 2 === 0 ? '' : 'bg-slate-900/30'}`}>
+                                                            <td className="px-5 py-4"><span className="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-xs font-bold">{cutoff.exam_name}</span></td>
+                                                            <td className="px-5 py-4 text-slate-300">{cutoff.year}</td>
+                                                            <td className="px-5 py-4 text-slate-300">{cutoff.category}</td>
+                                                            <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_score || '—'}</td>
+                                                            <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_rank ? `#${cutoff.closing_rank.toLocaleString('en-IN')}` : '—'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-12 text-slate-600 bg-slate-900/40 rounded-xl border border-dashed border-slate-800">
+                                            <BookOpen className="w-10 h-10 mb-3 opacity-40" />
+                                            <p className="text-sm">Cutoff details not available yet.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Rankings Section */}
+                        <section id="rankings" className="scroll-mt-32">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-red-600 rounded-full" /> National &amp; Global Rankings
+                            </h2>
+                            {!isSectionVisible('rankings', college) ? (
+                                <LockedSection title="National & Global Rankings" requiredTier={user ? 'pro' : 'signed_up'}>
+                                    <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+                                </LockedSection>
+                            ) : (
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
+                                    {college.rankings && college.rankings.length > 0 ? (
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            {college.rankings.map((ranking, i) => (
+                                                <div key={i} className="bg-slate-950 border border-slate-800 p-5 rounded-xl flex items-center justify-between hover:border-red-500/20 transition-all">
+                                                    <div>
+                                                        <div className="text-red-400 font-bold text-sm">{ranking.provider}</div>
+                                                        <div className="text-xs text-slate-500 mt-0.5">Year: {ranking.year}</div>
+                                                    </div>
+                                                    <div className="text-2xl font-black text-white">#{ranking.rank}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-12 text-slate-600 bg-slate-900/40 rounded-xl border border-dashed border-slate-800">
+                                            <Award className="w-10 h-10 mb-3 opacity-40" />
+                                            <p className="text-sm">Ranking details not available yet.</p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </section>
 
@@ -485,7 +643,7 @@ export default function CollegeDetailPage() {
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Jump to Section</h3>
                             <nav className="flex flex-col gap-1">
-                                {['Overview', 'Admissions', 'Courses', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
+                                {['Overview', 'Admissions', 'Courses', 'Placements', 'Cutoffs', 'Rankings', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => {

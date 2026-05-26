@@ -55,8 +55,11 @@ export default function NewCollegePage() {
         website_url: "",
         // New college_details fields
         minority_status: "false",
+        minority_type: "",
         intake_capacity: "",
         total_associated_beds_in_hospital: "",
+        accreditations: "",
+        seat_reservations: "",
         reservation_percentages: [] as { category: string; percentage: string }[],
         category_fees: [] as { category: string; fee: string }[],
         faq: [] as { question: string; answer: string }[],
@@ -240,6 +243,9 @@ export default function NewCollegePage() {
                 established_year: parseInt(formData.established_year) || null,
                 website_url: formData.website_url || null,
                 is_published: formData.visibility === "public",
+                accreditations: formData.accreditations.split(",").map((s) => s.trim()).filter(Boolean),
+                seat_reservations: formData.seat_reservations || null,
+                minority_status: formData.minority_status === "true" ? (formData.minority_type || "Minority") : "Non-Minority",
             };
 
             const detailsPayload = {
@@ -247,10 +253,10 @@ export default function NewCollegePage() {
                     highest_package: formData.highest_package,
                     placement_rate: formData.placement_rate,
                     average_package: formData.avg_package,
+                    total_associated_beds_in_hospital: parseInt(formData.total_associated_beds_in_hospital) || 0,
                 }),
                 minority_status: formData.minority_status === "true",
                 intake_capacity: parseInt(formData.intake_capacity) || 0,
-                total_associated_beds_in_hospital: parseInt(formData.total_associated_beds_in_hospital) || 0,
                 reservation_percentages: Object.keys(resData).length ? JSON.stringify(resData) : null,
                 category_fees: Object.keys(feeData).length ? JSON.stringify(feeData) : null,
                 faq: formData.faq.length ? JSON.stringify(formData.faq) : null,
@@ -630,6 +636,13 @@ export default function NewCollegePage() {
                                     <option value="false">Non-Minority</option>
                                     <option value="true">Minority Institution</option>
                                 </select>
+                                {formData.minority_status === "true" && (
+                                    <div className="mt-2">
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Minority Community/Type</label>
+                                        <input type="text" name="minority_type" placeholder="e.g. Muslim, Christian, Sikh, Linguistic"
+                                            value={formData.minority_type} onChange={handleChange} className={inputClasses()} />
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label className={labelClasses}>Total Associated Beds in Hospital</label>
@@ -637,6 +650,17 @@ export default function NewCollegePage() {
                                     value={formData.total_associated_beds_in_hospital} onChange={handleChange} className={inputClasses("total_associated_beds_in_hospital")} />
                                 {errors.total_associated_beds_in_hospital && <p className="text-red-400 text-xs mt-1">{errors.total_associated_beds_in_hospital}</p>}
                             </div>
+                            <div>
+                                <label className={labelClasses}>Accreditations (Comma separated)</label>
+                                <input type="text" name="accreditations" placeholder="e.g. NAAC A+, MCI, NBA"
+                                    value={formData.accreditations} onChange={handleChange} className={inputClasses()} />
+                            </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <label className={labelClasses}>Seat Reservations General Info</label>
+                            <textarea name="seat_reservations" rows={3} placeholder="Describe overall seat reservations, NRI quota, management seats, state quota criteria..."
+                                value={formData.seat_reservations} onChange={handleChange} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-red-500 transition-colors" />
                         </div>
 
                         {/* Reservation Percentages */}

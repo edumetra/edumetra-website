@@ -105,11 +105,21 @@ export default function CollegeCard({ college, savedIds = [], onSaveToggle }) {
                         </div>
 
                         {/* Updated Stats - Simplified */}
-                        <div className="mb-5 p-4 bg-slate-900/40 border border-slate-800/60 rounded-xl">
-                            <p className="text-xs text-slate-500 mb-1.5 font-medium uppercase tracking-wider flex items-center gap-2">
-                                <BookOpen className="w-3.5 h-3.5 text-red-500" /> Exams Accepted
-                            </p>
-                            <p className="text-sm font-semibold text-slate-200">{college.exams || 'Merit Based'}</p>
+                        <div className={`mb-5 p-4 bg-slate-900/40 border border-slate-800/60 rounded-xl ${college.avg_package ? 'grid grid-cols-2 gap-4' : ''}`}>
+                            <div>
+                                <p className="text-xs text-slate-500 mb-1.5 font-medium uppercase tracking-wider flex items-center gap-2">
+                                    <BookOpen className="w-3.5 h-3.5 text-red-500" /> Exams Accepted
+                                </p>
+                                <p className="text-sm font-semibold text-slate-200">{college.exams || 'Merit Based'}</p>
+                            </div>
+                            {college.avg_package && (
+                                <div>
+                                    <p className="text-xs text-slate-500 mb-1.5 font-medium uppercase tracking-wider flex items-center gap-2">
+                                        <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Avg Package
+                                    </p>
+                                    <p className="text-sm font-semibold text-emerald-400">{college.avg_package}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

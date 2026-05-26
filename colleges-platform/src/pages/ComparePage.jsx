@@ -8,6 +8,7 @@ const FIELDS = [
     { key: 'rank', label: 'NIRF Ranking', best: 'min_numeric', numeric_key: 'rank', format: v => v ? `#${v}` : '—' },
     { key: 'rating', label: 'Rating ⭐', best: 'max', format: v => v ? `${v} / 5` : '—' },
     { key: 'fees', label: 'Total Fees', best: 'min_numeric', numeric_key: 'fees_numeric', format: v => v || '—' },
+    { key: 'avg_package', label: 'Average Package 💼', best: 'none', format: v => v || '—' },
     { key: 'cutoffs', label: 'Expected Cutoffs', best: 'none', format: v => {
         if (!v || !Array.isArray(v) || v.length === 0) return '—';
         return v.map(c => `${c.exam || c.name || 'Exam'}: ${c.cutoff || c.score || c.rank || 'N/A'}`).join(', ');
@@ -43,7 +44,7 @@ export default function ComparePage() {
         const ids = compareList.map(c => c.id);
         const { data } = await supabase
             .from('colleges')
-            .select('id, name, location_city, location_state, type, stream, naac_grade, rating, review_count, fees, fees_numeric, exams, established_year, image, rank, cutoffs')
+            .select('id, name, location_city, location_state, type, stream, naac_grade, rating, review_count, fees, fees_numeric, exams, established_year, image, rank, cutoffs, avg_package')
             .in('id', ids);
         // Preserve compare order
         const ordered = ids.map(id => data?.find(d => d.id === id)).filter(Boolean).map(c => ({
