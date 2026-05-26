@@ -50,7 +50,7 @@ export function SimilarColleges({ collegeId, stream, state }) {
 
     return (
         <section id="similar" className="scroll-mt-32 mt-16 pt-16 border-t border-slate-800">
-            <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8 flex items-center gap-3 flex-wrap">
                 <div className="w-1.5 h-6 bg-red-600 rounded-full" /> Similar Colleges
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

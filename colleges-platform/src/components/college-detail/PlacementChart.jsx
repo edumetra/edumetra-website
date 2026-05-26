@@ -41,16 +41,16 @@ export const PlacementChart = ({ stats }) => {
             )}
 
             {(stats?.placement_rate || stats?.recruiters_count) && (
-                <div className="mt-8 grid grid-cols-2 gap-4">
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {stats?.placement_rate && (
                         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                            <div className="text-3xl font-bold text-white mb-1">{stats.placement_rate}</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stats.placement_rate}</div>
                             <div className="text-xs text-slate-400 uppercase tracking-wider">Placement Rate</div>
                         </div>
                     )}
                     {stats?.recruiters_count && (
                         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                            <div className="text-3xl font-bold text-white mb-1">{stats.recruiters_count}</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stats.recruiters_count}</div>
                             <div className="text-xs text-slate-400 uppercase tracking-wider">Recruiters</div>
                         </div>
                     )}

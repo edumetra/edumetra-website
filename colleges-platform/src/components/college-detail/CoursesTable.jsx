@@ -41,8 +41,8 @@ export function CoursesTable({ courses = [] }) {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 border-t border-slate-800/60 pt-3">
-                                <div>
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/60 pt-3">
+                                <div className="min-w-0">
                                     <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Duration</span>
                                     <span className="text-sm text-slate-300 font-medium">{course.duration}</span>
                                 </div>

@@ -172,7 +172,7 @@ export default function ComparePage() {
                         {/* Mobile View - Stacked Cards */}
                         <div className="block md:hidden space-y-5">
                             {/* Mobile Headers list */}
-                            <div className="grid grid-cols-2 gap-3 mb-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                                 {colleges.map(college => (
                                     <div key={college.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col justify-between gap-3 relative">
                                         <button
