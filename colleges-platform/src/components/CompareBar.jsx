@@ -23,7 +23,7 @@ export default function CompareBar() {
     return (
         <>
             {compareList.length > 0 && (
-                <div className="fixed bottom-16 sm:bottom-0 left-0 right-0 z-50 flex justify-center pb-4 px-4 pointer-events-none">
+                <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] sm:bottom-0 left-0 right-0 z-50 flex justify-center pb-4 px-4 pointer-events-none">
                     <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl shadow-black/60 px-4 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-2xl">
                         {/* Slots */}
                         <div className="flex-1 overflow-x-auto scrollbar-hide flex items-center gap-2 py-1 w-full sm:overflow-visible sm:flex-wrap">

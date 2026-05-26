@@ -2,7 +2,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 
 export default function SearchHeader({ query, onSearchChange, isSearching, resultCount, onToggleFilters, sort, onSortChange }) {
     return (
-        <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 rounded-3xl md:rounded-full px-5 py-3 mb-8 sticky top-24 z-30 shadow-2xl shadow-black/50 transition-all hover:bg-slate-900/80">
+        <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 rounded-3xl md:rounded-full px-5 py-3 mb-8 static md:sticky md:top-24 z-30 shadow-2xl shadow-black/50 transition-all hover:bg-slate-900/80">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="relative w-full md:max-w-2xl group">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

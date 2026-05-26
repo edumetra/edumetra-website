@@ -228,7 +228,7 @@ export default function CollegeDetailPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.1 }}
-                                className="text-3xl md:text-5xl font-bold text-white mb-5 leading-tight tracking-tight"
+                                className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-5 leading-tight tracking-tight"
                             >
                                 {college.name}
                             </motion.h1>
@@ -315,7 +315,7 @@ export default function CollegeDetailPage() {
                     {/* Main Left Column */}
                     <div className="lg:col-span-3 space-y-16 lg:space-y-20 w-full min-w-0">
                         {/* Hidden Glassmorphic Tabs */}
-                        <div className="sticky top-0 z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
+                        <div className="relative z-50 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 pb-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50 transition-all lg:hidden">
                             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
                                 {['Overview', 'Admissions', 'Courses', 'Placements', 'Cutoffs', 'Rankings', 'Q&A', 'FAQ', 'Reviews'].map((tab) => (
                                     <button
@@ -488,30 +488,59 @@ export default function CollegeDetailPage() {
                             ) : (
                                 <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
                                     {college.cutoffs && college.cutoffs.length > 0 ? (
-                                        <div className="overflow-x-auto rounded-xl border border-slate-800">
-                                            <table className="w-full text-sm">
-                                                <thead>
-                                                    <tr className="bg-slate-950 border-b border-slate-800">
-                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Exam</th>
-                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Year</th>
-                                                        <th className="text-left px-5 py-3 text-slate-400 font-semibold">Category</th>
-                                                        <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Score</th>
-                                                        <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Rank</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {college.cutoffs.map((cutoff, i) => (
-                                                        <tr key={i} className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${i % 2 === 0 ? '' : 'bg-slate-900/30'}`}>
-                                                            <td className="px-5 py-4"><span className="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-xs font-bold">{cutoff.exam_name}</span></td>
-                                                            <td className="px-5 py-4 text-slate-300">{cutoff.year}</td>
-                                                            <td className="px-5 py-4 text-slate-300">{cutoff.category}</td>
-                                                            <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_score || '—'}</td>
-                                                            <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_rank ? `#${cutoff.closing_rank.toLocaleString('en-IN')}` : '—'}</td>
+                                        <>
+                                            {/* Mobile Card List (block md:hidden) */}
+                                            <div className="block md:hidden space-y-4">
+                                                {college.cutoffs.map((cutoff, i) => (
+                                                    <div key={i} className="p-4 rounded-xl border border-slate-800 bg-slate-950/40 flex flex-col gap-3">
+                                                        <div className="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2.5">
+                                                            <span className="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px] font-bold uppercase tracking-wider">{cutoff.exam_name}</span>
+                                                            <span className="text-xs text-slate-400 font-semibold">{cutoff.year}</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-3 gap-2 text-xs">
+                                                            <div>
+                                                                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Category</span>
+                                                                <span className="text-slate-200 font-medium">{cutoff.category}</span>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Closing Score</span>
+                                                                <span className="text-slate-100 font-bold">{cutoff.closing_score || '—'}</span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Closing Rank</span>
+                                                                <span className="text-emerald-400 font-bold">{cutoff.closing_rank ? `#${cutoff.closing_rank.toLocaleString('en-IN')}` : '—'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Desktop Table View (hidden md:block) */}
+                                            <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-800">
+                                                <table className="w-full text-sm">
+                                                    <thead>
+                                                        <tr className="bg-slate-950 border-b border-slate-800">
+                                                            <th className="text-left px-5 py-3 text-slate-400 font-semibold">Exam</th>
+                                                            <th className="text-left px-5 py-3 text-slate-400 font-semibold">Year</th>
+                                                            <th className="text-left px-5 py-3 text-slate-400 font-semibold">Category</th>
+                                                            <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Score</th>
+                                                            <th className="text-right px-5 py-3 text-slate-400 font-semibold">Closing Rank</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                    </thead>
+                                                    <tbody>
+                                                        {college.cutoffs.map((cutoff, i) => (
+                                                            <tr key={i} className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${i % 2 === 0 ? '' : 'bg-slate-900/30'}`}>
+                                                                <td className="px-5 py-4"><span className="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-xs font-bold">{cutoff.exam_name}</span></td>
+                                                                <td className="px-5 py-4 text-slate-300">{cutoff.year}</td>
+                                                                <td className="px-5 py-4 text-slate-300">{cutoff.category}</td>
+                                                                <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_score || '—'}</td>
+                                                                <td className="px-5 py-4 text-white font-bold text-right">{cutoff.closing_rank ? `#${cutoff.closing_rank.toLocaleString('en-IN')}` : '—'}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center py-12 text-slate-600 bg-slate-900/40 rounded-xl border border-dashed border-slate-800">
                                             <BookOpen className="w-10 h-10 mb-3 opacity-40" />
