@@ -6,7 +6,7 @@ export const seoConfig = {
     defaultKeywords: 'medical colleges India, NEET cutoff, Edumetra, medical admission, NIRF ranking, medical college seats, MBBS admission, NEET counseling',
     siteUrl: 'https://www.edumetraglobal.com', // Replace with actual domain
     ogImage: '/og-image.jpg', // Add OG image
-    twitterHandle: '@edumetra', // Replace with actual handle
+    twitterHandle: '', // Not used currently
 };
 
 export const generatePageMeta = (page) => {
@@ -79,7 +79,6 @@ export const generateStructuredData = (type, data) => {
                 url: seoConfig.siteUrl,
                 logo: `${seoConfig.siteUrl}/logo-final.jpg`,
                 sameAs: [
-                    'https://twitter.com/edumetra',
                     'https://www.facebook.com/edumetraglobal',
                     'https://www.instagram.com/edumetraglobal/',
                     'https://www.linkedin.com/company/edumetra-global',

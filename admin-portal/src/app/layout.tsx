@@ -15,6 +15,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Edumetra Admin Portal",
     description: "Manage colleges, cutoffs, and rankings",
+    icons: {
+        icon: "/favicon.png",
+        shortcut: "/favicon.png",
+        apple: "/favicon.png",
+    },
     verification: {
         google: "Xy-T0I9WvHWOcUjGkrvU7uuGg-i_UXSOYcTYDZCkA3I",
     },

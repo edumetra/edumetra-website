@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube, Loader2 } from 'lucide-react';
+import { GraduationCap, Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Youtube, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -85,11 +85,10 @@ export default function Footer() {
     ];
 
     const socialLinks = [
-        { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/edumetraglobal' },
-        { name: 'Twitter', icon: Twitter, url: 'https://twitter.com' },
-        { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/edumetraglobal/' },
-        { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/company/edumetra-global' },
-        { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@EdumetraGlobal' },
+        { name: 'Facebook 📘', icon: Facebook, url: 'https://www.facebook.com/edumetraglobal' },
+        { name: 'Instagram 📸', icon: Instagram, url: 'https://www.instagram.com/edumetraglobal/' },
+        { name: 'LinkedIn 💼', icon: Linkedin, url: 'https://www.linkedin.com/company/edumetra-global' },
+        { name: 'YouTube ▶️', icon: Youtube, url: 'https://www.youtube.com/@EdumetraGlobal' },
     ];
 
     return (
@@ -279,22 +278,28 @@ export default function Footer() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         {/* Social Links */}
-                        <div className="flex items-center gap-3">
-                            {socialLinks.map((social, index) => {
-                                const Icon = social.icon;
-                                return (
-                                    <a
-                                        key={index}
-                                        href={social.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-10 h-10 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded flex items-center justify-center transition-colors"
-                                        aria-label={social.name}
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                    </a>
-                                );
-                            })}
+                        <div className="flex flex-col items-center md:items-start gap-2">
+                            <div className="flex items-center gap-3">
+                                {socialLinks.map((social, index) => {
+                                    const Icon = social.icon;
+                                    return (
+                                        <a
+                                            key={index}
+                                            href={social.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded flex items-center justify-center transition-colors"
+                                            aria-label={social.name}
+                                            title={social.name}
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-xs text-slate-500">
+                                📘 Facebook · 📸 Instagram · 💼 LinkedIn · ▶️ YouTube
+                            </p>
                         </div>
 
                         {/* Copyright */}
