@@ -80,8 +80,10 @@ export const generateStructuredData = (type, data) => {
                 logo: `${seoConfig.siteUrl}/logo-final.jpg`,
                 sameAs: [
                     'https://twitter.com/edumetra',
-                    'https://facebook.com/edumetra',
-                    'https://instagram.com/edumetra',
+                    'https://www.facebook.com/edumetraglobal',
+                    'https://www.instagram.com/edumetraglobal/',
+                    'https://www.linkedin.com/company/edumetra-global',
+                    'https://www.youtube.com/@EdumetraGlobal',
                 ],
             };
 

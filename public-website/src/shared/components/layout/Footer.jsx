@@ -79,11 +79,11 @@ const Footer = () => {
     ];
 
     const socialLinks = [
-        { name: 'Facebook', icon: Facebook, url: 'https://facebook.com' },
+        { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/edumetraglobal' },
         { name: 'Twitter', icon: Twitter, url: 'https://twitter.com' },
-        { name: 'Instagram', icon: Instagram, url: 'https://instagram.com' },
-        { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com' },
-        { name: 'YouTube', icon: Youtube, url: 'https://youtube.com' },
+        { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/edumetraglobal/' },
+        { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/company/edumetra-global' },
+        { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@EdumetraGlobal' },
     ];
 
     return (
