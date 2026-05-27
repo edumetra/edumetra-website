@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { Upload, X, Loader2, AlertCircle, CheckCircle2, ImageIcon } from "lucide-react";
 
 const BUCKET = "article-images";
@@ -13,7 +12,6 @@ type Props = {
 };
 
 export default function ArticleImageUpload({ value, onChange, disabled }: Props) {
-    const supabase = createClient();
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,16 +25,30 @@ export default function ArticleImageUpload({ value, onChange, disabled }: Props)
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `articles/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(path, file, { cacheControl: "3600", upsert: false });
-        if (uploadErr) {
-            setError(uploadErr.message);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", BUCKET);
+        formData.append("path", path);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Upload failed");
+            }
+
+            const data = await res.json();
+            onChange(data.publicUrl);
+        } catch (err: any) {
+            setError(err.message || "Failed to upload image.");
+        } finally {
             setUploading(false);
-            return;
         }
-        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        onChange(data.publicUrl);
-        setUploading(false);
-    }, [supabase, onChange]);
+    }, [onChange]);
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

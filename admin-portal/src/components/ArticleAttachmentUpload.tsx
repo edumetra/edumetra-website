@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { Paperclip, Loader2 } from "lucide-react";
 
 const BUCKET = "article-images"; // Reusing the same public bucket
@@ -12,7 +11,6 @@ type Props = {
 };
 
 export default function ArticleAttachmentUpload({ onUploadSuccess, disabled }: Props) {
-    const supabase = createClient();
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -24,19 +22,30 @@ export default function ArticleAttachmentUpload({ onUploadSuccess, disabled }: P
         const ext = file.name.split(".").pop() ?? "pdf";
         const path = `attachments/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(path, file, { cacheControl: "3600", upsert: false });
-        
-        if (uploadErr) {
-            alert("Failed to upload attachment: " + uploadErr.message);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", BUCKET);
+        formData.append("path", path);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Upload failed");
+            }
+
+            const data = await res.json();
+            onUploadSuccess(data.publicUrl, file.name);
+        } catch (err: any) {
+            alert("Failed to upload attachment: " + (err.message || "Unknown error"));
+        } finally {
             setUploading(false);
             if (fileRef.current) fileRef.current.value = "";
-            return;
         }
-
-        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        onUploadSuccess(data.publicUrl, file.name);
-        setUploading(false);
-        if (fileRef.current) fileRef.current.value = "";
     };
 
     return (
