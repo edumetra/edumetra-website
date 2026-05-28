@@ -35,6 +35,7 @@ export default function CutoffsManager() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [cutoffs, setCutoffs] = useState<Cutoff[]>([]);
+    const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -42,6 +43,9 @@ export default function CutoffsManager() {
     const [filterYear, setFilterYear] = useState("All");
     const [filterCategory, setFilterCategory] = useState("All");
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadProcessedRows, setUploadProcessedRows] = useState(0);
+    const [uploadTotalRows, setUploadTotalRows] = useState(0);
     const [uploadResult, setUploadResult] = useState<{
         totalRows: number;
         totalColleges: number;
@@ -121,55 +125,80 @@ export default function CutoffsManager() {
     const fetchData = async () => {
         setLoading(true);
         try {
+            const PAGE_SIZE = 1000;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let query = (supabase as any)
+            let baseQuery = (supabase as any)
                 .from("cutoffs")
-                .select("*, colleges(name), college_courses(name)")
-                .order("year", { ascending: false })
-                .order("closing_rank", { ascending: true })
-                .limit(1000);
+                .select("*, colleges(name), college_courses(name)", { count: "exact" });
 
             if (filterExam !== "All") {
-                query = query.eq("exam_name", filterExam);
+                baseQuery = baseQuery.eq("exam_name", filterExam);
             }
             if (filterYear !== "All") {
-                query = query.eq("year", parseInt(filterYear));
+                baseQuery = baseQuery.eq("year", parseInt(filterYear));
             }
             if (filterCategory !== "All") {
-                query = query.eq("category", filterCategory);
+                baseQuery = baseQuery.eq("category", filterCategory);
             }
 
+            let searchOrCond: string | null = null;
             if (debouncedSearchTerm) {
                 const term = debouncedSearchTerm.trim();
                 const [colRes, courseRes] = await Promise.all([
                     (supabase as any).from("colleges").select("id").ilike("name", `%${term}%`),
                     (supabase as any).from("college_courses").select("id").ilike("name", `%${term}%`)
                 ]);
-
                 const matchingCollegeIds = colRes.data ? colRes.data.map((c: any) => c.id) : [];
                 const matchingCourseIds = courseRes.data ? courseRes.data.map((c: any) => c.id) : [];
-
                 let orCond = `exam_name.ilike.%${term}%,category.ilike.%${term}%`;
-                if (matchingCollegeIds.length > 0) {
-                    orCond += `,college_id.in.(${matchingCollegeIds.join(",")})`;
-                }
-                if (matchingCourseIds.length > 0) {
-                    orCond += `,course_id.in.(${matchingCourseIds.join(",")})`;
-                }
-                query = query.or(orCond);
+                if (matchingCollegeIds.length > 0) orCond += `,college_id.in.(${matchingCollegeIds.join(",")})`;
+                if (matchingCourseIds.length > 0) orCond += `,course_id.in.(${matchingCourseIds.join(",")})`;
+                searchOrCond = orCond;
+                baseQuery = baseQuery.or(orCond);
             }
 
-            const { data, error } = await query;
-            if (error) {
-                setFetchError(error.message);
+            // 1) Get exact count (not capped by fetched rows)
+            const { count, error: countError } = await baseQuery;
+            if (countError) {
+                setFetchError(countError.message);
                 setCutoffs([]);
-            } else {
-                setFetchError(null);
-                setCutoffs(data || []);
+                setTotalRecords(0);
+                return;
             }
+            const exactTotal = count ?? 0;
+            setTotalRecords(exactTotal);
+
+            // 2) Fetch all rows in pages (Supabase row cap is per request)
+            let allRows: Cutoff[] = [];
+            for (let start = 0; start < exactTotal; start += PAGE_SIZE) {
+                const end = Math.min(start + PAGE_SIZE - 1, exactTotal - 1);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let pageQuery = (supabase as any)
+                    .from("cutoffs")
+                    .select("*, colleges(name), college_courses(name)")
+                    .order("year", { ascending: false })
+                    .order("closing_rank", { ascending: true })
+                    .range(start, end);
+
+                if (filterExam !== "All") pageQuery = pageQuery.eq("exam_name", filterExam);
+                if (filterYear !== "All") pageQuery = pageQuery.eq("year", parseInt(filterYear));
+                if (filterCategory !== "All") pageQuery = pageQuery.eq("category", filterCategory);
+                if (searchOrCond) pageQuery = pageQuery.or(searchOrCond);
+
+                const { data: pageData, error: pageError } = await pageQuery;
+                if (pageError) {
+                    setFetchError(pageError.message);
+                    setCutoffs([]);
+                    return;
+                }
+                allRows = allRows.concat((pageData || []) as Cutoff[]);
+            }
+            setFetchError(null);
+            setCutoffs(allRows);
         } catch (err: any) {
             setFetchError(err.message);
             setCutoffs([]);
+            setTotalRecords(0);
         } finally {
             setLoading(false);
         }
@@ -245,6 +274,9 @@ export default function CutoffsManager() {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploading(true);
+        setUploadProgress(0);
+        setUploadProcessedRows(0);
+        setUploadTotalRows(0);
         setUploadResult(null);
         Papa.parse(file, {
             header: true,
@@ -261,12 +293,14 @@ export default function CutoffsManager() {
                     closing_score: row.score ? parseFloat(row.score) : null,
                     closing_rank: row.rank ? parseInt(row.rank) : null,
                 })).filter((r) => r.college_id);
+                setUploadTotalRows(inserts.length);
 
                 let insertedCount = 0, updatedCount = 0, unchangedCount = 0, failCount = 0;
                 const errorLog: string[] = [];
                 const existingCollegeIds = new Set<string>();
                 const newCollegeIds = new Set<string>();
                 const totalColleges = new Set(inserts.map((r) => r.college_id)).size;
+                let processedRows = 0;
 
                 for (let i = 0; i < inserts.length; i += 100) {
                     const chunk = inserts.slice(i, i + 100);
@@ -274,22 +308,26 @@ export default function CutoffsManager() {
                     if (res.error) {
                         failCount += chunk.length;
                         errorLog.push(res.error);
-                        continue;
+                    } else {
+                        insertedCount += res.inserted ?? 0;
+                        updatedCount += res.updated ?? 0;
+                        unchangedCount += res.unchanged ?? 0;
+                        failCount += res.failed ?? 0;
+                        if (Array.isArray(res.existingCollegeIds)) {
+                            res.existingCollegeIds.forEach((id: string) => existingCollegeIds.add(id));
+                        }
+                        if (Array.isArray(res.newCollegeIds)) {
+                            res.newCollegeIds.forEach((id: string) => newCollegeIds.add(id));
+                        }
+                        if (Array.isArray(res.errors) && res.errors.length > 0) {
+                            errorLog.push(...res.errors);
+                        }
                     }
 
-                    insertedCount += res.inserted ?? 0;
-                    updatedCount += res.updated ?? 0;
-                    unchangedCount += res.unchanged ?? 0;
-                    failCount += res.failed ?? 0;
-                    if (Array.isArray(res.existingCollegeIds)) {
-                        res.existingCollegeIds.forEach((id: string) => existingCollegeIds.add(id));
-                    }
-                    if (Array.isArray(res.newCollegeIds)) {
-                        res.newCollegeIds.forEach((id: string) => newCollegeIds.add(id));
-                    }
-                    if (Array.isArray(res.errors) && res.errors.length > 0) {
-                        errorLog.push(...res.errors);
-                    }
+                    processedRows += chunk.length;
+                    const pct = inserts.length ? Math.min(100, Math.round((processedRows / inserts.length) * 100)) : 100;
+                    setUploadProcessedRows(processedRows);
+                    setUploadProgress(pct);
                 }
                 setUploadResult({
                     totalRows: inserts.length,
@@ -303,10 +341,17 @@ export default function CutoffsManager() {
                     errors: errorLog,
                 });
                 setUploading(false);
+                setUploadProgress(100);
                 fetchData();
                 if (fileInputRef.current) fileInputRef.current.value = "";
             },
-            error: (err) => { alert("CSV Error: " + err.message); setUploading(false); },
+            error: (err) => {
+                alert("CSV Error: " + err.message);
+                setUploading(false);
+                setUploadProgress(0);
+                setUploadProcessedRows(0);
+                setUploadTotalRows(0);
+            },
         });
     };
 
@@ -342,7 +387,6 @@ export default function CutoffsManager() {
     const filtered = cutoffs;
 
     // Stats
-    const totalRecords = cutoffs.length;
     const uniqueColleges = new Set(cutoffs.map((c) => c.college_id)).size;
     const latestYear = cutoffs[0]?.year ?? CURRENT_YEAR;
 
@@ -367,7 +411,7 @@ export default function CutoffsManager() {
                     <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                         className="flex items-center gap-2 bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-600 text-sm font-semibold transition-colors">
                         {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                        {uploading ? "Processing..." : "Bulk Upload"}
+                        {uploading ? `Processing... ${uploadProgress}%` : "Bulk Upload"}
                     </button>
                     <button onClick={() => setShowForm(true)}
                         className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500 text-sm font-semibold transition-colors shadow-lg shadow-red-900/20">
@@ -407,6 +451,22 @@ export default function CutoffsManager() {
                         {uploadResult.errors[0] && <p className="text-xs text-red-400 mt-1">{uploadResult.errors[0]}</p>}
                     </div>
                     <button onClick={() => setUploadResult(null)} className="ml-auto text-slate-600 hover:text-slate-400"><X className="w-4 h-4" /></button>
+                </div>
+            )}
+
+            {uploading && (
+                <div className="mb-6 p-4 rounded-xl border bg-blue-500/10 border-blue-500/20">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                        <p className="font-bold text-blue-300">Processing Upload</p>
+                        <p className="text-slate-300">{uploadProcessedRows} / {uploadTotalRows} rows</p>
+                    </div>
+                    <div className="w-full h-2 rounded bg-slate-800 overflow-hidden">
+                        <div
+                            className="h-full bg-blue-500 transition-all duration-200"
+                            style={{ width: `${uploadProgress}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">{uploadProgress}% completed</p>
                 </div>
             )}
 
