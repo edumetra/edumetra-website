@@ -342,16 +342,30 @@ export async function createCutoffsBulk(chunk: any[]) {
     let failed = 0;
     const errors: string[] = [];
 
+    const normalizeText = (value: unknown) =>
+        String(value ?? "").trim().replace(/\s+/g, " ");
+
+    const normalizeExam = (value: unknown) => normalizeText(value).toUpperCase();
+    const normalizeCategory = (value: unknown) => normalizeText(value).toUpperCase();
+    const buildKey = (payload: {
+        college_id: string;
+        course_id: string | null;
+        exam_name: string;
+        year: number;
+        category: string;
+    }) =>
+        `${payload.college_id}_${payload.course_id ?? "null"}_${normalizeExam(payload.exam_name)}_${payload.year}_${normalizeCategory(payload.category)}`;
+
     // 1. Filter out completely invalid rows and parse payloads
     const parsedPayloads: any[] = [];
     for (let i = 0; i < chunk.length; i++) {
         const row = chunk[i];
         const payload = {
-            college_id: row.college_id,
-            course_id: row.course_id ?? null,
-            exam_name: row.exam_name,
+            college_id: String(row.college_id ?? "").trim(),
+            course_id: row.course_id ? String(row.course_id).trim() : null,
+            exam_name: normalizeExam(row.exam_name),
             year: Number(row.year),
-            category: row.category,
+            category: normalizeCategory(row.category),
             closing_score: row.closing_score ?? null,
             closing_rank: row.closing_rank ?? null,
         };
@@ -365,14 +379,23 @@ export async function createCutoffsBulk(chunk: any[]) {
         }
     }
 
+    // If same logical key appears multiple times in the same CSV chunk,
+    // keep the last occurrence only.
+    const dedupedByKey = new Map<string, any>();
+    for (const payload of parsedPayloads) {
+        if (!payload) continue;
+        dedupedByKey.set(buildKey(payload), payload);
+    }
+    const dedupedPayloads = Array.from(dedupedByKey.values());
+
     // 2. Fetch existing records for all colleges in this chunk in parallel
-    const collegeIds = Array.from(new Set(parsedPayloads.filter(Boolean).map(p => p.college_id)));
-    const existingMap = new Map<string, string>(); // Key -> id
+    const collegeIds = Array.from(new Set(dedupedPayloads.map(p => p.college_id)));
+    const existingMap = new Map<string, string[]>(); // Key -> ids
     
     if (collegeIds.length > 0) {
         const { data: existingRows, error: selectErr } = await (adminClient as any)
             .from("cutoffs")
-            .select("id, college_id, course_id, exam_name, year, category")
+            .select("id, college_id, course_id, exam_name, year, category, created_at")
             .in("college_id", collegeIds);
 
         if (selectErr) {
@@ -380,9 +403,14 @@ export async function createCutoffsBulk(chunk: any[]) {
         }
 
         if (existingRows) {
-            for (const rec of existingRows) {
-                const key = `${rec.college_id}_${rec.course_id ?? 'null'}_${rec.exam_name}_${rec.year}_${rec.category}`;
-                existingMap.set(key, rec.id);
+            const sortedRows = [...existingRows].sort((a: any, b: any) =>
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            );
+            for (const rec of sortedRows) {
+                const key = `${rec.college_id}_${rec.course_id ?? "null"}_${normalizeExam(rec.exam_name)}_${rec.year}_${normalizeCategory(rec.category)}`;
+                const ids = existingMap.get(key) ?? [];
+                ids.push(rec.id);
+                existingMap.set(key, ids);
             }
         }
     }
@@ -390,13 +418,14 @@ export async function createCutoffsBulk(chunk: any[]) {
     // 3. Separate into batch inserts and individual/parallel updates
     const toInsert: any[] = [];
     const toUpdate: { id: string; closing_score: number | null; closing_rank: number | null; rowIndex: number }[] = [];
+    const duplicateIdsToDelete = new Set<string>();
 
-    for (let i = 0; i < parsedPayloads.length; i++) {
-        const payload = parsedPayloads[i];
-        if (!payload) continue;
+    for (let i = 0; i < dedupedPayloads.length; i++) {
+        const payload = dedupedPayloads[i];
 
-        const key = `${payload.college_id}_${payload.course_id ?? 'null'}_${payload.exam_name}_${payload.year}_${payload.category}`;
-        const existingId = existingMap.get(key);
+        const key = buildKey(payload);
+        const existingIds = existingMap.get(key) ?? [];
+        const existingId = existingIds[0];
 
         if (existingId) {
             toUpdate.push({
@@ -405,6 +434,10 @@ export async function createCutoffsBulk(chunk: any[]) {
                 closing_rank: payload.closing_rank,
                 rowIndex: i + 1
             });
+            // If duplicates already exist for same key, remove extras.
+            if (existingIds.length > 1) {
+                for (const dupId of existingIds.slice(1)) duplicateIdsToDelete.add(dupId);
+            }
         } else {
             toInsert.push(payload);
         }
@@ -424,9 +457,9 @@ export async function createCutoffsBulk(chunk: any[]) {
         }
     }
 
-    // 5. Perform updates in parallel (Promise.all is extremely fast for single-row calls)
+    // 5. Perform updates
     if (toUpdate.length > 0) {
-        await Promise.all(toUpdate.map(async (item) => {
+        for (const item of toUpdate) {
             const { error: updateErr } = await (adminClient as any)
                 .from("cutoffs")
                 .update({
@@ -441,7 +474,18 @@ export async function createCutoffsBulk(chunk: any[]) {
             } else {
                 updated += 1;
             }
-        }));
+        }
+    }
+
+    // 6. Cleanup old duplicates for keys touched in this upload
+    if (duplicateIdsToDelete.size > 0) {
+        const { error: deleteDupErr } = await (adminClient as any)
+            .from("cutoffs")
+            .delete()
+            .in("id", Array.from(duplicateIdsToDelete));
+        if (deleteDupErr) {
+            errors.push(`Duplicate cleanup warning: ${deleteDupErr.message}`);
+        }
     }
 
     return {
