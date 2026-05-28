@@ -42,7 +42,17 @@ export default function CutoffsManager() {
     const [filterYear, setFilterYear] = useState("All");
     const [filterCategory, setFilterCategory] = useState("All");
     const [uploading, setUploading] = useState(false);
-    const [uploadResult, setUploadResult] = useState<{ inserted: number; updated: number; failed: number; errors: string[] } | null>(null);
+    const [uploadResult, setUploadResult] = useState<{
+        totalRows: number;
+        totalColleges: number;
+        existingColleges: number;
+        newColleges: number;
+        inserted: number;
+        updated: number;
+        unchanged: number;
+        failed: number;
+        errors: string[];
+    } | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValues, setEditValues] = useState<Partial<Cutoff>>({});
 
@@ -252,8 +262,12 @@ export default function CutoffsManager() {
                     closing_rank: row.rank ? parseInt(row.rank) : null,
                 })).filter((r) => r.college_id);
 
-                let insertedCount = 0, updatedCount = 0, failCount = 0;
+                let insertedCount = 0, updatedCount = 0, unchangedCount = 0, failCount = 0;
                 const errorLog: string[] = [];
+                const existingCollegeIds = new Set<string>();
+                const newCollegeIds = new Set<string>();
+                const totalColleges = new Set(inserts.map((r) => r.college_id)).size;
+
                 for (let i = 0; i < inserts.length; i += 100) {
                     const chunk = inserts.slice(i, i + 100);
                     const res = await createCutoffsBulk(chunk);
@@ -265,12 +279,29 @@ export default function CutoffsManager() {
 
                     insertedCount += res.inserted ?? 0;
                     updatedCount += res.updated ?? 0;
+                    unchangedCount += res.unchanged ?? 0;
                     failCount += res.failed ?? 0;
+                    if (Array.isArray(res.existingCollegeIds)) {
+                        res.existingCollegeIds.forEach((id: string) => existingCollegeIds.add(id));
+                    }
+                    if (Array.isArray(res.newCollegeIds)) {
+                        res.newCollegeIds.forEach((id: string) => newCollegeIds.add(id));
+                    }
                     if (Array.isArray(res.errors) && res.errors.length > 0) {
                         errorLog.push(...res.errors);
                     }
                 }
-                setUploadResult({ inserted: insertedCount, updated: updatedCount, failed: failCount, errors: errorLog });
+                setUploadResult({
+                    totalRows: inserts.length,
+                    totalColleges,
+                    existingColleges: existingCollegeIds.size,
+                    newColleges: newCollegeIds.size,
+                    inserted: insertedCount,
+                    updated: updatedCount,
+                    unchanged: unchangedCount,
+                    failed: failCount,
+                    errors: errorLog,
+                });
                 setUploading(false);
                 fetchData();
                 if (fileInputRef.current) fileInputRef.current.value = "";
@@ -369,10 +400,10 @@ export default function CutoffsManager() {
                     {uploadResult.failed > 0 ? <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" /> : <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />}
                     <div className="text-sm">
                         <p className={`font-bold ${uploadResult.failed > 0 ? "text-amber-400" : "text-emerald-400"}`}>Upload Complete</p>
-                        <p className="text-slate-400 mt-0.5">
-                            {uploadResult.inserted} inserted, {uploadResult.updated} updated.
-                            {uploadResult.failed > 0 && ` ${uploadResult.failed} failed.`}
-                        </p>
+                        <p className="text-slate-400 mt-0.5">{uploadResult.totalRows} rows from {uploadResult.totalColleges} colleges processed.</p>
+                        <p className="text-slate-400 mt-0.5">{uploadResult.existingColleges} colleges already had cutoff data, {uploadResult.newColleges} colleges are new in cutoffs.</p>
+                        <p className="text-slate-400 mt-0.5">{uploadResult.updated} rows updated, {uploadResult.inserted} rows newly added, {uploadResult.unchanged} rows already same (no change).</p>
+                        {uploadResult.failed > 0 && <p className="text-slate-400 mt-0.5">{uploadResult.failed} rows failed.</p>}
                         {uploadResult.errors[0] && <p className="text-xs text-red-400 mt-1">{uploadResult.errors[0]}</p>}
                     </div>
                     <button onClick={() => setUploadResult(null)} className="ml-auto text-slate-600 hover:text-slate-400"><X className="w-4 h-4" /></button>

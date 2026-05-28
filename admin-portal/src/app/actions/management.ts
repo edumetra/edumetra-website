@@ -339,6 +339,7 @@ export async function createCutoffsBulk(chunk: any[]) {
     const adminClient = createAdminClient();
     let inserted = 0;
     let updated = 0;
+    let unchanged = 0;
     let failed = 0;
     const errors: string[] = [];
 
@@ -390,7 +391,13 @@ export async function createCutoffsBulk(chunk: any[]) {
 
     // 2. Fetch existing records for all colleges in this chunk in parallel
     const collegeIds = Array.from(new Set(dedupedPayloads.map(p => p.college_id)));
-    const existingMap = new Map<string, string[]>(); // Key -> ids
+    const existingMap = new Map<string, {
+        id: string;
+        closing_score: number | null;
+        closing_rank: number | null;
+        duplicateIds: string[];
+    }>(); // Key -> canonical row + duplicates
+    const existingCollegeIds = new Set<string>();
     
     if (collegeIds.length > 0) {
         const { data: existingRows, error: selectErr } = await (adminClient as any)
@@ -407,10 +414,19 @@ export async function createCutoffsBulk(chunk: any[]) {
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             );
             for (const rec of sortedRows) {
+                existingCollegeIds.add(rec.college_id);
                 const key = `${rec.college_id}_${rec.course_id ?? "null"}_${normalizeExam(rec.exam_name)}_${rec.year}_${normalizeCategory(rec.category)}`;
-                const ids = existingMap.get(key) ?? [];
-                ids.push(rec.id);
-                existingMap.set(key, ids);
+                const found = existingMap.get(key);
+                if (!found) {
+                    existingMap.set(key, {
+                        id: rec.id,
+                        closing_score: rec.closing_score ?? null,
+                        closing_rank: rec.closing_rank ?? null,
+                        duplicateIds: [],
+                    });
+                } else {
+                    found.duplicateIds.push(rec.id);
+                }
             }
         }
     }
@@ -424,10 +440,21 @@ export async function createCutoffsBulk(chunk: any[]) {
         const payload = dedupedPayloads[i];
 
         const key = buildKey(payload);
-        const existingIds = existingMap.get(key) ?? [];
-        const existingId = existingIds[0];
+        const existingRecord = existingMap.get(key);
+        const existingId = existingRecord?.id;
 
         if (existingId) {
+            const sameScore = (existingRecord?.closing_score ?? null) === (payload.closing_score ?? null);
+            const sameRank = (existingRecord?.closing_rank ?? null) === (payload.closing_rank ?? null);
+
+            if (sameScore && sameRank) {
+                unchanged += 1;
+                if (existingRecord && existingRecord.duplicateIds.length > 0) {
+                    for (const dupId of existingRecord.duplicateIds) duplicateIdsToDelete.add(dupId);
+                }
+                continue;
+            }
+
             toUpdate.push({
                 id: existingId,
                 closing_score: payload.closing_score,
@@ -435,8 +462,8 @@ export async function createCutoffsBulk(chunk: any[]) {
                 rowIndex: i + 1
             });
             // If duplicates already exist for same key, remove extras.
-            if (existingIds.length > 1) {
-                for (const dupId of existingIds.slice(1)) duplicateIdsToDelete.add(dupId);
+            if (existingRecord && existingRecord.duplicateIds.length > 0) {
+                for (const dupId of existingRecord.duplicateIds) duplicateIdsToDelete.add(dupId);
             }
         } else {
             toInsert.push(payload);
@@ -492,7 +519,10 @@ export async function createCutoffsBulk(chunk: any[]) {
         success: true,
         inserted,
         updated,
+        unchanged,
         failed,
+        existingCollegeIds: Array.from(existingCollegeIds),
+        newCollegeIds: collegeIds.filter((id) => !existingCollegeIds.has(id)),
         errors,
     };
 }
