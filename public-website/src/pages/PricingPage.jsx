@@ -78,11 +78,11 @@ const PricingPage = () => {
                     const profile = result.data;
                     const currentTier = profile.account_type || 'free';
                     if (currentTier === 'pro') {
-                        toast.error('You are already on the highest plan (Plus) and cannot purchase more.');
+                        toast.error('You are already on the highest plan (Premium Guidance Plan) and cannot purchase more.');
                         return;
                     }
                     if (currentTier === 'premium' && key === 'premium') {
-                        toast.error('You already have the Premium plan. You can upgrade to Plus.');
+                        toast.error('You already have the Pro Plan. You can upgrade to Premium Guidance Plan.');
                         return;
                     }
                 }
@@ -116,43 +116,42 @@ const PricingPage = () => {
             popular: false,
         },
         {
-            name: 'Premium',
+            name: 'Pro Plan',
             originalPrice: '₹10,000',
             price: '₹3,000',
             period: 'One-time payment',
-            description: 'Best for serious applicants comparing multiple colleges.',
+            description: 'Affordable self-guided counselling solution.',
             badge: 'Most Popular',
             features: [
-                { text: 'Everything in Free', included: true },
-                { text: 'Full placement stats & recruiters', included: true },
-                { text: 'Unlimited college shortlisting', included: true },
-                { text: 'Side-by-side comparison (up to 4)', included: true },
-                { text: 'Unlimited reviews access', included: true },
-                { text: 'Priority deadline reminders', included: true },
-                { text: 'Application tracker', included: true },
-                { text: 'Expert counselling sessions', included: false },
+                { text: 'Access to verified MBBS colleges in India & Abroad', included: true },
+                { text: 'State-wise counselling and admission data', included: true },
+                { text: 'College predictor & cutoff analysis tools', included: true },
+                { text: 'Fee structure, seat matrix & eligibility details', included: true },
+                { text: 'Latest counselling updates and notifications', included: true },
+                { text: 'Personalized dashboard for counselling tracking', included: true },
+                { text: 'Affordable self-guided counselling solution', included: true },
             ],
-            cta: 'Start Premium',
+            cta: 'Start Pro Plan',
             variant: 'primary',
             popular: true,
         },
         {
-            name: 'Plus',
+            name: 'Premium Guidance Plan',
             originalPrice: '₹50,000',
             price: '₹30,000',
             period: 'One-time payment',
             description: 'For students who want expert guidance and full access.',
             features: [
-                { text: 'Everything in Premium', included: true },
-                { text: '1-on-1 expert counselling (2/month)', included: true },
-                { text: 'Personalised college roadmap', included: true },
-                { text: 'Priority application reviews', included: true },
-                { text: 'Early access to new features', included: true },
-                { text: 'Dedicated account manager', included: true },
-                { text: 'Interview preparation resources', included: true },
-                { text: 'Scholarship discovery engine', included: true },
+                { text: 'Dedicated admission counsellor for personalized guidance', included: true },
+                { text: 'Complete support for multi-state counselling participation', included: true },
+                { text: 'Registration & choice filling done by experts', included: true },
+                { text: 'Personalized counselling strategy based on NEET score', included: true },
+                { text: 'College shortlisting for best admission chances', included: true },
+                { text: 'Real-time counselling updates and seat tracking', included: true },
+                { text: 'Guidance for document verification & reporting', included: true },
+                { text: 'End-to-end support till final admission confirmation', included: true },
             ],
-            cta: 'Start Plus',
+            cta: 'Start Premium Guidance',
             variant: 'secondary',
             popular: false,
         },
@@ -173,11 +172,11 @@ const PricingPage = () => {
         },
         {
             question: 'Is this a one-time payment?',
-            answer: 'Yes, both Premium and Plus plans are one-time payments. There are no recurring monthly charges.',
+            answer: 'Yes, both Pro and Premium Guidance plans are one-time payments. There are no recurring monthly charges.',
         },
         {
             question: 'Do you offer student discounts?',
-            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Premium/Plus are packed with value!',
+            answer: 'We keep our pricing affordable for all students. Our free plan is generous, and Pro/Premium Guidance plans are packed with value!',
         },
     ];
 
@@ -199,7 +198,7 @@ const PricingPage = () => {
                                 Simple, <span className="gradient-text">Transparent Pricing</span>
                             </h1>
                             <p className="text-slate-300 text-lg md:text-xl">
-                                Start free. Upgrade when you're ready to dive deeper with Premium or Plus guidance.
+                                Start free. Upgrade when you're ready to dive deeper with Pro Plan or Premium Guidance.
                             </p>
                         </motion.div>
                     </div>

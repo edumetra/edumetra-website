@@ -27,10 +27,10 @@ export default function UpgradeModal({ isOpen, onClose, featureName }) {
                 </div>
 
                 <div className="text-center mb-6">
-                    <h2 className="text-2xl font-black text-white mb-2">Unlock Premium</h2>
+                    <h2 className="text-2xl font-black text-white mb-2">Unlock Pro Plan</h2>
                     {featureName && (
                         <p className="text-slate-400 text-sm">
-                            <span className="text-amber-400 font-semibold">"{featureName}"</span> is a Premium feature.
+                            <span className="text-amber-400 font-semibold">"{featureName}"</span> is a Pro Plan feature.
                         </p>
                     )}
                     <p className="text-slate-400 text-sm mt-1">Upgrade to access this and much more.</p>
@@ -64,7 +64,7 @@ export default function UpgradeModal({ isOpen, onClose, featureName }) {
                     onClick={onClose}
                     className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-amber-900/30"
                 >
-                    <Zap className="w-4 h-4" /> Upgrade to Premium
+                    <Zap className="w-4 h-4" /> Upgrade to Pro Plan
                 </Link>
                 <button onClick={onClose} className="w-full mt-3 py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors">
                     Maybe later

@@ -190,7 +190,7 @@ const ProfilePage = () => {
         );
     }
 
-    const tierName = profile.account_type === 'pro' ? 'Plus' : profile.account_type.charAt(0).toUpperCase() + profile.account_type.slice(1);
+    const tierName = profile.account_type === 'pro' ? 'Premium Guidance Plan' : profile.account_type === 'premium' ? 'Pro Plan' : 'Free';
 
     return (
         <>
@@ -251,7 +251,7 @@ const ProfilePage = () => {
                                     to="/pricing" 
                                     className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-red-900/20 whitespace-nowrap text-center"
                                 >
-                                    {profile.account_type === 'free' ? 'Upgrade Now' : 'Upgrade to Plus'}
+                                    {profile.account_type === 'free' ? 'Upgrade Now' : 'Upgrade to Premium Guidance'}
                                 </Link>
                             )}
                         </div>

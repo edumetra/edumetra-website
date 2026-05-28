@@ -107,7 +107,7 @@ export default function RankPredictorPage() {
                         <h2 className="text-2xl font-black text-white mb-4">Predictor is a Premium Feature</h2>
                         <p className="text-slate-400 mb-8 leading-relaxed">
                             Join 10,000+ students who use our predictor to make smarter admission choices. 
-                            Upgrade to Premium or Pro to unlock Safe/Moderate/Risky indicators.
+                            Upgrade to Pro Plan or Premium Guidance to unlock Safe/Moderate/Risky indicators.
                         </p>
                         <Link
                             to="/pricing"
@@ -166,7 +166,7 @@ export default function RankPredictorPage() {
                                             </div>
                                         </div>
                                     )}
-                                    {isPro && <p className="text-amber-400/60 text-xs mt-3 font-bold">💎 Pro Plan: Unlimited Predictions</p>}
+                                    {isPro && <p className="text-amber-400/60 text-xs mt-3 font-bold">💎 Premium Guidance Plan: Unlimited Predictions</p>}
                                 </div>
                             </div>
 

@@ -27,7 +27,8 @@ type Cutoff = {
 const EXAMS = ["NEET", "JEE Main", "JEE Advanced", "GATE", "CAT", "CLAT", "CUET", "Custom"];
 const CATEGORIES = ["General", "OBC", "SC", "ST", "EWS", "AIQ", "Management", "NRI"];
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
+const FALLBACK_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
+const MAX_CUTOFF_ROWS = 5000;
 
 export default function CutoffsManager() {
     const supabase = createClient();
@@ -36,13 +37,19 @@ export default function CutoffsManager() {
     const [cutoffs, setCutoffs] = useState<Cutoff[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
     const [filterExam, setFilterExam] = useState("All");
     const [filterYear, setFilterYear] = useState("All");
     const [filterCategory, setFilterCategory] = useState("All");
     const [uploading, setUploading] = useState(false);
-    const [uploadResult, setUploadResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+    const [uploadResult, setUploadResult] = useState<{ inserted: number; updated: number; failed: number; errors: string[] } | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValues, setEditValues] = useState<Partial<Cutoff>>({});
+
+    // Dynamic Filter Option Lists
+    const [availableExams, setAvailableExams] = useState<string[]>(EXAMS);
+    const [availableCategories, setAvailableCategories] = useState<string[]>(CATEGORIES);
+    const [availableYears, setAvailableYears] = useState<number[]>(FALLBACK_YEARS);
 
     // Form Modal
     const [showForm, setShowForm] = useState(false);
@@ -55,25 +62,107 @@ export default function CutoffsManager() {
     const [saving, setSaving] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
 
-    useEffect(() => { fetchData(); fetchColleges(); }, []);// eslint-disable-line
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Fetch filters options once on mount
+    useEffect(() => {
+        fetchColleges();
+        fetchFilterOptions();
+    }, []); // eslint-disable-line
+
+    // Re-fetch data whenever filters or debounced search term change
+    useEffect(() => {
+        fetchData();
+    }, [filterExam, filterYear, filterCategory, debouncedSearchTerm]); // eslint-disable-line
+
+    const fetchFilterOptions = async () => {
+        try {
+            // Fetch metadata ranges in parallel chunks to cover all rows in db
+            const chunks = await Promise.all([
+                (supabase as any).from('cutoffs').select('category, exam_name, year').range(0, 999),
+                (supabase as any).from('cutoffs').select('category, exam_name, year').range(1000, 1999),
+                (supabase as any).from('cutoffs').select('category, exam_name, year').range(2000, 2999),
+                (supabase as any).from('cutoffs').select('category, exam_name, year').range(3000, 3999),
+                (supabase as any).from('cutoffs').select('category, exam_name, year').range(4000, 4999),
+            ]);
+
+            const allRows = chunks.flatMap(c => c.data || []);
+            
+            if (allRows.length > 0) {
+                const exams = Array.from(new Set(allRows.map(r => r.exam_name).filter(Boolean))) as string[];
+                const categories = Array.from(new Set(allRows.map(r => r.category).filter(Boolean))) as string[];
+                const years = Array.from(new Set(allRows.map(r => r.year).filter(Boolean))).sort((a, b) => b - a) as number[];
+
+                if (exams.length > 0) setAvailableExams(exams);
+                if (categories.length > 0) setAvailableCategories(categories);
+                if (years.length > 0) setAvailableYears(years);
+            }
+        } catch (error) {
+            console.error("Failed to fetch filter options:", error);
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
-            .from("cutoffs")
-            .select("*, colleges(name), college_courses(name)")
-            .order("year", { ascending: false })
-            .order("closing_rank", { ascending: true })
-            .limit(500);
-        if (error) {
-            setFetchError(error.message);
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let query = (supabase as any)
+                .from("cutoffs")
+                .select("*, colleges(name), college_courses(name)")
+                .order("year", { ascending: false })
+                .order("closing_rank", { ascending: true })
+                .limit(1000);
+
+            if (filterExam !== "All") {
+                query = query.eq("exam_name", filterExam);
+            }
+            if (filterYear !== "All") {
+                query = query.eq("year", parseInt(filterYear));
+            }
+            if (filterCategory !== "All") {
+                query = query.eq("category", filterCategory);
+            }
+
+            if (debouncedSearchTerm) {
+                const term = debouncedSearchTerm.trim();
+                const [colRes, courseRes] = await Promise.all([
+                    (supabase as any).from("colleges").select("id").ilike("name", `%${term}%`),
+                    (supabase as any).from("college_courses").select("id").ilike("name", `%${term}%`)
+                ]);
+
+                const matchingCollegeIds = colRes.data ? colRes.data.map((c: any) => c.id) : [];
+                const matchingCourseIds = courseRes.data ? courseRes.data.map((c: any) => c.id) : [];
+
+                let orCond = `exam_name.ilike.%${term}%,category.ilike.%${term}%`;
+                if (matchingCollegeIds.length > 0) {
+                    orCond += `,college_id.in.(${matchingCollegeIds.join(",")})`;
+                }
+                if (matchingCourseIds.length > 0) {
+                    orCond += `,course_id.in.(${matchingCourseIds.join(",")})`;
+                }
+                query = query.or(orCond);
+            }
+
+            const { data, error } = await query;
+            if (error) {
+                setFetchError(error.message);
+                setCutoffs([]);
+            } else {
+                setFetchError(null);
+                setCutoffs(data || []);
+            }
+        } catch (err: any) {
+            setFetchError(err.message);
             setCutoffs([]);
-        } else {
-            setFetchError(null);
-            setCutoffs(data || []);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const fetchColleges = async () => {
@@ -163,15 +252,25 @@ export default function CutoffsManager() {
                     closing_rank: row.rank ? parseInt(row.rank) : null,
                 })).filter((r) => r.college_id);
 
-                let successCount = 0, failCount = 0;
+                let insertedCount = 0, updatedCount = 0, failCount = 0;
                 const errorLog: string[] = [];
                 for (let i = 0; i < inserts.length; i += 100) {
                     const chunk = inserts.slice(i, i + 100);
                     const res = await createCutoffsBulk(chunk);
-                    if (res.error) { failCount += chunk.length; errorLog.push(res.error); }
-                    else successCount += chunk.length;
+                    if (res.error) {
+                        failCount += chunk.length;
+                        errorLog.push(res.error);
+                        continue;
+                    }
+
+                    insertedCount += res.inserted ?? 0;
+                    updatedCount += res.updated ?? 0;
+                    failCount += res.failed ?? 0;
+                    if (Array.isArray(res.errors) && res.errors.length > 0) {
+                        errorLog.push(...res.errors);
+                    }
                 }
-                setUploadResult({ success: successCount, failed: failCount, errors: errorLog });
+                setUploadResult({ inserted: insertedCount, updated: updatedCount, failed: failCount, errors: errorLog });
                 setUploading(false);
                 fetchData();
                 if (fileInputRef.current) fileInputRef.current.value = "";
@@ -205,19 +304,11 @@ export default function CutoffsManager() {
         a.click();
     };
 
-    const allExams = Array.from(new Set(cutoffs.map((c) => c.exam_name)));
-    const allCategories = Array.from(new Set(cutoffs.map((c) => c.category)));
+    const allExams = availableExams;
+    const allCategories = availableCategories;
 
-    const filtered = cutoffs.filter((c) => {
-        const matchSearch = !searchTerm ||
-            (c.colleges?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            c.exam_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.category.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchExam = filterExam === "All" || c.exam_name === filterExam;
-        const matchYear = filterYear === "All" || c.year === parseInt(filterYear);
-        const matchCat = filterCategory === "All" || c.category === filterCategory;
-        return matchSearch && matchExam && matchYear && matchCat;
-    });
+    // Use our server-filtered data as the active list
+    const filtered = cutoffs;
 
     // Stats
     const totalRecords = cutoffs.length;
@@ -279,7 +370,8 @@ export default function CutoffsManager() {
                     <div className="text-sm">
                         <p className={`font-bold ${uploadResult.failed > 0 ? "text-amber-400" : "text-emerald-400"}`}>Upload Complete</p>
                         <p className="text-slate-400 mt-0.5">
-                            {uploadResult.success} rows imported. {uploadResult.failed > 0 && `${uploadResult.failed} failed.`}
+                            {uploadResult.inserted} inserted, {uploadResult.updated} updated.
+                            {uploadResult.failed > 0 && ` ${uploadResult.failed} failed.`}
                         </p>
                         {uploadResult.errors[0] && <p className="text-xs text-red-400 mt-1">{uploadResult.errors[0]}</p>}
                     </div>
@@ -301,7 +393,7 @@ export default function CutoffsManager() {
                 </div>
                 {[
                     { label: "Exam", value: filterExam, setter: setFilterExam, options: ["All", ...allExams] },
-                    { label: "Year", value: filterYear, setter: setFilterYear, options: ["All", ...YEARS.map(String)] },
+                    { label: "Year", value: filterYear, setter: setFilterYear, options: ["All", ...availableYears.map(String)] },
                     { label: "Category", value: filterCategory, setter: setFilterCategory, options: ["All", ...allCategories] },
                 ].map((f) => (
                     <div key={f.label} className="relative">
@@ -462,7 +554,7 @@ export default function CutoffsManager() {
                                     <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Year *</label>
                                     <select required className={inputCls} value={formData.year}
                                         onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}>
-                                        {YEARS.map((y) => <option key={y}>{y}</option>)}
+                                        {availableYears.map((y) => <option key={y}>{y}</option>)}
                                     </select>
                                 </div>
                             </div>

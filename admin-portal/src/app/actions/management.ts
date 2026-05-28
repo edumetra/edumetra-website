@@ -337,10 +337,120 @@ export async function createCutoffsBulk(chunk: any[]) {
     const auth = await requireAdmin();
     if (auth.error) return { error: auth.error };
     const adminClient = createAdminClient();
-    const { error } = await (adminClient as any)
-        .from("cutoffs")
-        .insert(chunk);
-    return error ? { error: error.message } : { success: true };
+    let inserted = 0;
+    let updated = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    // 1. Filter out completely invalid rows and parse payloads
+    const parsedPayloads: any[] = [];
+    for (let i = 0; i < chunk.length; i++) {
+        const row = chunk[i];
+        const payload = {
+            college_id: row.college_id,
+            course_id: row.course_id ?? null,
+            exam_name: row.exam_name,
+            year: Number(row.year),
+            category: row.category,
+            closing_score: row.closing_score ?? null,
+            closing_rank: row.closing_rank ?? null,
+        };
+
+        if (!payload.college_id || !payload.exam_name || !payload.category || Number.isNaN(payload.year)) {
+            failed += 1;
+            errors.push(`Row ${i + 1}: Missing required fields (college_id/exam_name/year/category).`);
+            parsedPayloads.push(null);
+        } else {
+            parsedPayloads.push(payload);
+        }
+    }
+
+    // 2. Fetch existing records for all colleges in this chunk in parallel
+    const collegeIds = Array.from(new Set(parsedPayloads.filter(Boolean).map(p => p.college_id)));
+    const existingMap = new Map<string, string>(); // Key -> id
+    
+    if (collegeIds.length > 0) {
+        const { data: existingRows, error: selectErr } = await (adminClient as any)
+            .from("cutoffs")
+            .select("id, college_id, course_id, exam_name, year, category")
+            .in("college_id", collegeIds);
+
+        if (selectErr) {
+            return { error: selectErr.message };
+        }
+
+        if (existingRows) {
+            for (const rec of existingRows) {
+                const key = `${rec.college_id}_${rec.course_id ?? 'null'}_${rec.exam_name}_${rec.year}_${rec.category}`;
+                existingMap.set(key, rec.id);
+            }
+        }
+    }
+
+    // 3. Separate into batch inserts and individual/parallel updates
+    const toInsert: any[] = [];
+    const toUpdate: { id: string; closing_score: number | null; closing_rank: number | null; rowIndex: number }[] = [];
+
+    for (let i = 0; i < parsedPayloads.length; i++) {
+        const payload = parsedPayloads[i];
+        if (!payload) continue;
+
+        const key = `${payload.college_id}_${payload.course_id ?? 'null'}_${payload.exam_name}_${payload.year}_${payload.category}`;
+        const existingId = existingMap.get(key);
+
+        if (existingId) {
+            toUpdate.push({
+                id: existingId,
+                closing_score: payload.closing_score,
+                closing_rank: payload.closing_rank,
+                rowIndex: i + 1
+            });
+        } else {
+            toInsert.push(payload);
+        }
+    }
+
+    // 4. Perform bulk insert
+    if (toInsert.length > 0) {
+        const { error: insertErr } = await (adminClient as any)
+            .from("cutoffs")
+            .insert(toInsert);
+
+        if (insertErr) {
+            failed += toInsert.length;
+            errors.push(`Bulk Insert Failed: ${insertErr.message}`);
+        } else {
+            inserted += toInsert.length;
+        }
+    }
+
+    // 5. Perform updates in parallel (Promise.all is extremely fast for single-row calls)
+    if (toUpdate.length > 0) {
+        await Promise.all(toUpdate.map(async (item) => {
+            const { error: updateErr } = await (adminClient as any)
+                .from("cutoffs")
+                .update({
+                    closing_score: item.closing_score,
+                    closing_rank: item.closing_rank,
+                })
+                .eq("id", item.id);
+
+            if (updateErr) {
+                failed += 1;
+                errors.push(`Row ${item.rowIndex}: Update Failed - ${updateErr.message}`);
+            } else {
+                updated += 1;
+            }
+        }));
+    }
+
+    return {
+        success: true,
+        inserted,
+        updated,
+        failed,
+        errors,
+    };
 }
 
 export async function updateCutoff(id: string, editValues: any) {
@@ -466,4 +576,3 @@ export async function clearReviewAdminReply(id: string) {
         .eq("id", id);
     return error ? { error: error.message } : { success: true };
 }
-

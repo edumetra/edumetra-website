@@ -106,7 +106,7 @@ export function getWelcomeFlow(user, role) {
                                 {
                                     label: "What's included?",
                                     action: ({ botSay }) => botSay(
-                                        '⚡ Plus Plan (₹3,000 one-time) gives you:\n• Admission Predictor (Safe/Mod/Risky)\n• Full cutoff lists & unlimited views\n• AI preparation strategies & study plans\n\n👑 Counselling Plan (₹30,000 one-time) adds:\n• 1-on-1 personal expert counselling support\n• Complete choice-filling assistance\n• Document validation & verification support',
+                                        '⚡ Pro Plan (₹3,000 one-time) gives you:\n• Access to verified MBBS colleges in India & Abroad\n• State-wise counselling & admission data\n• College predictor & cutoff analysis tools\n• Fee structure, seat matrix & eligibility details\n• Latest counselling updates and notifications\n• Personalized dashboard for counselling tracking\n\n👑 Premium Guidance Plan (₹30,000 one-time) adds:\n• Dedicated admission counsellor for personalized guidance\n• Complete support for multi-state counselling participation\n• Registration & choice filling done by experts\n• College shortlisting & personalized strategy\n• End-to-end support till final admission confirmation',
                                         { delay: 500 }
                                     )
                                 },

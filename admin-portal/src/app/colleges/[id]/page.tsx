@@ -55,7 +55,8 @@ export default async function CollegeViewPage({ params }: { params: Promise<{ id
         .select("exam_name, year, category, closing_score, closing_rank")
         .eq("college_id", resolvedParams.id)
         .order("year", { ascending: false })
-        .limit(20);
+        .order("closing_rank", { ascending: true })
+        .limit(200);
 
     let stats: Record<string, string> | null = null;
     let categoryFees: Record<string, string> | null = null;

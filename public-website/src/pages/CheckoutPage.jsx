@@ -24,7 +24,7 @@ const ORDER_API = '/api/razorpay/create-order';
 const PLANS = {
     premium: {
         id: 'premium',
-        name: 'Premium',
+        name: 'Pro Plan',
         price: 3000,
         originalPrice: 10000,
         period: 'One-time payment',
@@ -33,18 +33,18 @@ const PLANS = {
         badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
         icon: Sparkles,
         features: [
-            'Everything in Free',
-            'Full placement stats & recruiters',
-            'Unlimited college shortlisting',
-            'Side-by-side comparison (up to 4)',
-            'Unlimited reviews access',
-            'Priority deadline reminders',
-            'Application tracker',
+            'Access to verified MBBS colleges in India & Abroad',
+            'State-wise counselling and admission data',
+            'College predictor & cutoff analysis tools',
+            'Fee structure, seat matrix & eligibility details',
+            'Latest counselling updates and notifications',
+            'Personalized dashboard for counselling tracking',
+            'Affordable self-guided counselling solution',
         ],
     },
     pro: {
         id: 'pro',
-        name: 'Plus',
+        name: 'Premium Guidance Plan',
         price: 30000,
         originalPrice: 50000,
         period: 'One-time payment',
@@ -53,14 +53,14 @@ const PLANS = {
         badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
         icon: Zap,
         features: [
-            'Everything in Premium',
-            '1-on-1 expert counselling (2/month)',
-            'Personalised college roadmap',
-            'Priority application reviews',
-            'Early access to new features',
-            'Dedicated account manager',
-            'Interview preparation resources',
-            'Scholarship discovery engine',
+            'Dedicated admission counsellor for personalized guidance',
+            'Complete support for multi-state counselling participation',
+            'Registration & choice filling done by experts',
+            'Personalized counselling strategy based on NEET score',
+            'College shortlisting for best admission chances',
+            'Real-time counselling updates and seat tracking',
+            'Guidance for document verification & reporting',
+            'End-to-end support till final admission confirmation',
         ],
     },
 };
@@ -122,13 +122,13 @@ const CheckoutPage = () => {
 
                 // Eligibility Checks
                 if (currentTier === 'pro') {
-                    toast.error('You already have the Plus plan (highest).');
+                    toast.error('You already have the Premium Guidance Plan (highest).');
                     navigate('/dashboard');
                     return;
                 }
                 
                 if (currentTier === 'premium' && planKey === 'premium') {
-                    toast.error('You already have the Premium plan. You can only upgrade to Plus.');
+                    toast.error('You already have the Pro Plan. You can only upgrade to Premium Guidance Plan.');
                     navigate('/pricing');
                     return;
                 }

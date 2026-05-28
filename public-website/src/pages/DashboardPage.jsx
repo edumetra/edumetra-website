@@ -145,7 +145,7 @@ const DashboardPage = () => {
         );
     }
 
-    const tierName = profile.account_type === 'pro' ? 'Plus' : profile.account_type.charAt(0).toUpperCase() + profile.account_type.slice(1);
+    const tierName = profile.account_type === 'pro' ? 'Premium Guidance Plan' : profile.account_type === 'premium' ? 'Pro Plan' : 'Free';
 
     return (
         <>
