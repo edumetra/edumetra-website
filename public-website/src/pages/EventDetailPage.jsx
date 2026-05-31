@@ -25,15 +25,39 @@ import { analytics } from '../shared/utils/analytics';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { supabase } from '../services/supabaseClient';
 
+const getGoogleCalendarUrl = (event) => {
+    if (!event) return '';
+    const title = event.title || 'Edumetra Webinar';
+    const description = event.description || '';
+    const datePart = event.date ? event.date.replace(/-/g, '') : '';
+    
+    // Default to a 6:00 PM - 7:30 PM IST slot (12:30 PM - 2:00 PM UTC)
+    let startStr = `${datePart}T123000Z`;
+    let endStr = `${datePart}T140000Z`;
+    
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(description)}&sf=true&output=xml`;
+};
+
 const EventDetailPage = () => {
     const { slug } = useParams();
     const { user } = useAuth();
     const [event, setEvent] = useState(null);
     const [regStatus, setRegStatus] = useState('idle'); // idle, submitting, success
     const [regForm, setRegForm] = useState({ name: '', email: '', phone: '' });
+    const [copied, setCopied] = useState(false);
 
     const handleRegFormChange = (e) => {
         setRegForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleShare = () => {
+        const shareUrl = window.location.href;
+        navigator.clipboard.writeText(shareUrl)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            })
+            .catch(err => console.error('Share error:', err));
     };
 
     useEffect(() => {
@@ -234,18 +258,64 @@ const EventDetailPage = () => {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                className="text-center py-8"
+                                                className="text-center py-6"
                                             >
-                                                <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                    <CheckCircle2 className="w-10 h-10 text-green-500" />
+                                                <div className="w-16 h-16 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-4 relative">
+                                                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping opacity-25" />
+                                                    <CheckCircle2 className="w-8 h-8 text-green-500" />
                                                 </div>
-                                                <h3 className="text-2xl font-bold text-white mb-4">You're Registered!</h3>
-                                                <p className="text-slate-400 mb-8">
-                                                    We've sent a confirmation email with all the details to your inbox.
+                                                <h3 className="text-2xl font-bold text-white mb-2">You're Registered! 🎉</h3>
+                                                <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                                                    Thanks, <span className="text-white font-semibold">{regForm.name}</span>! We've sent a confirmation email with all the details to your inbox.
                                                 </p>
+
+                                                {/* Summary card inside the registration panel */}
+                                                <div className="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-4 mb-6 text-left space-y-2.5 backdrop-blur-xl">
+                                                    <span className="inline-block px-2.5 py-0.5 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                                        {event.type}
+                                                    </span>
+                                                    <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">
+                                                        {event.title}
+                                                    </h4>
+                                                    <div className="space-y-1.5 pt-2 border-t border-slate-800">
+                                                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                            <Calendar className="w-3.5 h-3.5 text-red-500" />
+                                                            {new Date(event.date).toLocaleDateString('en-US', {
+                                                                weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                            <Clock className="w-3.5 h-3.5 text-red-500" />
+                                                            {event.time}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Premium Quick Actions */}
+                                                <div className="space-y-3 mb-6">
+                                                    <a
+                                                        href={getGoogleCalendarUrl(event)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm"
+                                                    >
+                                                        <span>📅 Add to Google Calendar</span>
+                                                    </a>
+                                                    <button
+                                                        onClick={handleShare}
+                                                        className={`w-full py-3 px-4 border text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                                                            copied
+                                                                ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
+                                                                : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700/80 hover:border-slate-600'
+                                                        }`}
+                                                    >
+                                                        <span>{copied ? '✅ Link Copied' : '🔗 Share Event'}</span>
+                                                    </button>
+                                                </div>
+
                                                 <button 
                                                     onClick={() => setRegStatus('idle')}
-                                                    className="btn btn-secondary w-full"
+                                                    className="text-xs text-slate-400 hover:text-white underline transition-colors"
                                                 >
                                                     Register Someone Else
                                                 </button>

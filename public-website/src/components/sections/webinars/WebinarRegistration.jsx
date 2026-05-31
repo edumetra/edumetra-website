@@ -67,14 +67,18 @@ const WebinarRegistration = () => {
 
     if (status === 'success') {
         return (
-            <section className="section bg-slate-900/30">
+            <section className="section bg-slate-900/30 relative overflow-hidden">
                 <div className="container-custom">
                     <motion.div
-                        className="card max-w-3xl mx-auto text-center py-12"
+                        className="relative z-10 card-premium max-w-3xl mx-auto text-center p-8 md:p-12 rounded-3xl border border-slate-700 bg-slate-900/80 backdrop-blur-xl overflow-hidden"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                     >
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        {/* Background glow */}
+                        <div className="absolute -inset-4 bg-gradient-to-r from-red-500/10 to-blue-500/10 blur-3xl opacity-50 pointer-events-none" />
+
+                        <div className="w-20 h-20 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                            <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping opacity-25" />
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
@@ -83,14 +87,34 @@ const WebinarRegistration = () => {
                                 <CheckCircle className="w-10 h-10 text-green-500" />
                             </motion.div>
                         </div>
-                        <h2 className="text-3xl font-bold mb-4 text-white">You're on the list! 🎉</h2>
-                        <p className="text-slate-300 text-lg mb-8">
+                        <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-white tracking-tight">You're on the list! 🎉</h2>
+                        <p className="text-slate-300 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
                             Thanks for registering your interest, <span className="text-white font-semibold">{formData.name}</span>!
-                            We'll notify you about upcoming webinars and share exclusive resources.
+                            We'll keep you updated with the latest counseling information and resources.
                         </p>
+
+                        {/* Informative next steps / benefits */}
+                        <div className="grid md:grid-cols-3 gap-4 mb-8 text-left max-w-2xl mx-auto">
+                            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl">
+                                <div className="text-xl mb-1.5">📧</div>
+                                <h4 className="text-sm font-bold text-white mb-1">Instant Alerts</h4>
+                                <p className="text-xs text-slate-400">Direct invitations to live coaching sessions.</p>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl">
+                                <div className="text-xl mb-1.5">📚</div>
+                                <h4 className="text-sm font-bold text-white mb-1">Study Material</h4>
+                                <p className="text-xs text-slate-400">PDF guides, cut-off analyses & planners.</p>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl">
+                                <div className="text-xl mb-1.5">💬</div>
+                                <h4 className="text-sm font-bold text-white mb-1">Direct Updates</h4>
+                                <p className="text-xs text-slate-400">Instant reminders & news on your phone.</p>
+                            </div>
+                        </div>
+
                         <button
                             onClick={reset}
-                            className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all"
+                            className="px-8 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl text-sm"
                         >
                             Register for Another Topic
                         </button>

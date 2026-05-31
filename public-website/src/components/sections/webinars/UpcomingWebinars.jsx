@@ -7,6 +7,151 @@ import { supabase } from '../../../services/supabaseClient';
 import { pushLeadToTeleCRM } from '../../../services/telecrm';
 
 // ------------------------------------------------------------------
+// Google Calendar URL Generator
+// ------------------------------------------------------------------
+const getGoogleCalendarUrl = (event) => {
+    if (!event) return '';
+    const title = event.title || 'Edumetra Webinar';
+    const description = event.description || '';
+    const datePart = event.date ? event.date.replace(/-/g, '') : '';
+    
+    // Default to a 6:00 PM - 7:30 PM IST slot (12:30 PM - 2:00 PM UTC)
+    let startStr = `${datePart}T123000Z`;
+    let endStr = `${datePart}T140000Z`;
+    
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(description)}&sf=true&output=xml`;
+};
+
+// ------------------------------------------------------------------
+// Registration Success Modal
+// ------------------------------------------------------------------
+const RegistrationSuccessModal = ({ event, name, onClose }) => {
+    const [copied, setCopied] = React.useState(false);
+    
+    if (!event) return null;
+
+    const calendarUrl = getGoogleCalendarUrl(event);
+    
+    const handleShare = () => {
+        const shareUrl = `${window.location.origin}/webinars-seminars/${event.slug}`;
+        navigator.clipboard.writeText(shareUrl)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            })
+            .catch(err => console.error('Share error:', err));
+    };
+
+    return (
+        <motion.div
+            className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-sm flex items-center justify-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+            <motion.div
+                className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative p-8 text-center"
+                initial={{ scale: 0.92, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+            >
+                {/* Glowing effect inside modal */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-red-500/10 to-blue-500/10 blur-3xl opacity-50 pointer-events-none" />
+                
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors z-10"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                {/* Animated check circle */}
+                <div className="w-20 h-20 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping opacity-25" />
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 10, delay: 0.1 }}
+                    >
+                        <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </motion.div>
+                </div>
+
+                <h3 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
+                    Registration Confirmed! 🎉
+                </h3>
+                <p className="text-slate-300 text-sm mb-6 max-w-sm mx-auto">
+                    Thanks for registering, <span className="text-white font-semibold">{name}</span>! We've reserved your spot and sent confirmation details to your email.
+                </p>
+
+                {/* Event summary card */}
+                <div className="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5 mb-8 text-left relative overflow-hidden backdrop-blur-xl">
+                    <div className="flex gap-4 items-start">
+                        <div className="text-4xl p-3 bg-gradient-to-br from-red-500/10 to-red-500/20 border border-red-500/20 rounded-xl shrink-0">
+                            {event.image || '📅'}
+                        </div>
+                        <div className="space-y-2">
+                            <span className="inline-block px-2.5 py-0.5 bg-red-500/10 text-red-400 text-xs font-bold rounded-full uppercase tracking-wider">
+                                {event.type}
+                            </span>
+                            <h4 className="text-base font-bold text-white line-clamp-2 leading-snug">
+                                {event.title}
+                            </h4>
+                            
+                            <div className="space-y-1.5 pt-2">
+                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                    <Calendar className="w-3.5 h-3.5 text-red-500" />
+                                    {new Date(event.date).toLocaleDateString('en-US', {
+                                        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                                    })}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                    <Clock className="w-3.5 h-3.5 text-red-500" />
+                                    {event.time}
+                                </div>
+                                {event.speaker && (
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <User className="w-3.5 h-3.5 text-red-500" />
+                                        <span>Hosted by <strong className="text-slate-300">{event.speaker}</strong></span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a
+                        href={calendarUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm"
+                    >
+                        <span>📅 Add to Calendar</span>
+                    </a>
+                    <button
+                        onClick={handleShare}
+                        className={`w-full py-3 px-4 border text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                            copied
+                                ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
+                                : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700/80 hover:border-slate-600'
+                        }`}
+                    >
+                        <span>{copied ? '✅ Link Copied' : '🔗 Share Event'}</span>
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
+
+// ------------------------------------------------------------------
 // Guest Interest Modal — shown when user is NOT logged in
 // ------------------------------------------------------------------
 const GuestInterestModal = ({ event, onClose, onSuccess }) => {
@@ -56,7 +201,7 @@ const GuestInterestModal = ({ event, onClose, onSuccess }) => {
                 ['Webinar Interest', event.title, event.category]
             );
 
-            onSuccess(form.name);
+            onSuccess(form.name, event);
         } catch (err) {
             setError('Something went wrong. Please try again.');
             setSubmitting(false);
@@ -173,6 +318,7 @@ const UpcomingWebinars = ({ events }) => {
     const [registeredIds, setRegisteredIds] = React.useState(new Set());
     const [toastMsg, setToastMsg] = React.useState('');
     const [guestModal, setGuestModal] = React.useState(null); // event object or null
+    const [successModalEvent, setSuccessModalEvent] = React.useState(null); // { event, name } or null
 
     // On mount, check which events the current user is already registered for
     React.useEffect(() => {
@@ -234,9 +380,10 @@ const UpcomingWebinars = ({ events }) => {
 
                 // TeleCRM: push with phone if available
                 const metadata = user.user_metadata || {};
+                const name = metadata.full_name || user.email?.split('@')[0] || 'User';
                 pushLeadToTeleCRM(
                     {
-                        name: metadata.full_name || user.email?.split('@')[0] || 'User',
+                        name: name,
                         email: user.email,
                         phone: metadata.phone || '',
                         status: 'Fresh'
@@ -244,6 +391,7 @@ const UpcomingWebinars = ({ events }) => {
                     ['Webinar Interest', event.title, event.category]
                 );
 
+                setSuccessModalEvent({ event, name });
                 showToast(`🎉 You're registered for "${event.title}"!`);
             }
         } catch (err) {
@@ -253,8 +401,9 @@ const UpcomingWebinars = ({ events }) => {
         }
     };
 
-    const handleGuestSuccess = (guestName) => {
+    const handleGuestSuccess = (guestName, event) => {
         setGuestModal(null);
+        setSuccessModalEvent({ event, name: guestName });
         showToast(`🎉 Got it, ${guestName}! We'll send you the details soon.`);
     };
 
@@ -281,6 +430,17 @@ const UpcomingWebinars = ({ events }) => {
                         >
                             {toastMsg}
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Registration success modal */}
+                <AnimatePresence>
+                    {successModalEvent && (
+                        <RegistrationSuccessModal
+                            event={successModalEvent.event}
+                            name={successModalEvent.name}
+                            onClose={() => setSuccessModalEvent(null)}
+                        />
                     )}
                 </AnimatePresence>
 
