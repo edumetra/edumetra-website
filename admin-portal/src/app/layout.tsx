@@ -40,6 +40,18 @@ export default async function RootLayout({
         return (
             <html lang="en" className="dark">
                 <head>
+                    <Script 
+                        src="https://www.googletagmanager.com/gtag/js?id=G-XL37LK9BVC" 
+                        strategy="afterInteractive" 
+                    />
+                    <Script id="google-analytics-guest" strategy="afterInteractive">
+                        {`
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag(){dataLayer.push(arguments);}
+                            gtag('js', new Date());
+                            gtag('config', 'G-XL37LK9BVC');
+                        `}
+                    </Script>
                     <Script id="gtm-head" strategy="afterInteractive">
                         {`
                             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -108,6 +120,18 @@ export default async function RootLayout({
     return (
         <html lang="en" className="dark">
             <head>
+                <Script 
+                    src="https://www.googletagmanager.com/gtag/js?id=G-XL37LK9BVC" 
+                    strategy="afterInteractive" 
+                />
+                <Script id="google-analytics-auth" strategy="afterInteractive">
+                    {`
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+                        gtag('config', 'G-XL37LK9BVC');
+                    `}
+                </Script>
                 <Script id="gtm-head" strategy="afterInteractive">
                     {`
                         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
