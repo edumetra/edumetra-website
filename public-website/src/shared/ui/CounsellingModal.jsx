@@ -91,6 +91,24 @@ const CounsellingModal = () => {
                 });
             }
 
+            try {
+                fetch('/api/facebook-capi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventName: 'Lead',
+                        email: formData.email,
+                        phone: formData.phone,
+                        customData: {
+                            content_name: 'Counselling Request',
+                            city: formData.city
+                        }
+                    })
+                });
+            } catch (capiErr) {
+                console.warn('[CAPI Warning]: Failed to send counselling lead:', capiErr);
+            }
+
             setStatus('success');
             setFormData({ name: '', phone: '', email: '', neet_marks: '', city: '' });
             setTimeout(() => {

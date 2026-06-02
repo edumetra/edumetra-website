@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { sendCapiEvent } from '../helpers/capi.js';
 
 // Disable Vercel's automatic body parsing to receive the raw body needed for signature verification
 export const config = {
@@ -87,7 +88,7 @@ export default async function handler(req, res) {
             // Fetch user info for profile update
             const { data: profile } = await supabase
                 .from('user_profiles')
-                .select('full_name')
+                .select('full_name, phone_number')
                 .eq('id', userId)
                 .single();
 
@@ -130,6 +131,31 @@ export default async function handler(req, res) {
                     subscription_status: 'active'
                 })
                 .eq('id', userId);
+
+            // Track Purchase event via Meta CAPI (Server-Side Webhook Backup)
+            try {
+                const email = authUser?.user?.email || 'user@example.com';
+                const phone = profile?.phone_number || authUser?.user?.phone || authUser?.user?.user_metadata?.phone;
+                const totalPaid = (paymentRecord.amount_paise - (paymentRecord.discount_paise || 0)) / 100;
+
+                await sendCapiEvent(
+                    'Purchase',
+                    {
+                        email,
+                        phone,
+                        clientIp: null,
+                        userAgent: null
+                    },
+                    {
+                        value: totalPaid,
+                        currency: 'INR',
+                        content_name: `${planType.toUpperCase()} Payment`
+                    },
+                    paymentEntity.id
+                );
+            } catch (capiErr) {
+                console.error('[FB CAPI Purchase Webhook Error]:', capiErr);
+            }
 
             return res.status(200).json({ success: true, message: `Upgraded user ${userId}` });
         }

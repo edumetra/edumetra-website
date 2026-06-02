@@ -137,6 +137,23 @@ export default function SignupModal({ isOpen, onClose }) {
                     });
                 }
 
+                try {
+                    fetch('/api/facebook-capi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            eventName: 'CompleteRegistration',
+                            email: formData.email,
+                            phone: formData.phone,
+                            customData: {
+                                content_name: 'User Signup'
+                            }
+                        })
+                    });
+                } catch (capiErr) {
+                    console.warn('[CAPI Warning]: Failed to send signup event:', capiErr);
+                }
+
                 setSuccessMsg('Account created! Please check your email to verify your address, then sign in.');
 
             } else if (view === 'forgot') {

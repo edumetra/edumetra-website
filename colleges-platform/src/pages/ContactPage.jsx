@@ -51,6 +51,23 @@ const ContactPage = () => {
             if (typeof window !== 'undefined' && window.fbq) {
                 window.fbq('track', 'Lead');
             }
+
+            try {
+                fetch('/api/facebook-capi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventName: 'Lead',
+                        email: null,
+                        phone: formData.phone,
+                        customData: {
+                            content_name: 'Expert Counselling Request'
+                        }
+                    })
+                });
+            } catch (capiErr) {
+                console.warn('[CAPI Warning]: Failed to send contact lead:', capiErr);
+            }
         } catch (err) {
             toast.error("Something went wrong. Please try again.");
             console.error(err);

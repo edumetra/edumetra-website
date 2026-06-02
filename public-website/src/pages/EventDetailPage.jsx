@@ -171,6 +171,32 @@ const EventDetailPage = () => {
                 ['Event Registration', event?.title].filter(Boolean)
             );
 
+            // 3. Track with Facebook Meta Pixel & Conversions API (CAPI)
+            if (typeof window !== 'undefined' && window.fbq) {
+                window.fbq('track', 'Lead', {
+                    content_name: 'Webinar Registration',
+                    event_title: event?.title
+                });
+            }
+
+            try {
+                fetch('/api/facebook-capi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventName: 'Lead',
+                        email: regForm.email,
+                        phone: regForm.phone,
+                        customData: {
+                            content_name: 'Webinar Registration',
+                            event_title: event?.title
+                        }
+                    })
+                });
+            } catch (capiErr) {
+                console.warn('[CAPI Warning]: Failed to send webinar lead:', capiErr);
+            }
+
             analytics.track('webinar_registration', { event_title: event?.title });
             setRegStatus('success');
         } catch (err) {

@@ -473,8 +473,10 @@ const CheckoutPage = () => {
                 if (typeof window !== 'undefined' && window.fbq) {
                     window.fbq('track', 'Purchase', {
                         currency: 'INR',
-                        value: plan.price,
+                        value: discountedPrice,
                         content_name: `${plan.name.toUpperCase()} Payment`,
+                    }, {
+                        eventID: response.razorpay_payment_id
                     });
                 }
             };

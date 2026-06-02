@@ -459,6 +459,16 @@ const CheckoutPage = () => {
                                 `Invoice: ${verifyData.invoice.invoice_number}`,
                             ]
                         );
+
+                        if (typeof window !== 'undefined' && window.fbq) {
+                            window.fbq('track', 'Purchase', {
+                                currency: 'INR',
+                                value: discountedPrice,
+                                content_name: `${plan.name.toUpperCase()} Payment`,
+                            }, {
+                                eventID: response.razorpay_payment_id
+                            });
+                        }
                     } else {
                         throw new Error(verifyData.error || 'Payment verification failed.');
                     }

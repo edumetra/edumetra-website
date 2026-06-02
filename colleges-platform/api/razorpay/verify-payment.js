@@ -1,6 +1,7 @@
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { sendCapiEvent } from '../helpers/capi.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
         // 3. Get User Info for Invoice
         const { data: profile } = await supabase
             .from('user_profiles')
-            .select('full_name')
+            .select('full_name, phone_number')
             .eq('id', canonicalUserId)
             .single();
 
@@ -121,6 +122,33 @@ export default async function handler(req, res) {
         if (profileUpdateErr) {
             console.error('[Profile Update Warning]:', profileUpdateErr);
             // Non-fatal, but logged
+        }
+
+        // 7. Track Purchase event via Meta CAPI (Server-Side)
+        try {
+            const clientIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
+            const userAgent = req.headers['user-agent'];
+            const email = authUser?.user?.email || 'user@example.com';
+            const phone = profile?.phone_number || authUser?.user?.phone || authUser?.user?.user_metadata?.phone;
+            const totalPaid = (payment.amount_paise - (payment.discount_paise || 0)) / 100;
+
+            await sendCapiEvent(
+                'Purchase',
+                {
+                    email,
+                    phone,
+                    clientIp,
+                    userAgent
+                },
+                {
+                    value: totalPaid,
+                    currency: 'INR',
+                    content_name: `${canonicalPlanType.toUpperCase()} Payment`
+                },
+                razorpay_payment_id
+            );
+        } catch (capiErr) {
+            console.error('[FB CAPI Purchase Error]:', capiErr);
         }
 
         return res.status(200).json({
