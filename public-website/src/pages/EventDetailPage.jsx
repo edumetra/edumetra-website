@@ -25,6 +25,24 @@ import { analytics } from '../shared/utils/analytics';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { supabase } from '../services/supabaseClient';
 
+const REGISTRATION_TIMEOUT_MS = 15000;
+
+const isValidUUID = (str) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+const withTimeout = async (promise, timeoutMs) => {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Registration request timed out')), timeoutMs);
+    });
+
+    try {
+        return await Promise.race([Promise.resolve(promise), timeout]);
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+};
+
 const getGoogleCalendarUrl = (event) => {
     if (!event) return '';
     const title = event.title || 'Edumetra Webinar';
@@ -44,6 +62,7 @@ const EventDetailPage = () => {
     const [event, setEvent] = useState(null);
     const [regStatus, setRegStatus] = useState('idle'); // idle, submitting, success
     const [regForm, setRegForm] = useState({ name: '', email: '', phone: '' });
+    const [regError, setRegError] = useState('');
     const [copied, setCopied] = useState(false);
 
     const handleRegFormChange = (e) => {
@@ -103,29 +122,41 @@ const EventDetailPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setRegStatus('submitting');
-
-        // Guard: only insert if event.id is a valid UUID
-        const isValidUUID = (str) =>
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        setRegError('');
 
         try {
             // 1. Save to Supabase (only if event.id is a valid UUID)
             if (isValidUUID(event?.id)) {
-                const { error: dbErr } = await supabase
-                    .from('event_registrations')
-                    .insert([{
+                const registration = user
+                    ? {
                         event_id: event.id,
-                        user_id: user?.id || null,
+                        user_id: user.id,
                         registration_type: user ? 'authenticated' : 'guest',
                         status: 'registered',
                         guest_name: regForm.name,
                         guest_email: regForm.email,
                         guest_phone: regForm.phone
-                    }]);
+                    }
+                    : {
+                        event_id: event.id,
+                        user_id: null,
+                        registration_type: 'guest',
+                        status: 'registered',
+                        guest_name: regForm.name,
+                        guest_email: regForm.email,
+                        guest_phone: regForm.phone
+                    };
+
+                const { error: dbErr } = await withTimeout(
+                    supabase
+                        .from('event_registrations')
+                        .insert([registration]),
+                    REGISTRATION_TIMEOUT_MS
+                );
 
                 if (dbErr && dbErr.code !== '23505') {
                     console.error('Supabase registration error:', dbErr);
-                    // Continue anyway to TeleCRM
+                    throw dbErr;
                 }
             }
 
@@ -140,10 +171,11 @@ const EventDetailPage = () => {
                 ['Event Registration', event?.title].filter(Boolean)
             );
 
-            analytics.trackEvent('Webinar', 'Registration', event.title);
+            analytics.track('webinar_registration', { event_title: event?.title });
             setRegStatus('success');
         } catch (err) {
             console.error('Registration error:', err);
+            setRegError('Registration did not complete. Please try again.');
             setRegStatus('idle');
         }
     };
@@ -374,6 +406,11 @@ const EventDetailPage = () => {
                                                         {regStatus === 'submitting' ? 'Processing...' : 'Complete Registration'}
                                                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                                     </button>
+                                                    {regError && (
+                                                        <p className="text-sm text-red-300 text-center">
+                                                            {regError}
+                                                        </p>
+                                                    )}
                                                     <p className="text-[10px] text-center text-slate-500 mt-4 leading-relaxed">
                                                         By clicking, you agree to receive event reminders and medical education updates from Edumetra.
                                                     </p>
