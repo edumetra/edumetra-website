@@ -26,6 +26,7 @@ export async function sendCapiEvent(eventName, userData = {}, customData = {}, e
     try {
         const hashedEmail = sha256(userData.email);
         const hashedPhone = sha256(normalisePhone(userData.phone));
+        const hashedCity = userData.city ? sha256(String(userData.city).replace(/\s+/g, '')) : null;
 
         const eventData = {
             event_name: eventName,
@@ -38,6 +39,14 @@ export async function sendCapiEvent(eventName, userData = {}, customData = {}, e
                 client_user_agent: userData.userAgent || null
             }
         };
+
+        if (hashedCity) {
+            eventData.user_data.ct = [hashedCity];
+        }
+
+        if (userData.eventSourceUrl) {
+            eventData.event_source_url = userData.eventSourceUrl;
+        }
 
         if (userData.externalId) {
             eventData.user_data.external_id = [sha256(userData.externalId)];

@@ -137,6 +137,10 @@ export default async function handler(req, res) {
                 const email = authUser?.user?.email || 'user@example.com';
                 const phone = profile?.phone_number || authUser?.user?.phone || authUser?.user?.user_metadata?.phone;
                 const totalPaid = (paymentRecord.amount_paise - (paymentRecord.discount_paise || 0)) / 100;
+                
+                const protocol = req.headers['x-forwarded-proto'] || 'https';
+                const host = req.headers.host || 'colleges.edumetra.com';
+                const eventSourceUrl = `${protocol}://${host}/checkout`;
 
                 await sendCapiEvent(
                     'Purchase',
@@ -144,7 +148,8 @@ export default async function handler(req, res) {
                         email,
                         phone,
                         clientIp: null,
-                        userAgent: null
+                        userAgent: null,
+                        eventSourceUrl
                     },
                     {
                         value: totalPaid,

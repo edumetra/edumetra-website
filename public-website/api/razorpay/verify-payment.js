@@ -137,7 +137,8 @@ export default async function handler(req, res) {
                     email,
                     phone,
                     clientIp,
-                    userAgent
+                    userAgent,
+                    eventSourceUrl: req.headers.referer || null
                 },
                 {
                     value: totalPaid,
