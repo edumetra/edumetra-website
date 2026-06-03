@@ -65,7 +65,7 @@ export const createClient = () => {
     const isBrowser = typeof window !== "undefined";
     const proxyUrl = isBrowser ? `${window.location.origin}/supabase` : rawUrl;
 
-    return createBrowserClient<Database>(proxyUrl, anonKey, {
+    return createBrowserClient<Database>(rawUrl, anonKey, {
         global: {
             fetch: async (input, init) => {
                 const url =
