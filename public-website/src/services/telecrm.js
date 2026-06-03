@@ -133,6 +133,19 @@ export function trackTeleCRMPageView(path, title) {
     if (lastTrackedPath === path) return;
     lastTrackedPath = path;
 
+    // Track in session history first
+    try {
+        const pageName = getPageName(path);
+        const displayName = title || document.title || pageName;
+        const history = JSON.parse(sessionStorage.getItem('telecrm_page_history') || '[]');
+        if (!history.includes(displayName)) {
+            history.push(displayName);
+            sessionStorage.setItem('telecrm_page_history', JSON.stringify(history));
+        }
+    } catch (e) {
+        // Ignore
+    }
+
     // Small delay to ensure React Helmet has updated the document.title
     setTimeout(async () => {
         try {
@@ -200,6 +213,9 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         }
 
         if (!leadFields.source) leadFields.source = PLATFORM_SOURCE;
+        if (!leadFields.last_page && typeof document !== 'undefined') {
+            leadFields.last_page = document.title;
+        }
 
         // We must have at least the unique identifier (phone or email)
         if (!leadFields.phone && !leadFields.email) return;
@@ -238,20 +254,27 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             tags: tags
         };
 
-        // Add tags and extra fields as a beautifully formatted note
-        if ((tags && tags.length > 0) || extraFields.length > 0) {
-            const isPageVisit = tags.some(t => t.startsWith('Visited:'));
-            let noteText = '';
-            
-            if (isPageVisit) {
-                const path = tags[0].replace('Visited: ', '');
-                noteText = `🌐 PAGE VISIT: ${path}`;
-            } else {
-                const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
-                const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
-                noteText = [tagStr, extraStr].filter(Boolean).join('\n\n');
+        // Add page history and tags/extra fields as a beautifully formatted note
+        let historyStr = '';
+        try {
+            const history = JSON.parse(sessionStorage.getItem('telecrm_page_history') || '[]');
+            if (history.length > 0) {
+                historyStr = `🐾 PAGE VISIT PATH:\n${history.map((p) => `• ${p}`).join('\n')}`;
             }
+        } catch {}
 
+        const isPageVisit = tags.some(t => t.startsWith('Visited:'));
+        let noteText = '';
+        if (isPageVisit) {
+            const path = tags[0].replace('Visited: ', '');
+            noteText = `🌐 PAGE VISIT: ${path}`;
+        } else {
+            const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
+            const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
+            noteText = [tagStr, extraStr, historyStr].filter(Boolean).join('\n\n');
+        }
+
+        if (noteText) {
             body.actions = [
                 {
                     type: "note",

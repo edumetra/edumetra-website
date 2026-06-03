@@ -82,6 +82,19 @@ export function trackTeleCRMPageView(path, title) {
     if (lastTrackedPath === path) return;
     lastTrackedPath = path;
 
+    // Track in session history first
+    try {
+        const pageName = getPageName(path);
+        const displayName = title || document.title || pageName;
+        const history = JSON.parse(sessionStorage.getItem('telecrm_page_history') || '[]');
+        if (!history.includes(displayName)) {
+            history.push(displayName);
+            sessionStorage.setItem('telecrm_page_history', JSON.stringify(history));
+        }
+    } catch (e) {
+        // Ignore
+    }
+
     setTimeout(async () => {
         try {
             let user = getStoredTeleCRMUser();
@@ -143,6 +156,9 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         }
 
         if (!leadFields.source) leadFields.source = PLATFORM_SOURCE;
+        if (!leadFields.last_page && typeof document !== 'undefined') {
+            leadFields.last_page = document.title;
+        }
         if (!leadFields.phone && !leadFields.email) return;
 
         try {
@@ -174,18 +190,26 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
             tags,
         };
 
-        if ((tags?.length > 0) || extraFields.length > 0) {
-            const isPageVisit = tags.some((t) => t.startsWith('Visited:'));
-            let noteText = '';
-
-            if (isPageVisit) {
-                noteText = `🌐 PAGE VISIT: ${tags[0].replace('Visited: ', '')}`;
-            } else {
-                const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
-                const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
-                noteText = [tagStr, extraStr].filter(Boolean).join('\n\n');
+        // Add page history and tags/extra fields as note
+        let historyStr = '';
+        try {
+            const history = JSON.parse(sessionStorage.getItem('telecrm_page_history') || '[]');
+            if (history.length > 0) {
+                historyStr = `🐾 PAGE VISIT PATH:\n${history.map((p) => `• ${p}`).join('\n')}`;
             }
+        } catch {}
 
+        const isPageVisit = tags.some((t) => t.startsWith('Visited:'));
+        let noteText = '';
+        if (isPageVisit) {
+            noteText = `🌐 PAGE VISIT: ${tags[0].replace('Visited: ', '')}`;
+        } else {
+            const tagStr = tags.length > 0 ? `📌 SOURCE: ${tags.join(' | ')}` : '';
+            const extraStr = extraFields.length > 0 ? `📝 EXTRA INFO:\n${extraFields.join('\n')}` : '';
+            noteText = [tagStr, extraStr, historyStr].filter(Boolean).join('\n\n');
+        }
+
+        if (noteText) {
             body.actions = [{ type: 'note', text: noteText }];
         }
 
