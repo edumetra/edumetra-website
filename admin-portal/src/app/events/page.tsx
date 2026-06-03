@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { createEvent, updateEvent, deleteEvent } from "@/app/actions/management";
-import { Plus, Edit2, Trash2, Calendar, Users, Image as ImageIcon, Phone, Mail, UserCheck, UserX } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Users, Image as ImageIcon, Phone, Mail, UserCheck, UserX, Download } from "lucide-react";
 
 type EventItem = {
     id: string;
@@ -170,6 +170,67 @@ export default function EventsPage() {
             .order("created_at", { ascending: false });
         setInterests((data as WebinarInterest[]) || []);
         setLoadingInterests(false);
+    };
+
+    const exportEventRegistrationsCSV = () => {
+        if (!registrations.length || !viewingRegistrationsEvent) return;
+        
+        const headers = ["Name", "Email", "Phone", "Registration Type", "Registered At", "Status"];
+        const rows = registrations.map(reg => [
+            reg.display_name || "",
+            reg.display_email || "",
+            reg.display_phone || "",
+            reg.registration_type || "",
+            reg.created_at ? new Date(reg.created_at).toLocaleString('en-IN') : "",
+            reg.status || ""
+        ]);
+        
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+        ].join("\n");
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        const fileName = `registrations-${viewingRegistrationsEvent.slug}-${new Date().toISOString().split('T')[0]}.csv`;
+        link.setAttribute("download", fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportInterestsCSV = () => {
+        if (!interests.length) return;
+        
+        const headers = ["Name", "Email", "Phone", "Topic Interest", "Submitted At"];
+        const rows = interests.map(item => [
+            item.name || "",
+            item.email || "",
+            item.phone || "",
+            item.category || "",
+            item.created_at ? new Date(item.created_at).toLocaleString('en-IN') : ""
+        ]);
+        
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+        ].join("\n");
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        const fileName = `webinar-interests-${new Date().toISOString().split('T')[0]}.csv`;
+        link.setAttribute("download", fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleOpenModal = (event?: EventItem) => {
@@ -413,9 +474,19 @@ export default function EventsPage() {
                                 </h2>
                                 <p className="text-sm text-slate-400 mt-1">{viewingRegistrationsEvent.title}</p>
                             </div>
-                            <button onClick={() => setViewingRegistrationsEvent(null)} className="text-slate-400 hover:text-white pb-1 w-8 h-8 rounded hover:bg-slate-800 flex items-center justify-center font-bold text-xl">
-                                &times;
-                            </button>
+                            <div className="flex items-center gap-3">
+                                {registrations.length > 0 && (
+                                    <button
+                                        onClick={exportEventRegistrationsCSV}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors border border-emerald-500/30"
+                                    >
+                                        <Download className="w-3.5 h-3.5" /> Export CSV
+                                    </button>
+                                )}
+                                <button onClick={() => setViewingRegistrationsEvent(null)} className="text-slate-400 hover:text-white pb-1 w-8 h-8 rounded hover:bg-slate-800 flex items-center justify-center font-bold text-xl">
+                                    &times;
+                                </button>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-0">
                             {loadingRegistrations ? (
@@ -499,9 +570,19 @@ export default function EventsPage() {
                                 </h2>
                                 <p className="text-sm text-slate-400 mt-1">Users who registered interest via the &quot;Never Miss an Event&quot; form</p>
                             </div>
-                            <button onClick={() => setShowInterests(false)} className="text-slate-400 hover:text-white pb-1 w-8 h-8 rounded hover:bg-slate-800 flex items-center justify-center font-bold text-xl">
-                                &times;
-                            </button>
+                            <div className="flex items-center gap-3">
+                                {interests.length > 0 && (
+                                    <button
+                                        onClick={exportInterestsCSV}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors border border-purple-500/30"
+                                    >
+                                        <Download className="w-3.5 h-3.5" /> Export CSV
+                                    </button>
+                                )}
+                                <button onClick={() => setShowInterests(false)} className="text-slate-400 hover:text-white pb-1 w-8 h-8 rounded hover:bg-slate-800 flex items-center justify-center font-bold text-xl">
+                                    &times;
+                                </button>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-y-auto">
                             {loadingInterests ? (
