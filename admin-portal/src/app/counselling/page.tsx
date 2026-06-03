@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
-import { Headphones, Download, Search, Calendar, User, Phone, Mail, GraduationCap, MapPin } from "lucide-react";
+import { Headphones, Download, Search, Calendar, Phone, Mail, GraduationCap, MapPin, Trash2 } from "lucide-react";
 import Papa from "papaparse";
+import toast from "react-hot-toast";
 
 type CounsellingRequest = {
     id: string;
@@ -16,7 +16,6 @@ type CounsellingRequest = {
 };
 
 export default function CounsellingPage() {
-    const supabase = createClient();
     const [requests, setRequests] = useState<CounsellingRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,25 +24,55 @@ export default function CounsellingPage() {
     const fetchRequests = async () => {
         setLoading(true);
         setError(null);
-        const { data, error: fetchErr } = await supabase
-            .from("counselling_requests")
-            .select("*")
-            .order("created_at", { ascending: false });
+        try {
+            const response = await fetch("/api/counselling", { cache: "no-store" });
+            const payload = await response.json();
 
-        if (fetchErr) setError("Failed to load counselling requests.");
-        else setRequests(data || []);
-        setLoading(false);
+            if (!response.ok) {
+                throw new Error(payload.error || "Failed to load counselling requests.");
+            }
+
+            setRequests(payload.requests || []);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to load counselling requests.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Are you sure you want to delete this counselling request?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/counselling?id=${id}`, {
+                method: "DELETE",
+            });
+
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error(payload.error || "Failed to delete request.");
+            }
+
+            toast.success("Counselling request deleted successfully.");
+            setRequests(prev => prev.filter(r => r.id !== id));
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to delete request.");
+        }
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchRequests();
     }, []);
 
-    const filteredRequests = requests.filter(req => 
-        req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.phone.includes(searchTerm) ||
-        (req.city && req.city.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filteredRequests = requests.filter(req =>
+        (req.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (req.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (req.phone || "").includes(searchTerm) ||
+        (req.city || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleDownloadCSV = () => {
@@ -119,7 +148,7 @@ export default function CounsellingPage() {
                     <table className="min-w-full divide-y divide-slate-800">
                         <thead className="bg-slate-950/50">
                             <tr>
-                                {["Student Info", "Contact", "NEET Marks", "Location", "Date"].map(h => (
+                                {["Student Info", "Contact", "NEET Marks", "Location", "Date", "Actions"].map(h => (
                                     <th key={h} className="px-5 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                         {h}
                                     </th>
@@ -128,10 +157,10 @@ export default function CounsellingPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-800/60">
                             {loading ? (
-                                <tr><td colSpan={5} className="py-12 text-center text-slate-500">Loading requests...</td></tr>
+                                <tr><td colSpan={6} className="py-12 text-center text-slate-500">Loading requests...</td></tr>
                             ) : filteredRequests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-20 text-center">
+                                    <td colSpan={6} className="py-20 text-center">
                                         <Headphones className="w-16 h-16 text-slate-800 mx-auto mb-4" />
                                         <p className="text-slate-400 font-medium text-lg">No counselling requests found</p>
                                         <p className="text-slate-600 text-sm mt-1">Try adjusting your search or check back later.</p>
@@ -178,6 +207,15 @@ export default function CounsellingPage() {
                                                 {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
+                                    </td>
+                                    <td className="px-5 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                        <button
+                                            onClick={() => handleDelete(req.id)}
+                                            className="text-red-500 hover:text-red-400 p-2 hover:bg-slate-800 rounded-lg transition-colors duration-200"
+                                            title="Delete Request"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
