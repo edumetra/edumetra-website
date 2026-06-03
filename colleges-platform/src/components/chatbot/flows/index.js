@@ -290,11 +290,52 @@ export async function handleTextInput({
             botSay('That doesn\'t look right — please enter a valid 10-digit number.', { delay: 400, inputMode: 'text' });
             return;
         }
+        const email = user?.email || user?.user_metadata?.email;
+        if (!email) {
+            setFlowData({ ...flowData, phone: text });
+            setFlow('counsellor_email');
+            botSay('Thanks! What email should we use for your counselling request?', { delay: 500, inputMode: 'text' });
+            return;
+        }
         setFlow('counsellor_done');
         const success = await saveCounsellingRequest({
             name: flowData.name || 'Unknown',
             phone: text,
-            userId: user?.id || null,
+            email,
+            query: flowData.originalQuery || 'Chatbot counselling request',
+        });
+        if (success) {
+            botSay(`Perfect, ${flowData.name}!`, {
+                delay: 500,
+                type: 'success',
+                successText: 'Our counselling team will call you within 24 hours. 🎉',
+            });
+        } else {
+            botSay('Something went wrong saving your request. Please email us directly.', { delay: 500 });
+        }
+        setTimeout(() => {
+            botSay('Is there anything else I can help with?', {
+                delay: 1400,
+                chips: [
+                    { label: 'Find Colleges', emoji: '🏫', action: (ctx) => reloadWelcome({ ...ctx, user, role }) },
+                    { label: 'Check Cutoffs', emoji: '📊', action: startCutoffFlow },
+                ],
+            });
+        }, 1800);
+        return;
+    }
+
+    if (flow === 'counsellor_email') {
+        const email = text.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            botSay('That email doesn\'t look right. Please enter a valid email address.', { delay: 400, inputMode: 'text' });
+            return;
+        }
+        setFlow('counsellor_done');
+        const success = await saveCounsellingRequest({
+            name: flowData.name || 'Unknown',
+            phone: flowData.phone || '',
+            email,
             query: flowData.originalQuery || 'Chatbot counselling request',
         });
         if (success) {

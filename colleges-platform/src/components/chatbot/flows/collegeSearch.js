@@ -49,13 +49,11 @@ import { pushLeadToTeleCRM } from '../../../services/telecrm';
 /**
  * Save counselling request
  */
-export async function saveCounsellingRequest({ name, phone, userId, query }) {
+export async function saveCounsellingRequest({ name, phone, email, query }) {
     const { error } = await supabase.from('counselling_requests').insert({
         name,
         phone,
-        user_id: userId || null,
-        query: query || 'Chatbot request',
-        status: 'pending',
+        email,
     });
     
     // Push the captured details to TeleCRM

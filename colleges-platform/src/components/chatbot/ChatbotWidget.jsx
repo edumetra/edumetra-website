@@ -40,7 +40,7 @@ function ChatWindow({ onClose }) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
-    const textFlows = ['cutoff_search', 'counsellor_name', 'counsellor_phone', 'get_phone_initial'];
+    const textFlows = ['cutoff_search', 'counsellor_name', 'counsellor_phone', 'counsellor_email', 'get_phone_initial'];
     useEffect(() => {
         if (textFlows.includes(flow)) setTimeout(() => inputRef.current?.focus(), 200);
     }, [flow]); // eslint-disable-line
