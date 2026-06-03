@@ -16,41 +16,12 @@ const isSensitiveAuthOrAdminRequest = (url: string) =>
     url.includes("/rest/v1/admins");
 
 const saveCachedResponse = async (url: string, response: Response) => {
-    if (typeof window === "undefined" || !response.ok) return;
-    try {
-        const cloned = response.clone();
-        const body = await cloned.text();
-        const headers: Record<string, string> = {};
-        cloned.headers.forEach((value, key) => {
-            headers[key] = value;
-        });
-        window.localStorage.setItem(
-            getCacheKey(url),
-            JSON.stringify({ status: cloned.status, headers, body, cachedAt: Date.now() })
-        );
-    } catch {
-        // Non-fatal: continue without cache persistence
-    }
+    // Disabled for Admin Portal to ensure real-time updates
 };
 
 const getCachedResponse = (url: string): Response | null => {
-    if (typeof window === "undefined") return null;
-    try {
-        const raw = window.localStorage.getItem(getCacheKey(url));
-        if (!raw) return null;
-        const parsed = JSON.parse(raw) as { status?: number; headers?: Record<string, string>; body?: string; cachedAt?: number };
-        if (!parsed || typeof parsed.body !== "string") return null;
-        if (typeof parsed.cachedAt !== "number" || Date.now() - parsed.cachedAt > SUPABASE_CACHE_TTL_MS) {
-            window.localStorage.removeItem(getCacheKey(url));
-            return null;
-        }
-        return new Response(parsed.body, {
-            status: parsed.status ?? 200,
-            headers: parsed.headers ?? { "content-type": "application/json" },
-        });
-    } catch {
-        return null;
-    }
+    // Disabled for Admin Portal to ensure real-time updates
+    return null;
 };
 
 export const clearSupabaseCache = () => {
