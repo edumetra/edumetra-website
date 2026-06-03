@@ -277,7 +277,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         if (noteText) {
             body.actions = [
                 {
-                    type: "note",
+                    type: "SYSTEM_NOTE",
                     text: noteText
                 }
             ];

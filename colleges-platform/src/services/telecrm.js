@@ -210,7 +210,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         }
 
         if (noteText) {
-            body.actions = [{ type: 'note', text: noteText }];
+            body.actions = [{ type: 'SYSTEM_NOTE', text: noteText }];
         }
 
         fetch(API_URL, {
