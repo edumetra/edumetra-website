@@ -69,7 +69,6 @@ export default function EventsPage() {
     const [viewingRegistrationsEvent, setViewingRegistrationsEvent] = useState<EventItem | null>(null);
     const [registrations, setRegistrations] = useState<RegistrationRow[]>([]);
     const [loadingRegistrations, setLoadingRegistrations] = useState(false);
-    const [regTab, setRegTab] = useState<'event' | 'interests'>('event');
 
     // General Interests State
     const [showInterests, setShowInterests] = useState(false);
@@ -95,7 +94,24 @@ export default function EventsPage() {
         agendaString: ''
     });
 
+    // Fetch registration counts for all events
+    const fetchRegCounts = async (eventList: EventItem[]) => {
+        if (!eventList.length) return;
+        const { data } = await db
+            .from("event_registrations")
+            .select("event_id")
+            .in("event_id", eventList.map(e => e.id));
+        if (data) {
+            const counts: Record<string, number> = {};
+            (data as { event_id: string }[]).forEach(r => {
+                counts[r.event_id] = (counts[r.event_id] || 0) + 1;
+            });
+            setRegCount(counts);
+        }
+    };
+
     const fetchEvents = async () => {
+        await Promise.resolve(); // Yield to avoid synchronous setState in effect warning
         setLoading(true);
         setError(null);
         const { data, error: fetchErr } = await db
@@ -115,25 +131,8 @@ export default function EventsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchEvents(); }, []);
 
-    // Fetch registration counts for all events
-    const fetchRegCounts = async (eventList: EventItem[]) => {
-        if (!eventList.length) return;
-        const { data } = await db
-            .from("event_registrations")
-            .select("event_id")
-            .in("event_id", eventList.map(e => e.id));
-        if (data) {
-            const counts: Record<string, number> = {};
-            (data as { event_id: string }[]).forEach(r => {
-                counts[r.event_id] = (counts[r.event_id] || 0) + 1;
-            });
-            setRegCount(counts);
-        }
-    };
-
     const fetchRegistrations = async (event: EventItem) => {
         setViewingRegistrationsEvent(event);
-        setRegTab('event');
         setLoadingRegistrations(true);
         // Use the event_registrations_full view for unified auth+guest display
         const { data, error } = await db
@@ -145,18 +144,46 @@ export default function EventsPage() {
             // Fallback: try raw table with profile join
             const { data: fallback } = await db
                 .from("event_registrations")
-                .select("*, user_profiles(email, full_name, phone)")
+                .select("*, user_profiles(email, full_name, phone, phone_number)")
                 .eq("event_id", event.id)
                 .order("created_at", { ascending: false });
             const mapped = (fallback || []).map((r: any) => ({
                 ...r,
                 display_name: r.guest_name || r.user_profiles?.full_name || null,
                 display_email: r.guest_email || r.user_profiles?.email || null,
-                display_phone: r.guest_phone || r.user_profiles?.phone || null,
+                display_phone: r.guest_phone || r.user_profiles?.phone || r.user_profiles?.phone_number || null,
             }));
             setRegistrations(mapped);
+        } else if (data) {
+            const registrationsData = data as RegistrationRow[];
+            // Fetch updated user profiles to avoid stale/missing auth metadata details
+            const userIds = registrationsData
+                .map(r => r.user_id)
+                .filter((id): id is string => !!id);
+
+            let profilesMap = new Map<string, any>();
+            if (userIds.length > 0) {
+                const { data: profiles } = await db
+                    .from("user_profiles")
+                    .select("id, email, full_name, phone, phone_number")
+                    .in("id", userIds);
+                if (profiles) {
+                    profiles.forEach((p: any) => profilesMap.set(p.id, p));
+                }
+            }
+
+            const mapped = registrationsData.map(r => {
+                const profile = r.user_id ? profilesMap.get(r.user_id) : null;
+                return {
+                    ...r,
+                    display_name: r.guest_name || profile?.full_name || r.display_name || null,
+                    display_email: r.guest_email || profile?.email || r.display_email || null,
+                    display_phone: r.guest_phone || profile?.phone || profile?.phone_number || r.display_phone || null,
+                };
+            });
+            setRegistrations(mapped);
         } else {
-            setRegistrations((data as RegistrationRow[]) || []);
+            setRegistrations([]);
         }
         setLoadingRegistrations(false);
     };
