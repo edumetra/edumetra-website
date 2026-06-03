@@ -170,24 +170,28 @@ const GuestInterestModal = ({ event, onClose, onSuccess }) => {
 
         try {
             // Only insert if event.id is a valid UUID (guards against slug-as-id DB rows)
-            if (isValidUUID(event.id)) {
-                const { error: dbErr } = await supabase
-                    .from('event_registrations')
-                    .insert([{
-                        event_id: event.id,
-                        user_id: null,
-                        registration_type: 'guest',
-                        status: 'registered',
-                        guest_name: form.name,
-                        guest_email: form.email,
-                        guest_phone: form.phone
-                    }]);
+            if (!isValidUUID(event.id)) {
+                setError('Failed to register: Invalid event configuration.');
+                setSubmitting(false);
+                return;
+            }
 
-                if (dbErr && dbErr.code !== '23505') {
-                    setError('Failed to register. Please try again.');
-                    setSubmitting(false);
-                    return;
-                }
+            const { error: dbErr } = await supabase
+                .from('event_registrations')
+                .insert([{
+                    event_id: event.id,
+                    user_id: null,
+                    registration_type: 'guest',
+                    status: 'registered',
+                    guest_name: form.name,
+                    guest_email: form.email,
+                    guest_phone: form.phone
+                }]);
+
+            if (dbErr && dbErr.code !== '23505') {
+                setError('Failed to register. Please try again.');
+                setSubmitting(false);
+                return;
             }
 
             // TeleCRM touch point
@@ -360,16 +364,20 @@ const UpcomingWebinars = ({ events }) => {
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
         try {
-            const { error } = isValidUUID(event.id)
-                ? await supabase
-                    .from('event_registrations')
-                    .insert([{
-                        event_id: event.id,
-                        user_id: user.id,
-                        registration_type: 'authenticated',
-                        status: 'registered'
-                    }])
-                : { error: null }; // skip DB insert for malformed ids
+            if (!isValidUUID(event.id)) {
+                showToast('❌ Registration failed: Invalid event configuration.');
+                setRegistering(null);
+                return;
+            }
+
+            const { error } = await supabase
+                .from('event_registrations')
+                .insert([{
+                    event_id: event.id,
+                    user_id: user.id,
+                    registration_type: 'authenticated',
+                    status: 'registered'
+                }]);
 
             if (error && error.code !== '23505') {
                 console.error('Registration failed:', error);

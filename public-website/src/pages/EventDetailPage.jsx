@@ -126,38 +126,40 @@ const EventDetailPage = () => {
 
         try {
             // 1. Save to Supabase (only if event.id is a valid UUID)
-            if (isValidUUID(event?.id)) {
-                const registration = user
-                    ? {
-                        event_id: event.id,
-                        user_id: user.id,
-                        registration_type: user ? 'authenticated' : 'guest',
-                        status: 'registered',
-                        guest_name: regForm.name,
-                        guest_email: regForm.email,
-                        guest_phone: regForm.phone
-                    }
-                    : {
-                        event_id: event.id,
-                        user_id: null,
-                        registration_type: 'guest',
-                        status: 'registered',
-                        guest_name: regForm.name,
-                        guest_email: regForm.email,
-                        guest_phone: regForm.phone
-                    };
+            if (!isValidUUID(event?.id)) {
+                throw new Error('Registration failed: Invalid event configuration.');
+            }
 
-                const { error: dbErr } = await withTimeout(
-                    supabase
-                        .from('event_registrations')
-                        .insert([registration]),
-                    REGISTRATION_TIMEOUT_MS
-                );
-
-                if (dbErr && dbErr.code !== '23505') {
-                    console.error('Supabase registration error:', dbErr);
-                    throw dbErr;
+            const registration = user
+                ? {
+                    event_id: event.id,
+                    user_id: user.id,
+                    registration_type: 'authenticated',
+                    status: 'registered',
+                    guest_name: regForm.name,
+                    guest_email: regForm.email,
+                    guest_phone: regForm.phone
                 }
+                : {
+                    event_id: event.id,
+                    user_id: null,
+                    registration_type: 'guest',
+                    status: 'registered',
+                    guest_name: regForm.name,
+                    guest_email: regForm.email,
+                    guest_phone: regForm.phone
+                };
+
+            const { error: dbErr } = await withTimeout(
+                supabase
+                    .from('event_registrations')
+                    .insert([registration]),
+                REGISTRATION_TIMEOUT_MS
+            );
+
+            if (dbErr && dbErr.code !== '23505') {
+                console.error('Supabase registration error:', dbErr);
+                throw dbErr;
             }
 
             // 2. Push to TeleCRM
