@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM, trackTeleCRMTouchpoint } from '../../../services/telecrm';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { getAuthedPortalUrl } from '../../../shared/utils/authRedirect';
+import { supabase } from '../../../services/supabaseClient';
 
 const Footer = () => {
     const { session } = useAuth();
@@ -19,6 +20,19 @@ const Footer = () => {
         
         setIsSubmitting(true);
         try {
+            // 1. Save to Supabase newsletter_subscriptions
+            const { error: dbError } = await supabase
+                .from('newsletter_subscriptions')
+                .insert([{
+                    email: email.trim(),
+                    phone: mobile.trim()
+                }]);
+
+            if (dbError) {
+                console.warn('[Footer Newsletter] DB insert warning:', dbError.message);
+            }
+
+            // 2. Push to TeleCRM
             await pushLeadToTeleCRM(
                 { 
                     email: email.trim(), 

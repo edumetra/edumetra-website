@@ -19,10 +19,51 @@ import SEO from '../components/SEO';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
 import { featuredArticle, articles } from '../data/articlesData';
+import { supabase } from '../services/supabaseClient';
+import { pushLeadToTeleCRM } from '../services/telecrm';
+import toast from 'react-hot-toast';
 
 const NewsAndBlogsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [email, setEmail] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+        setSubmitting(true);
+        try {
+            // 1. Save to Supabase
+            const { error: dbError } = await supabase
+                .from('newsletter_subscriptions')
+                .insert([{
+                    email: email.trim(),
+                    phone: null
+                }]);
+
+            if (dbError) {
+                console.warn('[NewsBlogs Newsletter] DB insert warning:', dbError.message);
+            }
+
+            // 2. Push to TeleCRM
+            await pushLeadToTeleCRM(
+                { 
+                    email: email.trim(), 
+                    status: 'Newsletter Subscriber'
+                }, 
+                ['Newsletter']
+            );
+
+            toast.success('Subscribed successfully!');
+            setEmail('');
+        } catch (err) {
+            console.error('Subscription error:', err);
+            toast.error('Something went wrong. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         analytics.trackPageView('/news-blogs', 'News and Blogs');
@@ -272,16 +313,24 @@ const NewsAndBlogsPage = () => {
                                 Get the latest medical education news, admission updates, and expert tips delivered directly to your inbox every week.
                             </p>
 
-                            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
                                 <input
                                     type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Enter your email"
                                     className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    disabled={submitting}
                                 />
-                                <button className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all whitespace-nowrap">
-                                    Subscribe Now
+                                <button 
+                                    type="submit" 
+                                    disabled={submitting}
+                                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-lg transition-all whitespace-nowrap disabled:opacity-75"
+                                >
+                                    {submitting ? 'Subscribing...' : 'Subscribe Now'}
                                 </button>
-                            </div>
+                            </form>
 
                             <p className="text-slate-400 text-sm mt-4">
                                 Join 10,000+ students already subscribed. Unsubscribe anytime.

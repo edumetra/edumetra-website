@@ -24,6 +24,8 @@ import { featuredArticle, articles } from '../data/articlesData';
 import WebinarCTA from '../components/sections/webinars/WebinarCTA';
 import { analytics } from '../shared/utils/analytics';
 import toast from 'react-hot-toast';
+import { supabase } from '../services/supabaseClient';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 // ── Interactive Timeline Diagram for NEET-to-Doctor ───────────────────────────
 const InteractiveDoctorTimeline = () => {
@@ -231,6 +233,44 @@ const ArticleDetailPage = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
     const { scrollYProgress } = useScroll();
+    const [email, setEmail] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+        setSubmitting(true);
+        try {
+            // 1. Save to Supabase
+            const { error: dbError } = await supabase
+                .from('newsletter_subscriptions')
+                .insert([{
+                    email: email.trim(),
+                    phone: null
+                }]);
+
+            if (dbError) {
+                console.warn('[Article Newsletter] DB insert warning:', dbError.message);
+            }
+
+            // 2. Push to TeleCRM
+            await pushLeadToTeleCRM(
+                { 
+                    email: email.trim(), 
+                    status: 'Newsletter Subscriber'
+                }, 
+                ['Newsletter']
+            );
+
+            toast.success('Subscribed successfully!');
+            setEmail('');
+        } catch (err) {
+            console.error('Subscription error:', err);
+            toast.error('Something went wrong. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
     
     // Find article matching slug
     const allArticles = [featuredArticle, ...articles];
@@ -423,15 +463,22 @@ const ArticleDetailPage = () => {
                                 <p className="text-slate-400 text-sm mb-6 leading-relaxed">
                                     Get the latest college admission updates, guidelines, and topper strategies delivered straight to your inbox.
                                 </p>
-                                <form onSubmit={(e) => { e.preventDefault(); toast.success('Subscribed successfully!'); e.target.reset(); }} className="space-y-3">
+                                <form onSubmit={handleSubscribe} className="space-y-3">
                                     <input 
                                         type="email" 
                                         required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter your email" 
                                         className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-red-500 rounded-xl text-sm focus:outline-none transition-colors text-white"
+                                        disabled={submitting}
                                     />
-                                    <button type="submit" className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2">
-                                        Subscribe Now
+                                    <button 
+                                        type="submit" 
+                                        disabled={submitting}
+                                        className="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-75"
+                                    >
+                                        {submitting ? 'Subscribing...' : 'Subscribe Now'}
                                     </button>
                                 </form>
                                 <p className="text-[10px] text-slate-500 mt-3 text-center">

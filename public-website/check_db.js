@@ -1,51 +1,74 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import path from 'path';
 
-dotenv.config({ path: '/Users/sudharshan24k/Desktop/FreeLancing/dipak/admin-portal/.env.local' });
+dotenv.config({ path: '/Users/sudharshan24k/Desktop/FreeLancing/dipak/public-website/.env' });
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const anonUrl = process.env.VITE_SUPABASE_URL;
+const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(anonUrl, anonKey);
 
-async function check() {
-    try {
-        console.log('Fetching events...');
-        const { data: events, error: errEvents } = await supabase
-            .from('events')
-            .select('id, slug, title');
-        
-        if (errEvents) {
-            console.error('Error fetching events:', errEvents);
-        } else {
-            console.log('Events in DB:', events);
-        }
+async function testInserts() {
+    console.log('=== Testing database inserts with ANON key ===');
+    console.log('Using URL:', anonUrl);
 
-        console.log('Fetching registrations...');
-        const { data: regs, error: errRegs } = await supabase
-            .from('event_registrations')
-            .select('id, event_id, user_id, registration_type, guest_email, guest_name')
-            .limit(20);
-            
-        if (errRegs) {
-            console.error('Error fetching registrations:', errRegs);
-        } else {
-            console.log('Registrations in DB:', regs);
-        }
+    // 1. Test counselling_requests
+    console.log('\n--- 1. Testing insert into counselling_requests ---');
+    const { data: cData, error: cErr } = await supabase
+        .from('counselling_requests')
+        .insert([{
+            name: 'Test Counselling Anon',
+            phone: '9876543210',
+            email: 'test_counsel_anon@gmail.com',
+            neet_marks: 350,
+            city: 'Test City'
+        }])
+        .select();
+    if (cErr) console.error('❌ counselling_requests INSERT FAILED:', cErr.message, cErr.code);
+    else console.log('✅ counselling_requests INSERT SUCCESS:', cData);
 
-        console.log('Fetching webinar_interests...');
-        const { data: interests, error: errInterests } = await supabase
-            .from('webinar_interests')
-            .select('*')
-            .limit(20);
-            
-        if (errInterests) {
-            console.error('Error fetching webinar_interests:', errInterests);
-        } else {
-            console.log('Webinar Interests in DB:', interests);
-        }
+    // 2. Test webinar_interests
+    console.log('\n--- 2. Testing insert into webinar_interests ---');
+    const { data: wData, error: wErr } = await supabase
+        .from('webinar_interests')
+        .insert([{
+            name: 'Test Webinar Anon',
+            email: 'test_webinar_anon@gmail.com',
+            phone: '9876543210',
+            category: 'NEET Preparation',
+            source: 'webinar-page'
+        }])
+        .select();
+    if (wErr) console.error('❌ webinar_interests INSERT FAILED:', wErr.message, wErr.code);
+    else console.log('✅ webinar_interests INSERT SUCCESS:', wData);
 
-    } catch (e) {
-        console.error('Unhandled error:', e);
-    }
+    // 3. Test newsletter_subscriptions
+    console.log('\n--- 3. Testing insert into newsletter_subscriptions ---');
+    const { data: nData, error: nErr } = await supabase
+        .from('newsletter_subscriptions')
+        .insert([{
+            email: 'test_newsletter_anon@gmail.com',
+            phone: '9876543210'
+        }])
+        .select();
+    if (nErr) console.error('❌ newsletter_subscriptions INSERT FAILED:', nErr.message, nErr.code);
+    else console.log('✅ newsletter_subscriptions INSERT SUCCESS:', nData);
+
+    // 4. Test event_registrations (guest)
+    console.log('\n--- 4. Testing insert into event_registrations (guest) ---');
+    const { data: rData, error: rErr } = await supabase
+        .from('event_registrations')
+        .insert([{
+            event_id: '02e6af4d-aae3-49b5-8cc8-37198991cbc4',
+            user_id: null,
+            registration_type: 'guest',
+            status: 'registered',
+            guest_name: 'Test Guest Anon',
+            guest_email: 'test_guest_anon@gmail.com',
+            guest_phone: '9876543210'
+        }])
+        .select();
+    if (rErr) console.error('❌ event_registrations (guest) INSERT FAILED:', rErr.message, rErr.code);
+    else console.log('✅ event_registrations (guest) INSERT SUCCESS:', rData);
 }
 
-check();
+testInserts();
