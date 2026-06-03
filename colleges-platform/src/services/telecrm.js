@@ -3,6 +3,8 @@
  * Docs: https://next-api.telecrm.in
  */
 
+import { supabase } from '../lib/supabase';
+
 const ENTERPRISE_ID = import.meta.env.VITE_TELECRM_ENTERPRISE_ID;
 const TOKEN = import.meta.env.VITE_TELECRM_TOKEN;
 const PLATFORM_SOURCE = 'Colleges Platform';
@@ -47,35 +49,75 @@ export function getStoredTeleCRMUser() {
 }
 
 /** Track navigation / CTA for leads already identified in TeleCRM. */
-export function trackTeleCRMTouchpoint(tags, extraFields = {}) {
-    const stored = getStoredTeleCRMUser();
-    if (!stored?.email && !stored?.phone) return;
-    pushLeadToTeleCRM(
-        { ...stored, ...extraFields, status: extraFields.status || 'Fresh' },
-        tags
-    );
+export async function trackTeleCRMTouchpoint(tags, extraFields = {}) {
+    try {
+        let stored = getStoredTeleCRMUser();
+        if (!stored?.email && !stored?.phone) {
+            const { data } = await supabase.auth.getSession();
+            const sbUser = data?.session?.user;
+            if (sbUser) {
+                const metadata = sbUser.user_metadata || {};
+                stored = {
+                    name: metadata.full_name || metadata.name || '',
+                    email: sbUser.email || '',
+                    phone: metadata.phone || sbUser.phone || '',
+                };
+                if (stored.email || stored.phone) {
+                    localStorage.setItem('telecrm_user', JSON.stringify(stored));
+                }
+            }
+        }
+
+        if (!stored?.email && !stored?.phone) return;
+        pushLeadToTeleCRM(
+            { ...stored, ...extraFields, status: extraFields.status || 'Fresh' },
+            tags
+        );
+    } catch (e) {
+        // Silently fail
+    }
 }
 
 export function trackTeleCRMPageView(path, title) {
     if (lastTrackedPath === path) return;
     lastTrackedPath = path;
 
-    setTimeout(() => {
-        const user = getStoredTeleCRMUser();
-        if (!user?.email && !user?.phone) return;
+    setTimeout(async () => {
+        try {
+            let user = getStoredTeleCRMUser();
+            if (!user?.email && !user?.phone) {
+                const { data } = await supabase.auth.getSession();
+                const sbUser = data?.session?.user;
+                if (sbUser) {
+                    const metadata = sbUser.user_metadata || {};
+                    user = {
+                        name: metadata.full_name || metadata.name || '',
+                        email: sbUser.email || '',
+                        phone: metadata.phone || sbUser.phone || '',
+                    };
+                    if (user.email || user.phone) {
+                        localStorage.setItem('telecrm_user', JSON.stringify(user));
+                    }
+                }
+            }
 
-        const pageName = getPageName(path);
-        const displayName = title || document.title || pageName;
+            if (!user?.email && !user?.phone) return;
 
-        pushLeadToTeleCRM(
-            {
-                ...user,
-                status: 'Fresh',
-                last_page: displayName,
-                source: PLATFORM_SOURCE,
-            },
-            [`Visited: ${displayName}`]
-        );
+            const pageName = getPageName(path);
+            const displayName = title || document.title || pageName;
+
+            pushLeadToTeleCRM(
+                {
+                    ...user,
+                    status: 'Fresh',
+                    last_page: displayName,
+                    source: PLATFORM_SOURCE,
+                },
+                [`Visited: ${displayName}`]
+            );
+        } catch (e) {
+            // Silently fail
+        }
     }, 100);
 }
 

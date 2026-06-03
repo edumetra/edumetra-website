@@ -29,6 +29,7 @@ import GuestLimitModal from '../components/ui/GuestLimitModal';
 import SEOHead from '../components/SEOHead';
 import { categorizePrediction } from '../components/predictor/predictorEngine';
 import { useEffect } from 'react';
+import { trackTeleCRMTouchpoint } from '../services/telecrm';
 
 export default function CollegeDetailPage() {
     const { slug } = useParams();
@@ -256,6 +257,7 @@ export default function CollegeDetailPage() {
                                             href={college.website_url}
                                             target="_blank"
                                             rel="noreferrer"
+                                            onClick={() => trackTeleCRMTouchpoint(['College Detail: Visited College Website', college.name])}
                                             className="flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors"
                                         >
                                             Visit Website <ExternalLink className="w-3.5 h-3.5" />
