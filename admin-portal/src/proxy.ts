@@ -13,8 +13,9 @@ const ALLOWED_ORIGINS = [
   'https://edumetra-website.vercel.app',
 ]
 
-function getCorsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : null
+function getCorsHeaders(origin: string | null, requestOrigin?: string) {
+  const isAllowed = origin && (ALLOWED_ORIGINS.includes(origin) || origin === requestOrigin)
+  const allowed = isAllowed ? origin : null
   return {
     ...(allowed ? { 'Access-Control-Allow-Origin': allowed } : {}),
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
@@ -30,7 +31,7 @@ export async function proxy(request: NextRequest) {
 
   // ── API Routes: Handle CORS before anything else ──────────────────────────
   if (pathname.startsWith('/api/')) {
-    const isAllowedOrigin = !!origin && ALLOWED_ORIGINS.includes(origin)
+    const isAllowedOrigin = !!origin && (ALLOWED_ORIGINS.includes(origin) || origin === request.nextUrl.origin)
 
     // Short-circuit OPTIONS preflight — must not redirect
     if (request.method === 'OPTIONS') {
@@ -39,7 +40,7 @@ export async function proxy(request: NextRequest) {
       }
       return new NextResponse(null, {
         status: 204,
-        headers: getCorsHeaders(origin),
+        headers: getCorsHeaders(origin, request.nextUrl.origin),
       })
     }
 
@@ -50,7 +51,7 @@ export async function proxy(request: NextRequest) {
 
     // For actual API requests, add CORS headers to the response
     const response = NextResponse.next()
-    const corsHeaders = getCorsHeaders(origin)
+    const corsHeaders = getCorsHeaders(origin, request.nextUrl.origin)
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value)
     })
