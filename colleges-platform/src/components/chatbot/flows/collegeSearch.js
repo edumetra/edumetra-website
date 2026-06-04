@@ -56,6 +56,10 @@ export async function saveCounsellingRequest({ name, phone, email, query }) {
         email,
     });
     
+    if (error) {
+        console.error("Error saving counselling request to Supabase:", error);
+    }
+    
     // Push the captured details to TeleCRM
     await pushLeadToTeleCRM({
         name: name,

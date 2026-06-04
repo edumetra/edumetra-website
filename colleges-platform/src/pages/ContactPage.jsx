@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, User, MessageSquare, Send, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Phone, User, Mail, MessageSquare, Send, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SEOHead from '../components/SEOHead';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import { supabase } from '../lib/supabase';
 
 const ContactPage = () => {
     const [formData, setFormData] = useState({
         name: '',
+        email: '',
         phone: '',
         message: ''
     });
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+
+    useEffect(() => {
+        const prefillUser = async () => {
+            try {
+                const { data } = await supabase.auth.getSession();
+                const user = data?.session?.user;
+                if (user) {
+                    const metadata = user.user_metadata || {};
+                    setFormData(prev => ({
+                        ...prev,
+                        name: prev.name || metadata.full_name || metadata.name || '',
+                        email: prev.email || user.email || '',
+                        phone: prev.phone || metadata.phone || user.phone || ''
+                    }));
+                }
+            } catch (e) {
+                // ignore prefill error
+            }
+        };
+        prefillUser();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,8 +44,8 @@ const ContactPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!formData.name || !formData.phone) {
-            toast.error("Please provide your name and phone number.");
+        if (!formData.name || !formData.phone || !formData.email) {
+            toast.error("Please fill in all required fields.");
             return;
         }
 
@@ -34,13 +57,35 @@ const ContactPage = () => {
             return;
         }
 
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email.trim())) {
+            toast.error("Please enter a valid email address.");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // Push lead directly to TeleCRM
+            // 1. Save to Supabase counselling_requests
+            const { error: dbError } = await supabase
+                .from('counselling_requests')
+                .insert([{
+                    name: formData.name,
+                    phone: formData.phone,
+                    email: formData.email.trim()
+                }]);
+
+            if (dbError) {
+                console.error("Supabase insert error on contact page counselling request:", dbError);
+                throw dbError;
+            }
+
+            // 2. Push lead directly to TeleCRM
             await pushLeadToTeleCRM({
                 name: formData.name,
                 phone: formData.phone,
+                email: formData.email.trim(),
                 query: formData.message || "Requested expert callback"
             }, ['Expert Counselling Request', 'Contact Page']);
 
@@ -58,7 +103,7 @@ const ContactPage = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         eventName: 'Lead',
-                        email: null,
+                        email: formData.email.trim(),
                         phone: formData.phone,
                         customData: {
                             content_name: 'Expert Counselling Request'
@@ -156,7 +201,7 @@ const ContactPage = () => {
                                 <button 
                                     onClick={() => {
                                         setSubmitted(false);
-                                        setFormData({ name: '', phone: '', message: '' });
+                                        setFormData({ name: '', email: '', phone: '', message: '' });
                                     }}
                                     className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
                                 >
@@ -179,6 +224,22 @@ const ContactPage = () => {
                                                 value={formData.name}
                                                 onChange={handleChange}
                                                 placeholder="John Doe"
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Email Address</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                                            <input 
+                                                type="email" 
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                placeholder="john@example.com"
                                                 className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
                                                 required
                                             />
