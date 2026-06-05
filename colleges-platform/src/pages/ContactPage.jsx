@@ -5,8 +5,10 @@ import toast from 'react-hot-toast';
 import SEOHead from '../components/SEOHead';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 import { supabase } from '../lib/supabase';
+import { useSignup } from '../contexts/SignupContext';
 
 const ContactPage = () => {
+    const { user, openAuth } = useSignup();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -16,26 +18,21 @@ const ContactPage = () => {
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
+    const isNameDisabled = !!(user?.user_metadata?.full_name || user?.user_metadata?.name);
+    const isPhoneDisabled = !!(user?.user_metadata?.phone || user?.phone);
+    const isEmailDisabled = !!user?.email;
+
     useEffect(() => {
-        const prefillUser = async () => {
-            try {
-                const { data } = await supabase.auth.getSession();
-                const user = data?.session?.user;
-                if (user) {
-                    const metadata = user.user_metadata || {};
-                    setFormData(prev => ({
-                        ...prev,
-                        name: prev.name || metadata.full_name || metadata.name || '',
-                        email: prev.email || user.email || '',
-                        phone: prev.phone || metadata.phone || user.phone || ''
-                    }));
-                }
-            } catch (e) {
-                // ignore prefill error
-            }
-        };
-        prefillUser();
-    }, []);
+        if (user) {
+            const metadata = user.user_metadata || {};
+            setFormData(prev => ({
+                ...prev,
+                name: metadata.full_name || metadata.name || '',
+                email: user.email || '',
+                phone: metadata.phone || user.phone || ''
+            }));
+        }
+    }, [user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,14 +49,14 @@ const ContactPage = () => {
         // Basic phone validation (10 digits)
         const phoneRegex = /^[0-9]{10}$/;
         const cleanPhone = formData.phone.replace(/\D/g, '');
-        if (!phoneRegex.test(cleanPhone)) {
+        if (!isPhoneDisabled && !phoneRegex.test(cleanPhone)) {
             toast.error("Please enter a valid 10-digit phone number.");
             return;
         }
 
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email.trim())) {
+        if (!isEmailDisabled && !emailRegex.test(formData.email.trim())) {
             toast.error("Please enter a valid email address.");
             return;
         }
@@ -97,21 +94,25 @@ const ContactPage = () => {
                 window.fbq('track', 'Lead');
             }
 
-            try {
-                fetch('/api/facebook-capi', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        eventName: 'Lead',
-                        email: formData.email.trim(),
-                        phone: formData.phone,
-                        customData: {
-                            content_name: 'Expert Counselling Request'
-                        }
-                    })
-                });
-            } catch (capiErr) {
-                console.warn('[CAPI Warning]: Failed to send contact lead:', capiErr);
+            if (!import.meta.env.DEV) {
+                try {
+                    fetch('/api/facebook-capi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            eventName: 'Lead',
+                            email: formData.email.trim(),
+                            phone: formData.phone,
+                            customData: {
+                                content_name: 'Expert Counselling Request'
+                            }
+                        })
+                    });
+                } catch (capiErr) {
+                    console.warn('[CAPI Warning]: Failed to send contact lead:', capiErr);
+                }
+            } else {
+                console.log('[Dev] Skipped Facebook CAPI fetch on localhost.');
             }
         } catch (err) {
             toast.error("Something went wrong. Please try again.");
@@ -208,57 +209,103 @@ const ContactPage = () => {
                                     Submit Another Request
                                 </button>
                             </div>
+                        ) : !user ? (
+                            <div className="text-center py-12">
+                                <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                                    <Phone className="w-10 h-10 text-red-400" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-4">Sign In Required</h3>
+                                <p className="text-slate-400 mb-8 max-w-sm mx-auto">
+                                    To request an expert callback on your verified number, please sign in or create an account.
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => openAuth('login')}
+                                        className="flex items-center justify-center gap-2 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl border border-slate-700 transition-all text-sm"
+                                    >
+                                        Sign In
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => openAuth('signup')}
+                                        className="flex items-center justify-center gap-2 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-500/20 transition-all text-sm"
+                                    >
+                                        Sign Up
+                                    </button>
+                                </div>
+                            </div>
                         ) : (
                             <>
                                 <h2 className="text-2xl font-bold text-white mb-2">Request a Call Back</h2>
                                 <p className="text-slate-400 mb-8 text-sm">Enter your details below and we'll reach out to you within 24 hours.</p>
 
                                 <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Full Name</label>
+                                                                    <div>
+                                        <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                                            {isNameDisabled ? 'Full Name (Verified)' : 'Full Name'}
+                                        </label>
                                         <div className="relative">
                                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                             <input 
                                                 type="text" 
                                                 name="name"
                                                 value={formData.name}
+                                                disabled={isNameDisabled}
                                                 onChange={handleChange}
                                                 placeholder="John Doe"
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
-                                                required
+                                                className={`w-full bg-slate-950 border rounded-xl py-3 pl-12 pr-4 transition-all focus:outline-none ${
+                                                    isNameDisabled
+                                                        ? 'border-slate-800/80 text-slate-400 cursor-not-allowed'
+                                                        : 'border-slate-800 text-white focus:ring-2 focus:ring-red-500/20'
+                                                }`}
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Email Address</label>
+                                        <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                                            {isEmailDisabled ? 'Email Address (Verified)' : 'Email Address'}
+                                        </label>
                                         <div className="relative">
                                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                             <input 
                                                 type="email" 
                                                 name="email"
                                                 value={formData.email}
+                                                disabled={isEmailDisabled}
                                                 onChange={handleChange}
                                                 placeholder="john@example.com"
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
-                                                required
+                                                className={`w-full bg-slate-950 border rounded-xl py-3 pl-12 pr-4 transition-all focus:outline-none ${
+                                                    isEmailDisabled
+                                                        ? 'border-slate-800/80 text-slate-400 cursor-not-allowed'
+                                                        : 'border-slate-800 text-white focus:ring-2 focus:ring-red-500/20'
+                                                }`}
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Phone Number</label>
+                                        <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                                            {isPhoneDisabled ? 'Phone Number (Verified)' : 'Phone Number'}
+                                        </label>
                                         <div className="relative">
                                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                                            <span className="absolute left-11 top-1/2 -translate-y-1/2 text-slate-400 font-medium">+91</span>
+                                            {!isPhoneDisabled && (
+                                                <span className="absolute left-11 top-1/2 -translate-y-1/2 text-slate-500 font-medium">+91</span>
+                                            )}
                                             <input 
                                                 type="tel" 
                                                 name="phone"
                                                 value={formData.phone}
+                                                disabled={isPhoneDisabled}
                                                 onChange={handleChange}
                                                 placeholder="98765 43210"
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-20 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
-                                                required
+                                                className={`w-full bg-slate-950 border rounded-xl py-3 pr-4 transition-all focus:outline-none ${
+                                                    isPhoneDisabled
+                                                        ? 'border-slate-800/80 text-slate-400 cursor-not-allowed pl-12'
+                                                        : 'border-slate-800 text-white pl-20 focus:ring-2 focus:ring-red-500/20'
+                                                }`}
                                             />
                                         </div>
                                     </div>

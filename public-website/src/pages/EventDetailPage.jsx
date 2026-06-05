@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -59,11 +59,22 @@ const getGoogleCalendarUrl = (event) => {
 const EventDetailPage = () => {
     const { slug } = useParams();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [event, setEvent] = useState(null);
     const [regStatus, setRegStatus] = useState('idle'); // idle, submitting, success
     const [regForm, setRegForm] = useState({ name: '', email: '', phone: '' });
     const [regError, setRegError] = useState('');
     const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setRegForm({
+                name: user?.user_metadata?.full_name || user?.user_metadata?.name || '',
+                email: user?.email || '',
+                phone: user?.user_metadata?.phone || user?.phone || '',
+            });
+        }
+    }, [user]);
 
     const handleRegFormChange = (e) => {
         setRegForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -181,22 +192,26 @@ const EventDetailPage = () => {
                 });
             }
 
-            try {
-                fetch('/api/facebook-capi', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        eventName: 'Lead',
-                        email: regForm.email,
-                        phone: regForm.phone,
-                        customData: {
-                            content_name: 'Webinar Registration',
-                            event_title: event?.title
-                        }
-                    })
-                });
-            } catch (capiErr) {
-                console.warn('[CAPI Warning]: Failed to send webinar lead:', capiErr);
+            if (!import.meta.env.DEV) {
+                try {
+                    fetch('/api/facebook-capi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            eventName: 'Lead',
+                            email: regForm.email,
+                            phone: regForm.phone,
+                            customData: {
+                                content_name: 'Webinar Registration',
+                                event_title: event?.title
+                            }
+                        })
+                    });
+                } catch (capiErr) {
+                    console.warn('[CAPI Warning]: Failed to send webinar lead:', capiErr);
+                }
+            } else {
+                console.log('[Dev] Skipped Facebook CAPI fetch on localhost.');
             }
 
             analytics.track('webinar_registration', { event_title: event?.title });
@@ -380,6 +395,36 @@ const EventDetailPage = () => {
                                                     Register Someone Else
                                                 </button>
                                             </motion.div>
+                                        ) : !user ? (
+                                            <motion.div 
+                                                key="login-prompt"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="text-center py-6"
+                                            >
+                                                <div className="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <Bell className="w-8 h-8 text-red-500" />
+                                                </div>
+                                                <h3 className="text-2xl font-bold text-white mb-2">Sign In Required</h3>
+                                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                                                    To register for this event and receive invitations on your verified number, please sign in or create a free account.
+                                                </p>
+                                                <div className="space-y-3">
+                                                    <button
+                                                        onClick={() => navigate(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`)}
+                                                        className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl text-sm"
+                                                    >
+                                                        Sign In to Register
+                                                    </button>
+                                                    <Link
+                                                        to={`/signup?returnUrl=${encodeURIComponent(window.location.pathname)}`}
+                                                        className="w-full py-3 px-4 border border-slate-700 hover:border-slate-600 bg-slate-800 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center"
+                                                    >
+                                                        Create Verified Account
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
                                         ) : (
                                             <motion.div 
                                                 key="form"
@@ -392,39 +437,39 @@ const EventDetailPage = () => {
                                                 
                                                 <form onSubmit={handleRegister} className="space-y-4">
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Full Name</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Full Name (Verified)</label>
                                                         <input 
                                                             required
+                                                            disabled
                                                             name="name"
                                                             type="text" 
                                                             value={regForm.name}
-                                                            onChange={handleRegFormChange}
                                                             placeholder="Enter your name" 
-                                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address (Verified)</label>
                                                         <input 
                                                             required
+                                                            disabled
                                                             name="email"
                                                             type="email" 
                                                             value={regForm.email}
-                                                            onChange={handleRegFormChange}
                                                             placeholder="you@example.com" 
-                                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Phone Number</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Phone Number (Verified)</label>
                                                         <input 
                                                             required
+                                                            disabled
                                                             name="phone"
                                                             type="tel" 
                                                             value={regForm.phone}
-                                                            onChange={handleRegFormChange}
                                                             placeholder="+91 00000 00000" 
-                                                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
                                                         />
                                                     </div>
                                                     <button 

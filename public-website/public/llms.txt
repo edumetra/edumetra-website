@@ -1,0 +1,32 @@
+# Edumetra
+
+> Comprehensive medical college information portal for India. Access NEET cutoffs, NIRF rankings, college profiles, and AI-powered admission predictions to make informed decisions.
+
+Edumetra is a dedicated platform for prospective medical students in India. It helps students find the right medical colleges (MBBS, BDS, BAMS, BHMS, etc.) based on their NEET scores, preferences, state quotas, and budgets.
+
+## Main Navigation Pages
+- [Home Page](https://www.edumetraglobal.com/): Dashboard and overview of the Edumetra platform.
+- [College Search](https://www.edumetraglobal.com/find-colleges): Interactive search page for medical colleges across India.
+- [Features](https://www.edumetraglobal.com/features): Overview of the advanced tools and services provided by Edumetra.
+- [Pricing Plans](https://www.edumetraglobal.com/pricing): Information on premium features, pricing packages, and subscription options.
+- [About Us](https://www.edumetraglobal.com/about): Learn about the team, mission, and vision behind Edumetra.
+- [Contact Us](https://www.edumetraglobal.com/contact): Get in touch with Edumetra support and counseling services.
+- [Advertise](https://www.edumetraglobal.com/advertise): Information for college advertisers and partners.
+- [Write a Review](https://www.edumetraglobal.com/review): Platform for students to rate and review their colleges.
+- [MBBS Abroad](https://www.edumetraglobal.com/mbbs-abroad): Comprehensive guide and counseling support for studying MBBS outside India.
+- [News & Blogs](https://www.edumetraglobal.com/news-blogs): Updates, blogs, and articles about medical admissions and NEET exams.
+- [Webinars & Seminars](https://www.edumetraglobal.com/webinars-seminars): Register and attend counseling webinars, workshops, and seminars.
+- [Exams Page](https://www.edumetraglobal.com/exams): Detailed guides on medical entrance exams.
+- [Universities Page](https://www.edumetraglobal.com/universities): Overview of universities and regulatory bodies.
+
+## Dynamic Routes
+- **College Detail Page**: `https://www.edumetraglobal.com/colleges/:slug` - Full profiles, rankings, fees, cutoffs, and reviews for specific medical colleges.
+- **Course Detail Page**: `https://www.edumetraglobal.com/courses/:courseId` - Guides on various courses like MBBS, BDS, BAMS, BHMS, Pharma, Nursing, and Physiotherapy.
+- **Article/Blog Detail Page**: `https://www.edumetraglobal.com/news-blogs/:slug` - Read single articles, updates, and blogs.
+- **Event Detail Page**: `https://www.edumetraglobal.com/webinars-seminars/:slug` - Details and registrations for individual events.
+
+## Portal Access & Authentication
+- [Login](https://www.edumetraglobal.com/login): Access existing account.
+- [Signup](https://www.edumetraglobal.com/signup): Create a new student or counselor account.
+- [Dashboard](https://www.edumetraglobal.com/dashboard): Access counseling predictions, saved colleges, and personalized recommendations.
+- [Forgot Password](https://www.edumetraglobal.com/forgot-password) / [Reset Password](https://www.edumetraglobal.com/reset-password): Recover account access.

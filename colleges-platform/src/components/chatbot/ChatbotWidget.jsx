@@ -101,7 +101,7 @@ function ChatWindow({ onClose }) {
                             flow: null, // Reset flow so it handles it as general NLP search/intent
                             flowData: {},
                             setFlow, setFlowData,
-                            botSay, role, isSignedUp, user
+                            botSay, role, isSignedUp, user, openSignUp
                         });
                     }, 1000);
                 } else if (pending.type === 'chip') {
@@ -109,7 +109,7 @@ function ChatWindow({ onClose }) {
                         const welcome = getWelcomeFlow(user, role);
                         const chip = welcome.chips.find(c => c.label === pending.label);
                         if (chip) {
-                            chip.action({ botSay, setFlow, setFlowData, flowData: {}, role, isSignedUp, openSignUp });
+                            chip.action({ botSay, setFlow, setFlowData, flowData: {}, role, isSignedUp, openSignUp, user });
                         } else {
                             reloadWelcome({ botSay, setFlow, user, role });
                         }
@@ -157,7 +157,7 @@ function ChatWindow({ onClose }) {
         await handleTextInput({
             text: trimmed,
             flow, flowData, setFlow, setFlowData,
-            botSay, role, isSignedUp, user,
+            botSay, role, isSignedUp, user, openSignUp
         });
     };
 

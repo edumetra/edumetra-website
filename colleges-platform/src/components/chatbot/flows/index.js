@@ -200,13 +200,57 @@ export function startPredictorFlow({ botSay, role, setFlow }) {
 }
 
 // ── Counsellor flow ──────────────────────────────────────────────────────────
-export function startCounsellorFlow({ botSay, setFlow, setFlowData, query }) {
-    setFlow('counsellor_name');
-    setFlowData({ originalQuery: query || 'Chatbot counselling request' });
-    botSay(`I'll connect you with our expert counselling team! 🎯\n\nFirst, what's your name?`, {
-        delay: 500,
-        inputMode: 'text',
+export async function startCounsellorFlow({ botSay, setFlow, setFlowData, query, isSignedUp, openSignUp, user, role }) {
+    if (!isSignedUp && !user) {
+        botSay("To protect our platform and guarantee callback reachability, counselling requests are exclusive to registered users.", {
+            delay: 500
+        });
+        setTimeout(() => {
+            botSay("Please sign in or create a free account to continue:", {
+                delay: 800,
+                chips: [
+                    { label: "Sign Up / Log In", action: ({ openSignUp }) => openSignUp() },
+                    { label: "← Main Menu", action: (ctx) => reloadWelcome({ ...ctx, user, role }) }
+                ]
+            });
+        }, 1200);
+        return;
+    }
+
+    setFlow('counsellor_done');
+    const name = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Registered Student';
+    const phone = user?.user_metadata?.phone || user?.phone || '';
+    const email = user?.email || '';
+
+    botSay(`Submitting callback request for:\n👤 ${name}\n📞 +91 ${phone}`, { delay: 500 });
+
+    const success = await saveCounsellingRequest({
+        name,
+        phone,
+        email,
+        query: query || 'Chatbot counselling request',
     });
+
+    setTimeout(() => {
+        if (success) {
+            botSay(`Perfect, ${name}!`, {
+                delay: 500,
+                type: 'success',
+                successText: 'Our counselling team will call you within 24 hours. 🎉',
+            });
+        } else {
+            botSay('Something went wrong saving your request. Please email us directly.', { delay: 500 });
+        }
+        setTimeout(() => {
+            botSay('Is there anything else I can help with?', {
+                delay: 1400,
+                chips: [
+                    { label: 'Find Colleges', emoji: '🏫', action: (ctx) => reloadWelcome({ ...ctx, user, role }) },
+                    { label: 'Check Cutoffs', emoji: '📊', action: startCutoffFlow },
+                ],
+            });
+        }, 1800);
+    }, 1200);
 }
 
 // ── Reload welcome ────────────────────────────────────────────────────────────
@@ -218,7 +262,7 @@ export function reloadWelcome({ botSay, setFlow, user, role }) {
 
 // ── Handle free-text input ────────────────────────────────────────────────────
 export async function handleTextInput({
-    text, flow, flowData, setFlow, setFlowData, botSay, role, isSignedUp, user
+    text, flow, flowData, setFlow, setFlowData, botSay, role, isSignedUp, user, openSignUp
 }) {
     // ── 1. Cutoff search ───────────────────────────────────────────────────
     if (flow === 'cutoff_search') {
@@ -409,7 +453,7 @@ export async function handleTextInput({
     const intent = detectIntent(text);
 
     if (intent.isCounsellorIntent) {
-        startCounsellorFlow({ botSay, setFlow, setFlowData, query: text });
+        startCounsellorFlow({ botSay, setFlow, setFlowData, query: text, isSignedUp, openSignUp, user, role });
         return;
     }
     if (intent.isPricingIntent) {

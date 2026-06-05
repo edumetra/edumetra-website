@@ -1,0 +1,30 @@
+# Edumetra Colleges Platform
+
+> Search 10,000+ colleges across India. Compare fees, placements, rankings and read verified student reviews to make the best decisions.
+
+Edumetra Colleges Platform is a comprehensive portal designed for students looking to research, compare, and apply to colleges in India. It features rank prediction, eligibility checkers, NEET preparation tools, and AI-assisted counseling workflows.
+
+## Key Features & Pages
+- [Home Page](https://colleges.edumetraglobal.com/): Dashboard, popular colleges, and main platform entry point.
+- [College Search & Directory](https://colleges.edumetraglobal.com/colleges): Filter and search over 10,000+ colleges by fees, course, location, rankings, and placements.
+- [Rankings](https://colleges.edumetraglobal.com/rankings): View college rankings based on various parameters (NIRF, Placement, Fees, and Infrastructure).
+- [Compare Colleges](https://colleges.edumetraglobal.com/compare): Side-by-side comparison tool for comparing multiple colleges.
+- [Eligibility Checker](https://colleges.edumetraglobal.com/eligibility): Check your eligibility for courses/colleges based on marks and qualifications (requires login).
+- [Rank Predictor](https://colleges.edumetraglobal.com/rank-predictor): Predict NEET and entrance exam ranks to discover potential college options (requires login).
+- [NEET Preparation Portal](https://colleges.edumetraglobal.com/neet-prep): Study materials, practice questions, mock tests, and AI-assisted preparation tools (requires login).
+- [Shortlist Page](https://colleges.edumetraglobal.com/shortlist): View, manage, and compare shortlisted colleges (requires login).
+- [Write a Review](https://colleges.edumetraglobal.com/review): Write reviews and share student experiences.
+- [Articles & Guides](https://colleges.edumetraglobal.com/articles): Insights, career guides, and informational articles.
+- [News & Updates](https://colleges.edumetraglobal.com/news-updates): Latest notifications on exam dates, results, and admission schedules.
+- [Pricing & Plans](https://colleges.edumetraglobal.com/pricing): Upgrade to premium membership to unlock prediction engines and prep tools.
+- [Contact Us](https://colleges.edumetraglobal.com/contact): Get in touch with academic counselors.
+
+## Dynamic Routes
+- **College Detail Page**: `https://colleges.edumetraglobal.com/colleges/:slug` - Overview, placement stats, fee structure, hostel details, course list, and reviews.
+- **Article/Blog Detail Page**: `https://colleges.edumetraglobal.com/articles/:slug` - View full detail of informational articles.
+- **Exam Detail Page**: `https://colleges.edumetraglobal.com/exams/:slug` - Detailed information on major exams (like NEET, JEE, etc.).
+
+## Portal Access & Authentication
+- [Profile](https://colleges.edumetraglobal.com/profile): Manage profile, NEET scores, preferences, and payment history (requires login).
+- [Reset Password](https://colleges.edumetraglobal.com/reset-password): Secure link to update password credentials.
+- [Checkout](https://colleges.edumetraglobal.com/checkout) / [Invoice](https://colleges.edumetraglobal.com/invoice): Subscription payments and invoice retrieval.

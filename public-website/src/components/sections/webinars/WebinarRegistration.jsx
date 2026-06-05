@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Bell, CheckCircle, Loader2 } from 'lucide-react';
 import { pushLeadToTeleCRM } from '../../../services/telecrm';
 import { supabase } from '../../../services/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../../features/auth/AuthProvider';
+import { Link, useNavigate } from 'react-router-dom';
 
 const WebinarRegistration = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [status, setStatus] = React.useState('idle'); // idle | submitting | success | error
     const [formData, setFormData] = React.useState({
         name: '',
@@ -13,6 +17,17 @@ const WebinarRegistration = () => {
         category: ''
     });
     const [errorMsg, setErrorMsg] = React.useState('');
+
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                name: user?.user_metadata?.full_name || user?.user_metadata?.name || '',
+                phone: user?.user_metadata?.phone || user?.phone || '',
+                email: user?.email || '',
+            }));
+        }
+    }, [user]);
 
     const handleChange = (e) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -124,6 +139,45 @@ const WebinarRegistration = () => {
         );
     }
 
+    if (!user) {
+        return (
+            <section className="section bg-slate-900/30">
+                <div className="container-custom">
+                    <motion.div
+                        className="card max-w-3xl mx-auto text-center p-8 md:p-12 border border-slate-800 bg-slate-900/50 backdrop-blur-xl"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Bell className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                            Never Miss an <span className="gradient-text">Event</span>
+                        </h2>
+                        <p className="text-slate-300 mb-8 max-w-md mx-auto">
+                            To register for webinars and receive joining links on your verified number, please sign in or create a free account.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button
+                                onClick={() => navigate(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`)}
+                                className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl text-sm"
+                            >
+                                Sign In to Register
+                            </button>
+                            <Link
+                                to={`/signup?returnUrl=${encodeURIComponent(window.location.pathname)}`}
+                                className="px-8 py-3 border border-slate-700 hover:border-slate-600 bg-slate-800 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center"
+                            >
+                                Create Verified Account
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className="section bg-slate-900/30">
             <div className="container-custom">
@@ -160,49 +214,58 @@ const WebinarRegistration = () => {
 
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="grid md:grid-cols-2 gap-4">
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Full Name"
-                                className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                required
-                            />
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="Email Address"
-                                className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                required
-                            />
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Full Name (Verified)</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    disabled
+                                    placeholder="Full Name"
+                                    className="w-full px-4 py-3 bg-slate-800/30 border border-slate-800 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Email Address (Verified)</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    disabled
+                                    placeholder="Email Address"
+                                    className="w-full px-4 py-3 bg-slate-800/30 border border-slate-800 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none"
+                                />
+                            </div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
-                            <input
-                                type="tel"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="Phone Number"
-                                className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                required
-                            />
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                                required
-                            >
-                                <option value="">Select Category of Interest</option>
-                                <option value="NEET Preparation">NEET Preparation</option>
-                                <option value="Counseling Guide">Counseling Guide</option>
-                                <option value="MBBS Abroad">MBBS Abroad</option>
-                                <option value="Career Guidance">Career Guidance</option>
-                                <option value="Study Tips">Study Tips</option>
-                            </select>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Phone Number (Verified)</label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    disabled
+                                    placeholder="Phone Number"
+                                    className="w-full px-4 py-3 bg-slate-800/30 border border-slate-800 rounded-lg text-slate-400 cursor-not-allowed focus:outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-300 uppercase tracking-widest pl-1">Category of Interest *</label>
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    required
+                                >
+                                    <option value="">Select Category of Interest</option>
+                                    <option value="NEET Preparation">NEET Preparation</option>
+                                    <option value="Counseling Guide">Counseling Guide</option>
+                                    <option value="MBBS Abroad">MBBS Abroad</option>
+                                    <option value="Career Guidance">Career Guidance</option>
+                                    <option value="Study Tips">Study Tips</option>
+                                </select>
+                            </div>
                         </div>
                         <button
                             type="submit"
