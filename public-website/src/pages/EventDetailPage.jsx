@@ -433,43 +433,43 @@ const EventDetailPage = () => {
                                                 exit={{ opacity: 0, y: -10 }}
                                             >
                                                 <h3 className="text-2xl font-bold text-white mb-2">Reserve Your Spot</h3>
-                                                <p className="text-slate-400 mb-8">Join {event.attendees}+ students already registered for this event.</p>
+                                                <p className="text-slate-400 mb-8">Join {(event.attendees || 0) + 25}+ students already registered for this event.</p>
                                                 
                                                 <form onSubmit={handleRegister} className="space-y-4">
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Full Name (Verified)</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Full Name</label>
                                                         <input 
                                                             required
-                                                            disabled
                                                             name="name"
                                                             type="text" 
                                                             value={regForm.name}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="Enter your name" 
-                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-300 focus:outline-none focus:border-red-500 transition-all"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address (Verified)</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address</label>
                                                         <input 
                                                             required
-                                                            disabled
                                                             name="email"
                                                             type="email" 
                                                             value={regForm.email}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="you@example.com" 
-                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-300 focus:outline-none focus:border-red-500 transition-all"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Phone Number (Verified)</label>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Phone Number</label>
                                                         <input 
                                                             required
-                                                            disabled
                                                             name="phone"
                                                             type="tel" 
                                                             value={regForm.phone}
+                                                            onChange={handleRegFormChange}
                                                             placeholder="+91 00000 00000" 
-                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed focus:outline-none transition-all"
+                                                            className="w-full bg-slate-800/30 border border-slate-800 rounded-xl px-4 py-3 text-slate-300 focus:outline-none focus:border-red-500 transition-all"
                                                         />
                                                     </div>
                                                     <button 

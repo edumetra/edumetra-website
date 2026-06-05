@@ -152,65 +152,10 @@ const RegistrationSuccessModal = ({ event, name, onClose }) => {
 };
 
 // ------------------------------------------------------------------
-// Guest Interest Modal — shown when user is NOT logged in
+// Sign In Required Modal
 // ------------------------------------------------------------------
-const GuestInterestModal = ({ event, onClose, onSuccess }) => {
-    const [form, setForm] = React.useState({ name: '', phone: '', email: '' });
-    const [submitting, setSubmitting] = React.useState(false);
-    const [error, setError] = React.useState('');
-
-    // UUID v4 validation helper
-    const isValidUUID = (str) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
-        setError('');
-
-        try {
-            // Only insert if event.id is a valid UUID (guards against slug-as-id DB rows)
-            if (!isValidUUID(event.id)) {
-                setError('Failed to register: Invalid event configuration.');
-                setSubmitting(false);
-                return;
-            }
-
-            const { error: dbErr } = await supabase
-                .from('event_registrations')
-                .insert([{
-                    event_id: event.id,
-                    user_id: null,
-                    registration_type: 'guest',
-                    status: 'registered',
-                    guest_name: form.name,
-                    guest_email: form.email,
-                    guest_phone: form.phone
-                }]);
-
-            if (dbErr && dbErr.code !== '23505') {
-                setError('Failed to register. Please try again.');
-                setSubmitting(false);
-                return;
-            }
-
-            // TeleCRM touch point
-            pushLeadToTeleCRM(
-                {
-                    name: form.name,
-                    email: form.email,
-                    phone: form.phone,
-                    status: 'Fresh'
-                },
-                ['Webinar Interest', event.title, event.category]
-            );
-
-            onSuccess(form.name, event);
-        } catch (err) {
-            setError('Something went wrong. Please try again.');
-            setSubmitting(false);
-        }
-    };
+const SignInRequiredModal = ({ onClose, location }) => {
+    const navigate = useNavigate();
 
     return (
         <motion.div
@@ -221,90 +166,40 @@ const GuestInterestModal = ({ event, onClose, onSuccess }) => {
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <motion.div
-                className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+                className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden p-8 text-center relative"
                 initial={{ scale: 0.92, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 280, damping: 22 }}
             >
-                {/* Header */}
-                <div className="p-6 border-b border-slate-800 flex items-start justify-between">
-                    <div>
-                        <h3 className="text-lg font-bold text-white mb-1">Show Interest</h3>
-                        <p className="text-slate-400 text-sm line-clamp-2">{event.title}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="ml-4 p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors flex-shrink-0"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors z-10"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                <div className="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="w-8 h-8 text-red-500" />
                 </div>
-
-                {/* Form */}
-                <form className="p-6 space-y-4" onSubmit={handleSubmit}>
-                    <p className="text-slate-300 text-sm">
-                        Drop your details and we'll send you the webinar link & reminders!
-                    </p>
-
-                    {error && (
-                        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
-                            ⚠️ {error}
-                        </div>
-                    )}
-
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input
-                            type="text"
-                            placeholder="Your Full Name"
-                            value={form.name}
-                            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                            className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                            required
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input
-                            type="tel"
-                            placeholder="Phone Number (for WhatsApp updates)"
-                            value={form.phone}
-                            onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                            className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                            required
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input
-                            type="email"
-                            placeholder="Email Address"
-                            value={form.email}
-                            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                            className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                            required
-                        />
-                    </div>
-
+                <h3 className="text-2xl font-bold text-white mb-2">Sign In Required</h3>
+                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                    To register for this event and receive invitations, please sign in or create a free account.
+                </p>
+                <div className="space-y-3">
                     <button
-                        type="submit"
-                        disabled={submitting}
-                        className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                        onClick={() => navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`)}
+                        className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl text-sm"
                     >
-                        {submitting ? (
-                            <><Loader2 className="w-4 h-4 animate-spin" /> Registering...</>
-                        ) : (
-                            '🎯 Register My Interest'
-                        )}
+                        Sign In to Register
                     </button>
-
-                    <p className="text-slate-500 text-xs text-center">
-                        We'll send a Zoom link + reminders. No spam, unsubscribe anytime.
-                    </p>
-                </form>
+                    <Link
+                        to={`/signup?returnUrl=${encodeURIComponent(location.pathname)}`}
+                        className="w-full py-3 px-4 border border-slate-700 hover:border-slate-600 bg-slate-800 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center"
+                    >
+                        Create Free Account
+                    </Link>
+                </div>
             </motion.div>
         </motion.div>
     );
@@ -321,7 +216,7 @@ const UpcomingWebinars = ({ events }) => {
     const [registering, setRegistering] = React.useState(null);
     const [registeredIds, setRegisteredIds] = React.useState(new Set());
     const [toastMsg, setToastMsg] = React.useState('');
-    const [guestModal, setGuestModal] = React.useState(null); // event object or null
+    const [loginPromptModal, setLoginPromptModal] = React.useState(false);
     const [successModalEvent, setSuccessModalEvent] = React.useState(null); // { event, name } or null
 
     // On mount, check which events the current user is already registered for
@@ -346,9 +241,9 @@ const UpcomingWebinars = ({ events }) => {
     };
 
     const handleShowInterest = async (event) => {
-        // Not logged in → show guest capture modal
+        // Not logged in → show login prompt modal
         if (!user) {
-            setGuestModal(event);
+            setLoginPromptModal(true);
             return;
         }
 
@@ -409,11 +304,7 @@ const UpcomingWebinars = ({ events }) => {
         }
     };
 
-    const handleGuestSuccess = (guestName, event) => {
-        setGuestModal(null);
-        setSuccessModalEvent({ event, name: guestName });
-        showToast(`🎉 Got it, ${guestName}! We'll send you the details soon.`);
-    };
+
 
     return (
         <section className="section">
@@ -452,16 +343,17 @@ const UpcomingWebinars = ({ events }) => {
                     )}
                 </AnimatePresence>
 
-                {/* Guest modal */}
+                {/* Login Prompt Modal */}
                 <AnimatePresence>
-                    {guestModal && (
-                        <GuestInterestModal
-                            event={guestModal}
-                            onClose={() => setGuestModal(null)}
-                            onSuccess={handleGuestSuccess}
+                    {loginPromptModal && (
+                        <SignInRequiredModal
+                            location={location}
+                            onClose={() => setLoginPromptModal(false)}
                         />
                     )}
                 </AnimatePresence>
+
+
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
                     {events.length === 0 ? (
