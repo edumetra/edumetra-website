@@ -459,6 +459,31 @@ const CheckoutPage = () => {
                                 `Invoice: ${verifyData.invoice.invoice_number}`,
                             ]
                         );
+
+                        // Google Tag Manager & Google Analytics Conversion Tracking
+                        if (typeof window !== 'undefined') {
+                            if (window.dataLayer) {
+                                window.dataLayer.push({
+                                    event: 'purchase_success',
+                                    transaction_id: response.razorpay_payment_id,
+                                    value: discountedPrice,
+                                    currency: 'INR',
+                                    plan: plan.name,
+                                });
+                            }
+                            if (window.gtag) {
+                                window.gtag('event', 'purchase', {
+                                    transaction_id: response.razorpay_payment_id,
+                                    value: discountedPrice,
+                                    currency: 'INR',
+                                    items: [{
+                                        item_name: `${plan.name.toUpperCase()} Plan`,
+                                        price: discountedPrice,
+                                        quantity: 1
+                                    }]
+                                });
+                            }
+                        }
                     } else {
                         throw new Error(verifyData.error || 'Payment verification failed.');
                     }

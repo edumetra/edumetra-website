@@ -89,6 +89,12 @@ const SignupPage = () => {
                 },
                 ['Signup', 'New User', 'OTP Verified']
             );
+
+            // Google Analytics Conversion Event for Signup
+            if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'conversion_event_signup_1', {});
+            }
+
             setSuccess('Account created successfully! Please check your email to verify your account.');
             setTimeout(() => {
                 navigate(`/login${returnUrl !== '/dashboard' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`);

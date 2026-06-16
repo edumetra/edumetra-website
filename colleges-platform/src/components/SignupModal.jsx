@@ -137,6 +137,11 @@ export default function SignupModal({ isOpen, onClose }) {
                     });
                 }
 
+                // Google Analytics Conversion Event for Signup
+                if (typeof window !== 'undefined' && window.gtag) {
+                    window.gtag('event', 'conversion_event_signup_1', {});
+                }
+
                 if (!import.meta.env.DEV) {
                     try {
                         fetch('/api/facebook-capi', {
