@@ -187,8 +187,63 @@ const TermsPage = () => {
             )
         },
         {
+            id: 'rcs-privacy',
+            title: '14. RCS Messaging Privacy Policy',
+            content: (
+                <div className="space-y-4 text-slate-400 leading-relaxed">
+                    <p>
+                        Edumetra Global respects your privacy and is committed to protecting user information shared through our RCS Messaging Service. We may collect limited details such as mobile numbers, device information, and message interaction data to provide secure and reliable communication services.
+                    </p>
+                    <p>
+                        The collected information is used only for message delivery, service improvement, and customer support. We do not sell or share personal data with unauthorized third parties. Information may be disclosed only when required by law or for service-related operations with trusted partners.
+                    </p>
+                    <p>
+                        We apply reasonable security measures to safeguard user data from unauthorized access or misuse. Users can opt out of promotional messages anytime by following the unsubscribe instructions provided in the communication.
+                    </p>
+                    <p>
+                        By using our RCS Messaging Service, you agree to this Privacy Policy and the responsible use of your information by Edumetra Global.
+                    </p>
+                </div>
+            )
+        },
+        {
+            id: 'rcs-consent',
+            title: '15. Opt-in & RCS Messaging Consent',
+            content: (
+                <div className="space-y-4 text-slate-400 leading-relaxed">
+                    <p>
+                        By submitting your details or signing up on our website, you agree to receive communication from Edumetra Global via SMS, email, WhatsApp, and RCS Business Messaging.
+                    </p>
+                    <p>
+                        RCS (Rich Communication Services) lets us send you interactive messages, including:
+                    </p>
+                    <ul className="space-y-3">
+                        {[
+                            'Buttons, carousels, and quick replies',
+                            'Order updates or service alerts',
+                            'Verified messages directly from Edumetra Global'
+                        ].map((item, idx) => (
+                            <li key={idx} className="flex items-center gap-3 text-slate-400">
+                                <CheckCircle2 className="w-5 h-5 text-primary-500 shrink-0" />
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                    <p>
+                        You can opt-out anytime by replying “STOP” or contacting us at{' '}
+                        <a href="mailto:hello@edumetraglobal.com" className="text-primary-400 hover:underline">
+                            hello@edumetraglobal.com
+                        </a>.
+                    </p>
+                    <p>
+                        We value your trust and assure secure handling of all your data under our privacy standards.
+                    </p>
+                </div>
+            )
+        },
+        {
             id: 'contact',
-            title: '14. Contact Information',
+            title: '16. Contact Information',
             content: (
                 <div className="card-premium p-8 grid md:grid-cols-3 gap-8">
                     <div className="flex flex-col items-center text-center gap-3">
