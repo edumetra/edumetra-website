@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, GraduationCap, Mail, User, Lock, LogIn, Phone, ArrowLeft, KeyRound } from 'lucide-react';
+import { X, GraduationCap, Mail, User, Lock, LogIn, Phone, ArrowLeft, KeyRound, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSignup } from '../contexts/SignupContext';
 import { pushLeadToTeleCRM } from '../services/telecrm';
@@ -522,6 +522,13 @@ export default function SignupModal({ isOpen, onClose }) {
                                                     placeholder="Min. 6 characters"
                                                 />
                                             </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-slate-300 text-xs mt-2 mb-4">
+                                            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                            <p className="leading-relaxed">
+                                                By clicking submit, I agree to the terms & conditions and privacy policy and I am giving my consent to receive updates through SMS/email/RCS/WhatsApp
+                                            </p>
                                         </div>
 
                                         <button

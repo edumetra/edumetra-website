@@ -5,6 +5,7 @@ import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../services/supabaseClient';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import OptInNotice from '../shared/ui/OptInNotice';
 
 const ResetPasswordPage = () => {
     const { updatePassword } = useAuth();
@@ -105,6 +106,7 @@ const ResetPasswordPage = () => {
                             </div>
                         </div>
 
+                        <OptInNotice />
                         <button
                             type="submit"
                             disabled={loading || !password}

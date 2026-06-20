@@ -5,6 +5,7 @@ import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import OptInNotice from '../shared/ui/OptInNotice';
 
 const ForgotPasswordPage = () => {
     const { resetPassword } = useAuth();
@@ -88,6 +89,7 @@ const ForgotPasswordPage = () => {
                             </div>
                         </div>
 
+                        <OptInNotice />
                         <button
                             type="submit"
                             disabled={loading || !email}

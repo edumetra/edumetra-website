@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from './Button';
 import { pushLeadToTeleCRM } from '../../services/telecrm';
+import OptInNotice from './OptInNotice';
 import { motion } from 'framer-motion';
 const ContactForm = () => {
     const [formData, setFormData] = useState({
@@ -180,6 +181,7 @@ const ContactForm = () => {
                 </div>
 
                 {/* Submit Button */}
+                <OptInNotice />
                 <Button
                     type="submit"
                     variant="primary"

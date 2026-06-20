@@ -4,7 +4,7 @@ import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff, User, ArrowLeft } fr
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
-
+import OptInNotice from '../shared/ui/OptInNotice';
 import { motion } from 'framer-motion';
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -178,6 +178,7 @@ const LoginPage = () => {
                             </Link>
                         </div>
 
+                        <OptInNotice />
                         <button
                             type="submit"
                             disabled={loading}

@@ -5,6 +5,7 @@ import { supabase } from '../../../services/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { Link, useNavigate } from 'react-router-dom';
+import OptInNotice from '../../../shared/ui/OptInNotice';
 
 const WebinarRegistration = () => {
     const { user } = useAuth();
@@ -267,6 +268,7 @@ const WebinarRegistration = () => {
                                 </select>
                             </div>
                         </div>
+                        <OptInNotice />
                         <button
                             type="submit"
                             disabled={status === 'submitting'}
@@ -284,9 +286,6 @@ const WebinarRegistration = () => {
                                 </>
                             )}
                         </button>
-                        <p className="text-slate-400 text-sm text-center">
-                            By registering, you agree to receive webinar notifications and updates. Unsubscribe anytime.
-                        </p>
                     </form>
                 </motion.div>
             </div>

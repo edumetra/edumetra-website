@@ -4,6 +4,7 @@ import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } fr
 import { useAuth } from '../features/auth/AuthProvider';
 import SEO from '../components/SEO';
 import { pushLeadToTeleCRM } from '../services/telecrm';
+import OptInNotice from '../shared/ui/OptInNotice';
 import { motion } from 'framer-motion';
 const SignupPage = () => {
     const navigate = useNavigate();
@@ -90,9 +91,37 @@ const SignupPage = () => {
                 ['Signup', 'New User', 'OTP Verified']
             );
 
+            // Trigger Meta Pixel CompleteRegistration event
+            if (typeof window !== 'undefined' && window.fbq) {
+                window.fbq('track', 'CompleteRegistration', {
+                    content_name: 'User Signup'
+                });
+            }
+
             // Google Analytics Conversion Event for Signup
             if (typeof window !== 'undefined' && window.gtag) {
                 window.gtag('event', 'conversion_event_signup_1', {});
+            }
+
+            if (!import.meta.env.DEV) {
+                try {
+                    fetch('/api/facebook-capi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            eventName: 'CompleteRegistration',
+                            email: formData.email,
+                            phone: formData.phone,
+                            customData: {
+                                content_name: 'User Signup'
+                            }
+                        })
+                    });
+                } catch (capiErr) {
+                    console.warn('[CAPI Warning]: Failed to send signup event:', capiErr);
+                }
+            } else {
+                console.log('[Dev] Skipped Facebook CAPI fetch on localhost.');
             }
 
             setSuccess('Account created successfully! Please check your email to verify your account.');
@@ -415,6 +444,7 @@ const SignupPage = () => {
                             </label>
                         </div>
 
+                        <OptInNotice />
                         <button
                             type="submit"
                             disabled={loading || !otpVerified}
