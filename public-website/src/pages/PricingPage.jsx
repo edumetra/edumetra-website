@@ -55,7 +55,15 @@ const PricingPage = () => {
     }, []);
 
     const handlePlanCTA = async (planName) => {
-        const key = planName.toLowerCase() === 'plus' ? 'pro' : planName.toLowerCase();
+        let key = planName.toLowerCase();
+        if (key === 'pro plan') {
+            key = 'premium';
+        } else if (key === 'premium guidance plan') {
+            key = 'pro';
+        } else if (key === 'plus') {
+            key = 'pro';
+        }
+
         if (key === 'free') {
             navigate('/signup');
             return;

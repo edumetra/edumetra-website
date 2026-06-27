@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@repo/ui", "@repo/lib", "@repo/types"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 
   async rewrites() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

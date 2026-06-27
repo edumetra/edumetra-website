@@ -89,23 +89,29 @@ export default function ArticlesPage() {
             slug: formData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
         };
 
-        if (editingArticle) {
-            const res = await updateArticleById(editingArticle.id, payload);
-            if (res.error) setError(res.error || "Update failed");
-            else {
-                setArticles(prev => prev.map(a => a.id === editingArticle.id ? { ...a, ...payload } as Article : a));
-                setIsModalOpen(false);
-                fetchArticles();
+        try {
+            if (editingArticle) {
+                const res = await updateArticleById(editingArticle.id, payload);
+                if (res.error) setError(res.error || "Update failed");
+                else {
+                    setArticles(prev => prev.map(a => a.id === editingArticle.id ? { ...a, ...payload } as Article : a));
+                    setIsModalOpen(false);
+                    fetchArticles();
+                }
+            } else {
+                const res = await createArticle(payload);
+                if (res.error || !res.data) setError(res.error || "Create failed — no data returned");
+                else {
+                    setArticles(prev => [res.data, ...prev]);
+                    setIsModalOpen(false);
+                }
             }
-        } else {
-            const res = await createArticle(payload);
-            if (res.error || !res.data) setError(res.error || "Create failed — no data returned");
-            else {
-                setArticles(prev => [res.data, ...prev]);
-                setIsModalOpen(false);
-            }
+        } catch (err: any) {
+            console.error("Error saving article:", err);
+            setError(err?.message || "An unexpected error occurred while saving the article.");
+        } finally {
+            setActionLoading(null);
         }
-        setActionLoading(null);
     };
 
     const handleDelete = async (id: string, title: string) => {

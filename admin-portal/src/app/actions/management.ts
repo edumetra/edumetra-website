@@ -140,7 +140,7 @@ export async function updateArticleById(
         published: boolean;
     }
 ) {
-    const auth = await requireSuperadmin();
+    const auth = await requireAdmin();
     if (auth.error) return { error: auth.error };
     const adminClient = createAdminClient();
     const { error } = await adminClient
