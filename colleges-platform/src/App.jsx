@@ -100,7 +100,7 @@ function App() {
                   <Route path="news-updates" element={<NewsUpdatesPage />} />
                   <Route path="careers" element={<CareersPage />} />
                   <Route path="pricing" element={<PricingPage />} />
-                  <Route path="checkout" element={<CheckoutPage />} />
+                  <Route path="checkout" element={<AuthGuard><CheckoutPage /></AuthGuard>} />
                   <Route path="contact" element={<ContactPage />} />
                   {/* Named 404 (navigate('/404') from CollegeDetailPage) + catch-all */}
                   <Route path="404" element={<NotFoundPage />} />

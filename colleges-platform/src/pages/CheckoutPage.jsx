@@ -100,7 +100,7 @@ const CheckoutPage = () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 toast.error('Please log in to continue.');
-                navigate(`/login?redirect=/checkout?plan=${planKey}`);
+                navigate('/');
                 return;
             }
             setUser(session.user);
