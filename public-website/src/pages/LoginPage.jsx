@@ -48,8 +48,7 @@ const LoginPage = () => {
             // TeleCRM Integration
             try {
                 pushLeadToTeleCRM({ 
-                    [formData.identifier.includes('@') ? 'email' : 'phone']: formData.identifier, 
-                    status: 'Fresh' 
+                    [formData.identifier.includes('@') ? 'email' : 'phone']: formData.identifier
                 }, ['Website Login']);
             } catch (e) {}
 

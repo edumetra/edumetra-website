@@ -289,7 +289,6 @@ const UpcomingWebinars = ({ events }) => {
                         name: name,
                         email: user.email,
                         phone: metadata.phone || '',
-                        status: 'Fresh'
                     },
                     ['Webinar Interest', event.title, event.category]
                 );

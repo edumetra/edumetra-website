@@ -74,7 +74,6 @@ const CounsellingModal = () => {
                     name: userName,
                     phone: storedPhone,
                     email: userEmail,
-                    status: 'Fresh',
                 },
                 ['Counselling Request', 'Free Session']
             );

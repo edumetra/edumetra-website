@@ -83,7 +83,7 @@ export async function trackTeleCRMTouchpoint(tags, extraFields = {}) {
 
         if (!stored?.email && !stored?.phone) return;
         pushLeadToTeleCRM(
-            { ...stored, ...extraFields, status: extraFields.status || 'Fresh' },
+            { ...stored, ...extraFields },
             tags
         );
     } catch (e) {
@@ -174,7 +174,6 @@ export function trackTeleCRMPageView(path, title) {
             pushLeadToTeleCRM(
                 {
                     ...user,
-                    status: 'Fresh',
                     last_page: displayName,
                     source: PLATFORM_SOURCE,
                 },
@@ -235,22 +234,16 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         const body = { 
             fields: {
                 ...leadFields,
-                // Add case-sensitive variations for older/strict TeleCRM versions
-                Name: leadFields.name,
-                Email: leadFields.email,
-                Phone: leadFields.phone,
-                PhoneNumber: leadFields.phone,
-                // Add specific tracking fields
+                // Tracking metadata
                 last_page: leadFields.last_page || '',
                 touchpoint: tags.join(', ')
             },
-            // Move unique identifiers to the top level
+            // Top-level unique identifiers used by TeleCRM for deduplication
             name: leadFields.name,
             email: leadFields.email,
             phone: leadFields.phone,
-            phoneNumber: leadFields.phone,
             source: leadFields.source || PLATFORM_SOURCE,
-            // ENABLE ACTUAL TAGS (The most important part)
+            // Tags for lead labelling
             tags: tags
         };
 

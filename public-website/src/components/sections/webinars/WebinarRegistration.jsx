@@ -62,7 +62,6 @@ const WebinarRegistration = () => {
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    status: 'Fresh',
                 },
                 ['Webinar Interest', ...(formData.category ? [formData.category] : [])].filter(Boolean)
             );

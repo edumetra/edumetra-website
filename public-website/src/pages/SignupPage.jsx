@@ -86,7 +86,6 @@ const SignupPage = () => {
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    status: 'Fresh',
                 },
                 ['Signup', 'New User', 'OTP Verified']
             );

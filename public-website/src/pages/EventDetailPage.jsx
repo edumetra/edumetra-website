@@ -179,7 +179,6 @@ const EventDetailPage = () => {
                     name: regForm.name,
                     email: regForm.email,
                     phone: regForm.phone,
-                    status: 'Fresh',
                 },
                 ['Event Registration', event?.title].filter(Boolean)
             );

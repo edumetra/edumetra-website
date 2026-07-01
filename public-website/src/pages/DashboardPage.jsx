@@ -118,8 +118,7 @@ const DashboardPage = () => {
                     phone: profile.phone_number,
                     email: profile.email,
                     city: profile.city,
-                    state: profile.state,
-                    status: 'Fresh'
+                    state: profile.state
                 }, ['Profile Updated']);
             } catch (e) {}
             

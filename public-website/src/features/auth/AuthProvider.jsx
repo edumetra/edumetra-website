@@ -61,8 +61,7 @@ export const AuthProvider = ({ children }) => {
                     name: metadata.full_name || metadata.name || '',
                     email: currentUser.email,
                     phone: metadata.phone || currentUser.phone || '',
-                    status: 'Fresh',
-                }, ['Public Website: Signed In']);
+                }, ['User Logged In (Session Restore)']);
             }
         });
 

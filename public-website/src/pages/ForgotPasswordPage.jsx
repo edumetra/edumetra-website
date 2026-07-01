@@ -30,9 +30,8 @@ const ForgotPasswordPage = () => {
             // TeleCRM Integration
             try {
                 pushLeadToTeleCRM({ 
-                    email: email, 
-                    status: 'Fresh' 
-                }, ['Requested Password Reset']);
+                    email: email
+                }, ['Website Forgot Password']);
             } catch (e) {}
         }
         setLoading(false);

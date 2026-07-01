@@ -137,20 +137,23 @@ const CheckoutPage = () => {
         checkEligibility();
     }, [user, navigate, planKey]);
 
-    const buildCheckoutLead = (status = 'Fresh') => ({
-        name: user?.user_metadata?.full_name || '',
-        email: user?.email,
-        phone: formatPhoneForRazorpay(checkoutPhone),
-        status,
-        plan: plan.name,
-    });
+    const buildCheckoutLead = (status) => {
+        const lead = {
+            name: user?.user_metadata?.full_name || '',
+            email: user?.email,
+            phone: formatPhoneForRazorpay(checkoutPhone),
+            plan: plan.name,
+        };
+        if (status) lead.status = status;
+        return lead;
+    };
 
     useEffect(() => {
         if (!user?.email) return;
         const phone = formatPhoneForRazorpay(checkoutPhone);
         if (!phone && !user.email) return;
         pushLeadToTeleCRM(
-            buildCheckoutLead('Fresh'),
+            buildCheckoutLead(),
             ['Public Website: Checkout Intent', `Plan: ${plan.name}`]
         );
     }, [user?.email, plan.name, checkoutPhone]);
@@ -423,7 +426,7 @@ const CheckoutPage = () => {
                 setPaymentState('idle');
                 setPaymentError('Payment cancelled. You can try again.');
                 pushLeadToTeleCRM(
-                    buildCheckoutLead('Fresh'),
+                    buildCheckoutLead(),
                     ['Public Website: Payment Cancelled', `Plan: ${plan.name}`]
                 );
             };
@@ -526,7 +529,7 @@ const CheckoutPage = () => {
                     console.error('[Razorpay] payment.failed:', resp);
                 }
                 pushLeadToTeleCRM(
-                    buildCheckoutLead('Fresh'),
+                    buildCheckoutLead(),
                     [
                         'Public Website: Payment Failed',
                         `Plan: ${plan.name}`,
