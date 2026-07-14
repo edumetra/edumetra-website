@@ -237,14 +237,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 // Tracking metadata
                 last_page: leadFields.last_page || '',
                 touchpoint: tags.join(', ')
-            },
-            // Top-level unique identifiers used by TeleCRM for deduplication
-            name: leadFields.name,
-            email: leadFields.email,
-            phone: leadFields.phone,
-            source: leadFields.source || PLATFORM_SOURCE,
-            // Tags for lead labelling
-            tags: tags
+            }
         };
 
         // Add page history and tags/extra fields as a beautifully formatted note

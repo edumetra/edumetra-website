@@ -181,13 +181,7 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
                 PhoneNumber: leadFields.phone,
                 last_page: leadFields.last_page || '',
                 touchpoint: tags.join(', '),
-            },
-            name: leadFields.name,
-            email: leadFields.email,
-            phone: leadFields.phone,
-            phoneNumber: leadFields.phone,
-            source: leadFields.source,
-            tags,
+            }
         };
 
         // Add page history and tags/extra fields as note
