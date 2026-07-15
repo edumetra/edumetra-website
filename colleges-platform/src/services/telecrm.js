@@ -147,6 +147,8 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
 
         for (const [key, val] of Object.entries(fields)) {
             if (val !== undefined && val !== null && val !== '') {
+                if (key === 'status') continue; // Prevent overwriting old lead statuses
+
                 if (standardFields.has(key)) {
                     leadFields[key] = key === 'phone' ? normalisePhone(val) : val;
                 } else {
@@ -175,10 +177,6 @@ export async function pushLeadToTeleCRM(fields = {}, tags = []) {
         const body = {
             fields: {
                 ...leadFields,
-                Name: leadFields.name,
-                Email: leadFields.email,
-                Phone: leadFields.phone,
-                PhoneNumber: leadFields.phone,
                 last_page: leadFields.last_page || '',
                 touchpoint: tags.join(', '),
             }
