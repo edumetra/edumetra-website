@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
-import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock } from 'lucide-react';
+import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock, Star, Quote } from 'lucide-react';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ConnectPage = () => {
@@ -79,6 +79,11 @@ const ConnectPage = () => {
         <meta name="description" content="Connect with us for exclusive access and premium benefits." />
       </Helmet>
 
+      {/* Logo */}
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-50 animate-fade-in">
+        <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-8 sm:h-12 w-auto object-contain rounded" />
+      </div>
+
       {/* Background Effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-red-900/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/20 blur-[120px] pointer-events-none" />
@@ -124,6 +129,26 @@ const ConnectPage = () => {
               ))}
             </div>
             <p>Trusted by <strong className="text-slate-300 font-bold">10,000+</strong> students worldwide</p>
+          </div>
+
+          {/* Testimonials */}
+          <div className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-in-left" style={{ animationDelay: '400ms' }}>
+            <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 relative">
+              <Quote className="w-8 h-8 text-slate-800 absolute top-2 right-2 opacity-50" />
+              <div className="flex gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />)}
+              </div>
+              <p className="text-sm text-slate-300 italic mb-3">"Thanks to their expert counselling, I secured a seat in my dream medical college!"</p>
+              <div className="text-xs font-semibold text-slate-400">- Riya S., Student</div>
+            </div>
+            <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 relative">
+              <Quote className="w-8 h-8 text-slate-800 absolute top-2 right-2 opacity-50" />
+              <div className="flex gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />)}
+              </div>
+              <p className="text-sm text-slate-300 italic mb-3">"The premium data and insights were completely game-changing for my admission process."</p>
+              <div className="text-xs font-semibold text-slate-400">- Vikram M., Aspirant</div>
+            </div>
           </div>
         </div>
 
