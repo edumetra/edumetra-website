@@ -37,6 +37,7 @@ import TermsPage from './pages/TermsPage';
 import CareersPage from './pages/CareersPage';
 import UniversitiesPage from './pages/UniversitiesPage';
 import ExamsPage from './pages/ExamsPage';
+import ConnectPage from './pages/ConnectPage';
 import { analytics } from './shared/utils/analytics';
 import { trackTeleCRMPageView } from './services/telecrm';
 
@@ -53,6 +54,55 @@ function ScrollToTop() {
   return null;
 }
 
+function AppContent() {
+  const { pathname } = useLocation();
+  const isLandingPage = pathname === '/connect';
+
+  return (
+    <div className="min-h-screen flex flex-col scrollbar-custom w-full overflow-x-hidden">
+      {!isLandingPage && <PromoBanner />}
+      {!isLandingPage && <Header />}
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/advertise" element={<AdvertisePage />} />
+          <Route path="/review" element={<WriteReviewPage />} />
+          <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
+          <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
+          <Route path="/news-blogs/:slug" element={<ArticleDetailPage />} />
+          <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
+          <Route path="/webinars-seminars/:slug" element={<EventDetailPage />} />
+          <Route path="/find-colleges" element={<FindCollegesPage />} />
+          <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
+          <Route path="/courses/:courseId" element={<CoursePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/invoice" element={<InvoicePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/universities" element={<UniversitiesPage />} />
+          <Route path="/exams" element={<ExamsPage />} />
+          <Route path="/connect" element={<ConnectPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </div>
+      {!isLandingPage && <Footer />}
+      {!isLandingPage && <StickyMobileCTA />}
+      {!isLandingPage && <CounsellingModal />}
+      {!isLandingPage && <SiteNotice />}
+    </div>
+  );
+}
+
 function App() {
   useEffect(() => {
     // Initialize analytics
@@ -66,46 +116,7 @@ function App() {
         <CounsellingProvider>
           <Router>
             <ScrollToTop />
-            <div className="min-h-screen flex flex-col scrollbar-custom w-full overflow-x-hidden">
-              <PromoBanner />
-              <Header />
-              <div className="flex-1">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/features" element={<FeaturesPage />} />
-                  <Route path="/pricing" element={<PricingPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/advertise" element={<AdvertisePage />} />
-                  <Route path="/review" element={<WriteReviewPage />} />
-                  <Route path="/mbbs-abroad" element={<MBBSAbroadPage />} />
-                  <Route path="/news-blogs" element={<NewsAndBlogsPage />} />
-                  <Route path="/news-blogs/:slug" element={<ArticleDetailPage />} />
-                  <Route path="/webinars-seminars" element={<WebinarsAndSeminarsPage />} />
-                  <Route path="/webinars-seminars/:slug" element={<EventDetailPage />} />
-                  <Route path="/find-colleges" element={<FindCollegesPage />} />
-                  <Route path="/colleges/:slug" element={<CollegeDetailPage />} />
-                  <Route path="/courses/:courseId" element={<CoursePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignupPage />} />
-                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                  <Route path="/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/invoice" element={<InvoicePage />} />
-                  <Route path="/privacy" element={<PrivacyPage />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                  <Route path="/careers" element={<CareersPage />} />
-                  <Route path="/universities" element={<UniversitiesPage />} />
-                  <Route path="/exams" element={<ExamsPage />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </div>
-              <Footer />
-              <StickyMobileCTA />
-              <CounsellingModal />
-              <SiteNotice />
-            </div>
+            <AppContent />
           </Router>
         </CounsellingProvider>
       </AuthProvider>

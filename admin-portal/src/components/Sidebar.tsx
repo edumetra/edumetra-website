@@ -36,6 +36,7 @@ type NavItem = {
 };
 
 const CONTENT_NAV: NavItem[] = [
+    { href: "/marketing-leads", label: "Marketing Leads", icon: Users, permKey: "hot_leads" },
     { href: "/hot-leads", label: "🔥 Hot Leads", icon: Flame, permKey: "hot_leads" },
     { href: "/reviews", label: "Reviews", icon: BookOpen, permKey: "reviews" },
     { href: "/cutoffs", label: "Cutoffs Engine", icon: ListOrdered, permKey: "cutoffs" },
