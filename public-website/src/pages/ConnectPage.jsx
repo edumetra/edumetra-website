@@ -47,6 +47,19 @@ const ConnectPage = () => {
         ['Connect Landing Page']
       );
 
+      // Track lead in Facebook and Google
+      if (typeof window !== 'undefined') {
+        if (window.fbq) {
+          window.fbq('track', 'Lead');
+        }
+        if (window.gtag) {
+          window.gtag('event', 'generate_lead', {
+            event_category: 'Lead',
+            event_label: 'Connect Landing Page',
+          });
+        }
+      }
+
       setSuccess(true);
       setTimeout(() => {
         window.location.href = '/';
