@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock } from 'lucide-react';
+import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ConnectPage = () => {
   const [formData, setFormData] = useState({
@@ -35,6 +36,16 @@ const ConnectPage = () => {
         ]);
 
       if (submitError) throw submitError;
+
+      // Track lead in TeleCRM
+      pushLeadToTeleCRM(
+        { 
+          name: formData.name, 
+          email: formData.email, 
+          phone: formData.phone 
+        }, 
+        ['Connect Landing Page']
+      );
 
       setSuccess(true);
       setTimeout(() => {
