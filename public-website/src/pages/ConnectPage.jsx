@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock, Star, Quote } from 'lucide-react';
@@ -79,9 +80,16 @@ const ConnectPage = () => {
         <meta name="description" content="Connect with us for exclusive access and premium benefits." />
       </Helmet>
 
-      {/* Logo */}
-      <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-50 animate-fade-in">
-        <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-8 sm:h-12 w-auto object-contain rounded" />
+      {/* Header with Logo and Tabs */}
+      <div className="absolute top-0 left-0 w-full p-6 sm:p-8 z-50 flex items-center justify-between animate-fade-in">
+        <Link to="/">
+          <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-8 sm:h-10 w-auto object-contain rounded hover:opacity-80 transition-opacity" />
+        </Link>
+        <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-300">
+          <Link to="/find-colleges" className="hover:text-white transition-colors">Find Colleges</Link>
+          <Link to="/universities" className="hover:text-white transition-colors">Universities</Link>
+          <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+        </div>
       </div>
 
       {/* Background Effects */}
