@@ -39,7 +39,7 @@ const ConnectPage = () => {
       if (submitError) throw submitError;
 
       // Track lead in TeleCRM
-      pushLeadToTeleCRM(
+      await pushLeadToTeleCRM(
         { 
           name: formData.name, 
           email: formData.email, 
