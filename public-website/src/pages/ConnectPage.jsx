@@ -88,6 +88,8 @@ const ConnectPage = () => {
         <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-slate-300">
           <Link to="/find-colleges" className="hover:text-white transition-colors">Find Colleges</Link>
           <Link to="/universities" className="hover:text-white transition-colors">Universities</Link>
+          <Link to="/exams" className="hover:text-white transition-colors">Exams</Link>
+          <Link to="/mbbs-abroad" className="hover:text-white transition-colors">MBBS Abroad</Link>
           <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
         </div>
       </div>
