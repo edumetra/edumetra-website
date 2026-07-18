@@ -74,14 +74,14 @@ const ConnectPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-950 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <Helmet>
         <title>Exclusive Offer | Connect With Us</title>
         <meta name="description" content="Connect with us for exclusive access and premium benefits." />
       </Helmet>
 
       {/* Header with Logo and Tabs */}
-      <div className="absolute top-0 left-0 w-full p-6 sm:p-8 z-50 flex items-center justify-between animate-fade-in">
+      <div className="absolute top-0 left-0 w-full p-4 sm:p-8 z-50 flex items-center justify-between animate-fade-in bg-slate-950/80 backdrop-blur-md border-b border-slate-800 lg:border-none lg:bg-transparent lg:backdrop-blur-none">
         <Link to="/">
           <img src="/logo-final.jpg" alt="Edumetra Logo" className="h-8 sm:h-10 w-auto object-contain rounded hover:opacity-80 transition-opacity" />
         </Link>
@@ -96,22 +96,38 @@ const ConnectPage = () => {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-red-900/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/20 blur-[120px] pointer-events-none" />
 
-      <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 relative z-10 items-center">
+      <div className="max-w-6xl w-full mx-auto relative z-10 flex flex-col items-center">
         
-        {/* Left Side: Value Proposition */}
-        <div className="flex flex-col space-y-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold mb-6 animate-fade-in">
-              <Zap className="w-4 h-4" />
-              Limited Time Opportunity
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
-              Unlock Your <span className="gradient-text">Premium</span> Future Today.
-            </h1>
-            <p className="text-lg sm:text-xl text-slate-400 leading-relaxed max-w-lg">
-              Join thousands of successful students who have already transformed their careers. Get exclusive guidance, premium resources, and direct support.
-            </p>
+        {/* Mobile Headline (Only visible on mobile, placed above the form) */}
+        <div className="lg:hidden w-full text-center mb-8 animate-fade-in mt-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold mb-4">
+            <Zap className="w-3.5 h-3.5" />
+            Limited Time Opportunity
           </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3">
+            Unlock Your <span className="gradient-text">Premium</span> Future.
+          </h1>
+          <p className="text-sm text-slate-400 leading-relaxed px-2">
+            Join thousands of successful students who have transformed their careers.
+          </p>
+        </div>
+
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+          
+          {/* Left Side: Value Proposition (On mobile, this goes BELOW the form) */}
+          <div className="flex flex-col space-y-8 order-2 lg:order-1">
+            <div className="hidden lg:block">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold mb-6 animate-fade-in">
+                <Zap className="w-4 h-4" />
+                Limited Time Opportunity
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+                Unlock Your <span className="gradient-text">Premium</span> Future Today.
+              </h1>
+              <p className="text-lg sm:text-xl text-slate-400 leading-relaxed max-w-lg">
+                Join thousands of successful students who have already transformed their careers. Get exclusive guidance, premium resources, and direct support.
+              </p>
+            </div>
 
           <div className="space-y-5">
             {[
@@ -160,9 +176,9 @@ const ConnectPage = () => {
           </div>
         </div>
 
-        {/* Right Side: Form Card */}
-        <div className="w-full max-w-md mx-auto lg:mx-0 animate-slide-in-right">
-          <div className="card card-premium shadow-2xl relative overflow-hidden">
+          {/* Right Side: Form Card (On mobile, this goes FIRST) */}
+          <div className="w-full max-w-md mx-auto lg:mx-0 animate-slide-in-right order-1 lg:order-2">
+            <div className="card card-premium shadow-2xl relative overflow-hidden">
             {/* Glossy top highlight */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-80" />
             
@@ -197,9 +213,11 @@ const ConnectPage = () => {
                       name="name"
                       type="text"
                       required
+                      autoComplete="name"
+                      autoCapitalize="words"
                       value={formData.name}
                       onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner"
+                      className="block w-full pl-10 pr-3 py-3 sm:py-3.5 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner text-base"
                       placeholder="Rahul Sharma"
                     />
                   </div>
@@ -218,9 +236,11 @@ const ConnectPage = () => {
                       name="email"
                       type="email"
                       required
+                      autoComplete="email"
+                      inputMode="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner"
+                      className="block w-full pl-10 pr-3 py-3 sm:py-3.5 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner text-base"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -239,9 +259,12 @@ const ConnectPage = () => {
                       name="phone"
                       type="tel"
                       required
+                      autoComplete="tel"
+                      inputMode="numeric"
+                      pattern="[0-9+ -]*"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner"
+                      className="block w-full pl-10 pr-3 py-3 sm:py-3.5 border border-slate-700 bg-slate-900/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all shadow-inner text-base"
                       placeholder="+91 98765 43210"
                     />
                   </div>
@@ -257,7 +280,7 @@ const ConnectPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn btn-primary w-full group py-3.5 mt-2 text-lg"
+                  className="btn btn-primary w-full group py-4 mt-2 text-lg font-bold shadow-lg shadow-red-500/20"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
