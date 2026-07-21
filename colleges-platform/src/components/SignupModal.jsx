@@ -17,6 +17,7 @@ export default function SignupModal({ isOpen, onClose }) {
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
     const [otpError, setOtpError] = useState('');
+    const isSubmitting = React.useRef(false);
 
     // Sync with modalMode whenever the modal opens or mode changes
     useEffect(() => {
@@ -34,6 +35,8 @@ export default function SignupModal({ isOpen, onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting.current) return;
+        isSubmitting.current = true;
         setLoading(true);
         setError(null);
         setSuccessMsg(null);
@@ -173,6 +176,7 @@ export default function SignupModal({ isOpen, onClose }) {
             }
         } catch (err) {
             setError(err.message);
+            isSubmitting.current = false;
         } finally {
             setLoading(false);
         }

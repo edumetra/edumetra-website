@@ -29,6 +29,7 @@ const SignupPage = () => {
     const [error, setError] = useState('');
     const [otpError, setOtpError] = useState('');
     const [success, setSuccess] = useState('');
+    const isSubmitting = React.useRef(false);
 
     // Redirect if already logged in
     useEffect(() => {
@@ -58,6 +59,7 @@ const SignupPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting.current) return;
 
         if (!otpVerified) {
             setError('Please verify your phone number with OTP first');
@@ -68,6 +70,7 @@ const SignupPage = () => {
             return;
         }
 
+        isSubmitting.current = true;
         setLoading(true);
         setError('');
 
@@ -79,6 +82,7 @@ const SignupPage = () => {
         if (error) {
             setError(error);
             setLoading(false);
+            isSubmitting.current = false;
         } else {
             // Push to TeleCRM (fire-and-forget)
             pushLeadToTeleCRM(

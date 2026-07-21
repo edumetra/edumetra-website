@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
-import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock, Star, Quote } from 'lucide-react';
+import { CheckCircle2, Shield, Zap, User, Mail, Phone, ArrowRight, Lock, Star, Quote, Globe, Building, Stethoscope, Award, Navigation } from 'lucide-react';
 import { pushLeadToTeleCRM } from '../services/telecrm';
 
 const ConnectPage = () => {
@@ -14,6 +14,7 @@ const ConnectPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const isSubmitting = React.useRef(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,6 +22,8 @@ const ConnectPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setLoading(true);
     setError(null);
 
@@ -68,6 +71,7 @@ const ConnectPage = () => {
     } catch (err) {
       console.error('Error submitting form:', err);
       setError('Something went wrong. Please try again.');
+      isSubmitting.current = false;
     } finally {
       setLoading(false);
     }
@@ -304,6 +308,141 @@ const ConnectPage = () => {
             )}
           </div>
           </div>
+        </div>
+
+        {/* SEO Content Section - Premium Redesign */}
+        <div className="w-full mt-24 lg:mt-32 space-y-12 animate-fade-in relative z-10 text-left">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-6">
+              NEET UG Counselling 2026: <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Complete Guidance</span>
+            </h2>
+            <p className="text-lg text-slate-400">
+              For <strong className="text-white">MBBS Admission</strong>, <strong className="text-white">MBBS Abroad</strong>, <strong className="text-white">Top Medical Colleges</strong>, <strong className="text-white">BDS & AYUSH Admissions</strong>
+            </p>
+          </div>
+
+          {/* Intro Card */}
+          <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 md:p-8 backdrop-blur-sm shadow-xl shadow-slate-900/50">
+            <p className="text-slate-300 leading-relaxed mb-4 text-lg">
+              If you have qualified <strong className="text-white">NEET UG 2026</strong>, choosing the right college and counselling strategy is just as important as your exam score. Every year, thousands of students miss good admission opportunities because of incorrect choice filling, lack of information, or delayed counselling registration.
+            </p>
+            <p className="text-slate-400 leading-relaxed">
+              At <strong className="text-white">Edumetra Global</strong>, we provide expert <strong className="text-white">NEET UG Counselling</strong> and personalized <strong className="text-white">Counselling Guidance</strong> to help students secure admission in the best medical colleges in India and abroad.
+            </p>
+          </div>
+
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Card 1 */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-red-500/50 transition-colors group">
+              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-red-500/20 transition-colors">
+                <Navigation className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Counselling Made Simple</h3>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> MCC (All India Quota) Counselling</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> State Counselling Registration</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> College Prediction based on NEET Rank</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> Choice Filling & Locking Strategy</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> Seat Allotment Guidance</li>
+              </ul>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-blue-500/50 transition-colors group">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-500/20 transition-colors">
+                <Building className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">MBBS Admission in India</h3>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> Government Medical Colleges</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> Private Medical Colleges</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> Deemed Universities</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> State Quota & All India Quota Seats</li>
+              </ul>
+            </div>
+
+            {/* Card 3 */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 hover:border-purple-500/50 transition-colors group">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
+                <Globe className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3"><strong className="text-white">MBBS Abroad</strong></h3>
+              <p className="text-slate-400 text-sm mb-4">Internationally recognized universities with affordable fees and strong clinical exposure.</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300 border border-slate-700 font-medium"><strong className="text-slate-200">MBBS in Nepal</strong></span>
+                <span className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300 border border-slate-700 font-medium"><strong className="text-slate-200">MBBS in Russia</strong></span>
+                <span className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300 border border-slate-700">Uzbekistan</span>
+                <span className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300 border border-slate-700">Kazakhstan</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Two Column Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            
+            <div className="space-y-6">
+              <div className="flex gap-4 bg-slate-900/30 p-5 rounded-xl border border-slate-800/50">
+                <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center shrink-0 border border-orange-500/20">
+                  <Stethoscope className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">BDS, BAMS, BHMS & BUMS</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Interested in dentistry or AYUSH courses? We provide complete guidance for <strong className="text-slate-300">BDS Admission</strong> and <strong className="text-slate-300">BAMS Admission</strong>, <strong className="text-slate-300">BHMS Admission</strong> & <strong className="text-slate-300">BUMS Admission</strong> in top government and private colleges across India based on your NEET score.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 bg-slate-900/30 p-5 rounded-xl border border-slate-800/50">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center shrink-0 border border-emerald-500/20">
+                  <Award className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">Top Medical Colleges</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Selecting from the <strong className="text-slate-300">Top Medical Colleges</strong> requires evaluating previous cut-offs, fees, hospital exposure, and infrastructure. We help you compare and make informed decisions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl"></div>
+              <h3 className="text-xl font-bold text-white mb-4">Why Choose Edumetra Global?</h3>
+              <ul className="space-y-3">
+                {[
+                  "Expert NEET UG Counselling Team",
+                  "Personalized Counselling Guidance",
+                  "College Prediction Based on Your NEET Score",
+                  "Guidance for MBBS, BDS & AYUSH Admissions",
+                  "Support for MBBS Abroad (Nepal, Russia & more)",
+                  "End-to-End Admission Support"
+                ].map((item, idx) => (
+                  <li key={idx} className="flex gap-3 items-start text-slate-300 text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+          </div>
+
+          {/* Call to action text */}
+          <div className="mt-12 text-center bg-slate-900/30 border border-slate-800/50 rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">Start Your Medical Journey with Confidence</h3>
+            <p className="text-slate-400 max-w-4xl mx-auto leading-relaxed mb-6">
+              Your NEET rank is only the beginning. The right guidance can help you secure admission to one of the <strong className="text-slate-300">Top Medical Colleges</strong> in India or pursue <strong className="text-slate-300">MBBS Abroad</strong> at a reputed international university. Whether your goal is <strong className="text-slate-300">MBBS Admission</strong>, <strong className="text-slate-300">BDS Admission</strong>, <strong className="text-slate-300">BAMS/BHMS/BUMS Admission</strong>, <strong className="text-slate-300">MBBS in Nepal</strong>, or <strong className="text-slate-300">MBBS in Russia</strong>, Edumetra Global is committed to helping you make informed decisions.
+            </p>
+            <p className="font-bold text-white text-lg">
+              Book your FREE counselling session today and take the first step!
+            </p>
+          </div>
+
         </div>
       </div>
     </div>
