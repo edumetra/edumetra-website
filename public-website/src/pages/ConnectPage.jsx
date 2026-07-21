@@ -438,9 +438,16 @@ const ConnectPage = () => {
             <p className="text-slate-400 max-w-4xl mx-auto leading-relaxed mb-6">
               Your NEET rank is only the beginning. The right guidance can help you secure admission to one of the <strong className="text-slate-300">Top Medical Colleges</strong> in India or pursue <strong className="text-slate-300">MBBS Abroad</strong> at a reputed international university. Whether your goal is <strong className="text-slate-300">MBBS Admission</strong>, <strong className="text-slate-300">BDS Admission</strong>, <strong className="text-slate-300">BAMS/BHMS/BUMS Admission</strong>, <strong className="text-slate-300">MBBS in Nepal</strong>, or <strong className="text-slate-300">MBBS in Russia</strong>, Edumetra Global is committed to helping you make informed decisions.
             </p>
-            <p className="font-bold text-white text-lg">
+            <p className="font-bold text-white text-lg mb-8">
               Book your FREE counselling session today and take the first step!
             </p>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="btn btn-primary group py-3 px-8 text-base font-bold shadow-lg shadow-red-500/20 inline-flex items-center justify-center gap-2"
+            >
+              Fill the Form Now
+              <ArrowRight className="w-5 h-5 group-hover:-rotate-90 transition-transform" />
+            </button>
           </div>
 
         </div>
